@@ -6,6 +6,7 @@
   let isPlaying = $state(true);
   let isLoading = $state(true);
   let hasError = $state(false);
+  let loadProgress = $state(0);
   let playbackSpeed = $state(1);
   let isFullscreen = $state(false);
   let playerWrapper = $state(null);
@@ -13,45 +14,76 @@
   onMount(() => {
     let isCancelled = false;
 
-    // Dynamically load lottie-web to optimize initial bundle and ensure browser environment
-    import('lottie-web')
-      .then((lottieModule) => {
+    async function initAnimation() {
+      try {
+        // 1. Carregar pacote lottie-web dinamicamente
+        const [lottieModule, jsonResponse] = await Promise.all([
+          import('lottie-web'),
+          fetch('/16-10.json')
+        ]);
+
         if (isCancelled || !animContainer) return;
+
+        if (!jsonResponse.ok) {
+          throw new Error(`Falha ao buscar JSON: ${jsonResponse.statusText}`);
+        }
+
+        const animationData = await jsonResponse.json();
+        if (isCancelled || !animContainer) return;
+
         const lottie = lottieModule.default || lottieModule;
 
-        try {
-          anim = lottie.loadAnimation({
-            container: animContainer,
-            renderer: 'svg',
-            loop: true,
-            autoplay: true,
-            path: '/16-10.json'
-          });
+        // 2. Inicializar animação com os dados já carregados na memória
+        anim = lottie.loadAnimation({
+          container: animContainer,
+          renderer: 'svg',
+          loop: true,
+          autoplay: true,
+          animationData: animationData,
+          rendererSettings: {
+            preserveAspectRatio: 'xMidYMid meet',
+            progressiveLoad: true,
+            hideOnTransparent: true
+          }
+        });
 
-          anim.addEventListener('DOMLoaded', () => {
+        // 3. Garantir dispensa imediata do loading em múltiplos gatilhos
+        const markLoaded = () => {
+          if (!isCancelled) {
             isLoading = false;
-          });
+          }
+        };
 
-          anim.addEventListener('data_failed', () => {
+        if (anim.isLoaded) {
+          markLoaded();
+        }
+
+        anim.addEventListener('DOMLoaded', markLoaded);
+        anim.addEventListener('data_ready', markLoaded);
+        anim.addEventListener('firstFrame', markLoaded);
+        anim.addEventListener('loaded_images', markLoaded);
+
+        anim.addEventListener('error', (e) => {
+          console.error('Erro no player Lottie:', e);
+          if (!isCancelled) {
             isLoading = false;
             hasError = true;
-          });
+          }
+        });
 
-          anim.addEventListener('error', () => {
-            isLoading = false;
-            hasError = true;
-          });
-        } catch (e) {
-          console.error('Falha ao iniciar animação Lottie:', e);
+        // Timeout de segurança absoluto: máximo de 1.2s para sumir o overlay
+        setTimeout(markLoaded, 1200);
+
+      } catch (err) {
+        console.error('Erro ao inicializar animação Lottie:', err);
+        if (!isCancelled) {
           isLoading = false;
           hasError = true;
         }
-      })
-      .catch((err) => {
-        console.error('Erro ao importar lottie-web:', err);
-        isLoading = false;
-        hasError = true;
-      });
+      }
+    }
+
+    initAnimation();
 
     const handleFullscreenChange = () => {
       isFullscreen = !!document.fullscreenElement;
@@ -95,11 +127,11 @@
     if (!playerWrapper) return;
     if (!document.fullscreenElement) {
       playerWrapper.requestFullscreen?.().catch((err) => {
-        console.warn('Fullscreen error:', err);
+        console.warn('Erro ao abrir tela cheia:', err);
       });
     } else {
       document.exitFullscreen?.().catch((err) => {
-        console.warn('Exit fullscreen error:', err);
+        console.warn('Erro ao sair de tela cheia:', err);
       });
     }
   }
@@ -211,7 +243,7 @@
           <div class="loading-overlay">
             <div class="spinner"></div>
             <p class="loading-text">Carregando animação...</p>
-            <span class="loading-subtext">Arquivo de apresentação 16:10</span>
+            <span class="loading-subtext">Apresentação Institucional 16:10</span>
           </div>
         {/if}
 
@@ -229,7 +261,6 @@
         <div 
           bind:this={animContainer} 
           class="lottie-box"
-          class:hidden={isLoading || hasError}
         ></div>
       </div>
     </div>
@@ -491,11 +522,6 @@
     object-fit: contain;
   }
 
-  .hidden {
-    opacity: 0;
-    pointer-events: none;
-  }
-
   .loading-overlay, .error-overlay {
     position: absolute;
     inset: 0;
@@ -503,10 +529,11 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: rgba(15, 23, 42, 0.95);
+    background: #090d16;
     z-index: 10;
     color: #f8fafc;
     gap: 0.6rem;
+    transition: opacity 0.3s ease;
   }
 
   .spinner {
