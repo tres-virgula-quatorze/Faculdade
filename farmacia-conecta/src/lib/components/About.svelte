@@ -1,183 +1,311 @@
 <script>
   import { onMount } from 'svelte';
 
-  let animContainer = $state(null);
-  let anim = null;
+  let videoElement = $state(null);
+  let playerWrapper = $state(null);
+  let progressBar = $state(null);
+  let sectionRef = $state(null);
+
+  // Estados do player
   let isPlaying = $state(true);
-  let isLoading = $state(true);
-  let hasError = $state(false);
-  let loadProgress = $state(0);
+  let currentTime = $state(0);
+  let duration = $state(0);
   let playbackSpeed = $state(1);
   let isFullscreen = $state(false);
-  let playerWrapper = $state(null);
+  let isScrollMode = $state(false); // Alternar entre Modo Loop e Modo Scroll Scrubbing
+  let isHovered = $state(false);
+  let isDraggingProgress = $state(false);
+
+  // Efeito 3D Tilt suave
+  let tiltX = $state(0);
+  let tiltY = $state(0);
+  let glareX = $state(50);
+  let glareY = $state(50);
+
+  // Capítulos / Cenas da animação
+  const chapters = [
+    { title: "Identidade & Marca", timeRatio: 0.05, desc: "Apresentação visual da Farmácia Conecta" },
+    { title: "Cuidado Clínico", timeRatio: 0.50, desc: "Uso racional e orientação de receitas" },
+    { title: "Buriticupu & Acolhimento", timeRatio: 0.88, desc: "Atenção humanizada à comunidade" }
+  ];
+
+  let progressPercent = $derived(
+    duration > 0 ? (currentTime / duration) * 100 : 0
+  );
+
+  let activeChapterIndex = $derived.by(() => {
+    if (!duration) return 0;
+    const ratio = currentTime / duration;
+    if (ratio < 0.35) return 0;
+    if (ratio < 0.72) return 1;
+    return 2;
+  });
 
   onMount(() => {
-    let isCancelled = false;
-
-    async function initAnimation() {
-      try {
-        // 1. Carregar pacote lottie-web dinamicamente
-        const [lottieModule, jsonResponse] = await Promise.all([
-          import('lottie-web'),
-          fetch('/16-10.json')
-        ]);
-
-        if (isCancelled || !animContainer) return;
-
-        if (!jsonResponse.ok) {
-          throw new Error(`Falha ao buscar JSON: ${jsonResponse.statusText}`);
-        }
-
-        const animationData = await jsonResponse.json();
-        if (isCancelled || !animContainer) return;
-
-        const lottie = lottieModule.default || lottieModule;
-
-        // 2. Inicializar animação com os dados já carregados na memória
-        anim = lottie.loadAnimation({
-          container: animContainer,
-          renderer: 'svg',
-          loop: true,
-          autoplay: true,
-          animationData: animationData,
-          rendererSettings: {
-            preserveAspectRatio: 'xMidYMid meet',
-            progressiveLoad: true,
-            hideOnTransparent: true
-          }
-        });
-
-        // 3. Garantir dispensa imediata do loading em múltiplos gatilhos
-        const markLoaded = () => {
-          if (!isCancelled) {
-            isLoading = false;
-          }
-        };
-
-        if (anim.isLoaded) {
-          markLoaded();
-        }
-
-        anim.addEventListener('DOMLoaded', markLoaded);
-        anim.addEventListener('data_ready', markLoaded);
-        anim.addEventListener('firstFrame', markLoaded);
-        anim.addEventListener('loaded_images', markLoaded);
-
-        anim.addEventListener('error', (e) => {
-          console.error('Erro no player Lottie:', e);
-          if (!isCancelled) {
-            isLoading = false;
-            hasError = true;
-          }
-        });
-
-        // Timeout de segurança absoluto: máximo de 1.2s para sumir o overlay
-        setTimeout(markLoaded, 1200);
-
-      } catch (err) {
-        console.error('Erro ao inicializar animação Lottie:', err);
-        if (!isCancelled) {
-          isLoading = false;
-          hasError = true;
+    // Sincronização ao carregar metadados
+    const handleLoadedMetadata = () => {
+      if (videoElement) {
+        duration = videoElement.duration || 5.14;
+        if (!isScrollMode) {
+          videoElement.play().catch(() => {
+            // Autoplay com som bloqueado pode requerer muted
+            if (videoElement) {
+              videoElement.muted = true;
+              videoElement.play().catch(() => {});
+            }
+          });
         }
       }
-    }
+    };
 
-    initAnimation();
+    const handleTimeUpdate = () => {
+      if (videoElement && !isDraggingProgress && !isScrollMode) {
+        currentTime = videoElement.currentTime;
+      }
+    };
 
     const handleFullscreenChange = () => {
       isFullscreen = !!document.fullscreenElement;
     };
+
+    // Scroll Scrubbing Listener (efeito Apple)
+    const handleScroll = () => {
+      if (!isScrollMode || !sectionRef || !videoElement || !duration) return;
+
+      const rect = sectionRef.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+
+      // Calcular o progresso de visibilidade da seção no viewport
+      const totalScrollable = rect.height + windowHeight * 0.5;
+      const currentScroll = windowHeight - rect.top;
+      const progress = Math.max(0, Math.min(1, currentScroll / totalScrollable));
+
+      const targetTime = progress * duration;
+      videoElement.currentTime = targetTime;
+      currentTime = targetTime;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
     document.addEventListener('fullscreenchange', handleFullscreenChange);
 
+    if (videoElement) {
+      videoElement.addEventListener('loadedmetadata', handleLoadedMetadata);
+      videoElement.addEventListener('timeupdate', handleTimeUpdate);
+      if (videoElement.readyState >= 1) {
+        handleLoadedMetadata();
+      }
+    }
+
     return () => {
-      isCancelled = true;
+      window.removeEventListener('scroll', handleScroll);
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      if (anim) {
-        anim.destroy();
-        anim = null;
+      if (videoElement) {
+        videoElement.removeEventListener('loadedmetadata', handleLoadedMetadata);
+        videoElement.removeEventListener('timeupdate', handleTimeUpdate);
       }
     };
   });
 
   function togglePlay() {
-    if (!anim) return;
+    if (!videoElement) return;
+    if (isScrollMode) {
+      setMode(false);
+      return;
+    }
     if (isPlaying) {
-      anim.pause();
+      videoElement.pause();
       isPlaying = false;
     } else {
-      anim.play();
+      videoElement.play();
       isPlaying = true;
     }
   }
 
   function restart() {
-    if (!anim) return;
-    anim.goToAndPlay(0, true);
-    isPlaying = true;
+    if (!videoElement) return;
+    videoElement.currentTime = 0;
+    currentTime = 0;
+    if (!isScrollMode) {
+      videoElement.play();
+      isPlaying = true;
+    }
   }
 
   function setSpeed(speed) {
-    if (!anim) return;
+    if (!videoElement) return;
     playbackSpeed = speed;
-    anim.setSpeed(speed);
+    videoElement.playbackRate = speed;
+  }
+
+  function setMode(scrollMode) {
+    isScrollMode = scrollMode;
+    if (!videoElement) return;
+    if (isScrollMode) {
+      videoElement.pause();
+      isPlaying = false;
+    } else {
+      videoElement.playbackRate = playbackSpeed;
+      videoElement.play().catch(() => {});
+      isPlaying = true;
+    }
+  }
+
+  function seekToChapter(chapter) {
+    if (!videoElement || !duration) return;
+    const target = chapter.timeRatio * duration;
+    videoElement.currentTime = target;
+    currentTime = target;
+    if (!isScrollMode && !isPlaying) {
+      videoElement.play();
+      isPlaying = true;
+    }
+  }
+
+  function handleProgressBarClick(e) {
+    if (!progressBar || !videoElement || !duration) return;
+    const rect = progressBar.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+    const newTime = ratio * duration;
+    videoElement.currentTime = newTime;
+    currentTime = newTime;
+  }
+
+  function handleMouseMove(e) {
+    if (!playerWrapper || isFullscreen) return;
+    const rect = playerWrapper.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+
+    // Rotação sutil de -4 a 4 graus
+    tiltY = ((x - centerX) / centerX) * 4;
+    tiltX = -((y - centerY) / centerY) * 4;
+
+    glareX = (x / rect.width) * 100;
+    glareY = (y / rect.height) * 100;
+    isHovered = true;
+  }
+
+  function handleMouseLeave() {
+    tiltX = 0;
+    tiltY = 0;
+    isHovered = false;
   }
 
   function toggleFullscreen() {
     if (!playerWrapper) return;
     if (!document.fullscreenElement) {
       playerWrapper.requestFullscreen?.().catch((err) => {
-        console.warn('Erro ao abrir tela cheia:', err);
+        console.warn('Erro fullscreen:', err);
       });
     } else {
       document.exitFullscreen?.().catch((err) => {
-        console.warn('Erro ao sair de tela cheia:', err);
+        console.warn('Erro exit fullscreen:', err);
       });
     }
   }
+
+  function formatTime(seconds) {
+    if (isNaN(seconds) || seconds < 0) return "0:00";
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  }
 </script>
 
-<section id="sobre" class="about-section">
+<section id="sobre" class="about-section" bind:this={sectionRef}>
   <div class="container">
     <div class="section-header">
-      <span class="section-badge">Sobre o Projeto</span>
-      <h2 class="section-title">Nossa História & Apresentação</h2>
+      <span class="section-badge">Animação & Identidade</span>
+      <h2 class="section-title">Sobre a Farmácia Conecta</h2>
       <p class="section-subtitle">
-        Conheça a essência da Farmácia Conecta Buriticupu: integração do conhecimento científico com o atendimento acolhedor à comunidade.
+        Uma experiência audiovisual interativa com nossa proposta pedagógica, prática clínica e vínculo com Buriticupu.
       </p>
+
+      <!-- Seletor de Modo de Interação -->
+      <div class="mode-switcher-container">
+        <div class="mode-switcher" role="group" aria-label="Modo de interação">
+          <button 
+            type="button" 
+            class="mode-btn" 
+            class:active={!isScrollMode} 
+            onclick={() => setMode(false)}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <span>Reprodução Fluida</span>
+          </button>
+          <button 
+            type="button" 
+            class="mode-btn" 
+            class:active={isScrollMode} 
+            onclick={() => setMode(true)}
+            title="Avança e retrocede o vídeo conforme você rola a página"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2v20M17 7l-5-5-5 5M17 17l-5 5-5-5"/>
+            </svg>
+            <span>Sincronizado ao Scroll</span>
+            <span class="interactive-tag">Interativo</span>
+          </button>
+        </div>
+      </div>
     </div>
 
-    <!-- Container do Player da Animação Jitter/Lottie -->
-    <div class="player-wrapper" bind:this={playerWrapper} class:is-fullscreen={isFullscreen}>
-      <!-- Barra superior do mockup de mídia -->
+    <!-- Card 3D do Player WebM -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div 
+      class="player-wrapper" 
+      bind:this={playerWrapper} 
+      class:is-fullscreen={isFullscreen}
+      class:is-hovered={isHovered}
+      onmousemove={handleMouseMove}
+      onmouseleave={handleMouseLeave}
+      style="transform: perspective(1000px) rotateX({tiltX}deg) rotateY({tiltY}deg);"
+    >
+      <!-- Efeito de brilho especular dinâmico com o mouse -->
+      <div 
+        class="glare-effect"
+        style="background: radial-gradient(circle at {glareX}% {glareY}%, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 65%);"
+      ></div>
+
+      <!-- Barra superior de status -->
       <div class="player-topbar">
         <div class="player-status">
-          <span class="pulse-indicator"></span>
-          <span class="status-label">Apresentação Institucional</span>
-          <span class="format-tag">16:10 • 60 FPS</span>
+          <span class="pulse-indicator" class:scroll-pulse={isScrollMode}></span>
+          <span class="status-label">
+            {isScrollMode ? 'Modo Rolagem Ativa (Role para mover)' : 'Apresentação Institucional (WebM 60 FPS)'}
+          </span>
+          <span class="format-badge">3.5 MB • GPU</span>
         </div>
 
         <div class="player-controls">
-          <div class="speed-selector" title="Velocidade de reprodução">
-            <button 
-              type="button" 
-              class="speed-btn" 
-              class:active={playbackSpeed === 0.75} 
-              onclick={() => setSpeed(0.75)}
-            >0.75x</button>
-            <button 
-              type="button" 
-              class="speed-btn" 
-              class:active={playbackSpeed === 1} 
-              onclick={() => setSpeed(1)}
-            >1x</button>
-            <button 
-              type="button" 
-              class="speed-btn" 
-              class:active={playbackSpeed === 1.5} 
-              onclick={() => setSpeed(1.5)}
-            >1.5x</button>
-          </div>
+          {#if !isScrollMode}
+            <div class="speed-selector" title="Velocidade de reprodução">
+              <button 
+                type="button" 
+                class="speed-btn" 
+                class:active={playbackSpeed === 0.75} 
+                onclick={() => setSpeed(0.75)}
+              >0.75x</button>
+              <button 
+                type="button" 
+                class="speed-btn" 
+                class:active={playbackSpeed === 1} 
+                onclick={() => setSpeed(1)}
+              >1x</button>
+              <button 
+                type="button" 
+                class="speed-btn" 
+                class:active={playbackSpeed === 1.5} 
+                onclick={() => setSpeed(1.5)}
+              >1.5x</button>
+            </div>
+          {/if}
 
           <button 
             type="button" 
@@ -186,30 +314,32 @@
             title="Reiniciar animação"
             aria-label="Reiniciar"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
               <polyline points="3 3 3 8 8 8"></polyline>
             </svg>
           </button>
 
-          <button 
-            type="button" 
-            class="control-btn play-btn" 
-            onclick={togglePlay} 
-            title={isPlaying ? "Pausar" : "Reproduzir"}
-            aria-label={isPlaying ? "Pausar" : "Reproduzir"}
-          >
-            {#if isPlaying}
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="6" y="4" width="4" height="16"></rect>
-                <rect x="14" y="4" width="4" height="16"></rect>
-              </svg>
-            {:else}
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                <polygon points="5 3 19 12 5 21 5 3"></polygon>
-              </svg>
-            {/if}
-          </button>
+          {#if !isScrollMode}
+            <button 
+              type="button" 
+              class="control-btn play-btn" 
+              onclick={togglePlay} 
+              title={isPlaying ? "Pausar" : "Reproduzir"}
+              aria-label={isPlaying ? "Pausar" : "Reproduzir"}
+            >
+              {#if isPlaying}
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="6" y="4" width="4" height="16"></rect>
+                  <rect x="14" y="4" width="4" height="16"></rect>
+                </svg>
+              {:else}
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+              {/if}
+            </button>
+          {/if}
 
           <button 
             type="button" 
@@ -237,35 +367,74 @@
         </div>
       </div>
 
-      <!-- Área de Visualização da Animação -->
-      <div class="animation-stage">
-        {#if isLoading}
-          <div class="loading-overlay">
-            <div class="spinner"></div>
-            <p class="loading-text">Carregando animação...</p>
-            <span class="loading-subtext">Apresentação Institucional 16:10</span>
-          </div>
-        {/if}
+      <!-- Palco de Visualização do Vídeo WebM -->
+      <!-- svelte-ignore a11y_click_events_have_key_events -->
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <div class="video-stage" onclick={togglePlay}>
+        <video 
+          bind:this={videoElement} 
+          class="main-video"
+          playsinline
+          muted
+          loop={!isScrollMode}
+          preload="auto"
+        >
+          <source src="/16-10.webm" type="video/webm" />
+          <source src="/16-10.mp4" type="video/mp4" />
+          Seu navegador não suporta a tag de vídeo HTML5.
+        </video>
 
-        {#if hasError}
-          <div class="error-overlay">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="8" x2="12" y2="12"></line>
-              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        {#if isScrollMode}
+          <div class="scroll-helper-badge">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14M19 12l-7 7-7-7"/>
             </svg>
-            <p>Não foi possível carregar a animação.</p>
+            <span>Role para avançar o vídeo</span>
           </div>
         {/if}
+      </div>
 
+      <!-- Barra de Linha do Tempo Interativa (Scrubber) -->
+      <div class="timeline-bar">
+        <span class="time-display">{formatTime(currentTime)}</span>
+        
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div 
-          bind:this={animContainer} 
-          class="lottie-box"
-        ></div>
+          class="progress-track" 
+          bind:this={progressBar} 
+          onclick={handleProgressBarClick}
+          title="Clique ou arraste para navegar no vídeo"
+        >
+          <div 
+            class="progress-fill" 
+            style="width: {progressPercent}%;"
+          >
+            <div class="progress-handle"></div>
+          </div>
+        </div>
+
+        <span class="time-display">{formatTime(duration)}</span>
+      </div>
+
+      <!-- Seletor de Cenas / Capítulos -->
+      <div class="chapters-row">
+        {#each chapters as ch, index}
+          <button 
+            type="button" 
+            class="chapter-chip" 
+            class:active={activeChapterIndex === index}
+            onclick={() => seekToChapter(ch)}
+            title={ch.desc}
+          >
+            <span class="chapter-dot"></span>
+            <span class="chapter-title">{ch.title}</span>
+          </button>
+        {/each}
       </div>
     </div>
 
-    <!-- Cards informativos complementares de "Sobre" -->
+    <!-- Cards informativos complementares -->
     <div class="about-highlights">
       <div class="highlight-card">
         <div class="highlight-icon">
@@ -311,7 +480,7 @@
 
 <style>
   .about-section {
-    padding: 5rem 0;
+    padding: 5rem 0 6rem;
     background: #ffffff;
     position: relative;
     border-top: 1px solid rgba(22, 128, 58, 0.1);
@@ -319,8 +488,8 @@
 
   .section-header {
     text-align: center;
-    max-width: 680px;
-    margin: 0 auto 3rem;
+    max-width: 720px;
+    margin: 0 auto 2.5rem;
   }
 
   .section-badge {
@@ -345,37 +514,113 @@
     font-size: 1.05rem;
     color: var(--color-text-muted);
     line-height: 1.6;
+    margin-bottom: 1.8rem;
   }
 
-  /* Mockup Player */
+  /* Seletor de Modo */
+  .mode-switcher-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .mode-switcher {
+    display: inline-flex;
+    align-items: center;
+    background: #f1f5f9;
+    border: 1px solid rgba(22, 128, 58, 0.2);
+    border-radius: var(--radius-full);
+    padding: 4px;
+    gap: 4px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06);
+  }
+
+  .mode-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: transparent;
+    color: #475569;
+    border: none;
+    padding: 0.55rem 1.15rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    box-shadow: none;
+    transition: all 0.25s ease;
+  }
+
+  .mode-btn:hover {
+    color: var(--color-primary);
+    background: rgba(255, 255, 255, 0.6);
+    transform: none;
+    box-shadow: none;
+  }
+
+  .mode-btn.active {
+    background: var(--color-primary);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(22, 128, 58, 0.3);
+  }
+
+  .interactive-tag {
+    font-size: 0.72rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.25);
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  /* Player Card 3D */
   .player-wrapper {
     background: #0f172a;
     border-radius: var(--radius-lg);
-    box-shadow: 0 20px 40px -15px rgba(22, 128, 58, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    box-shadow: 0 24px 50px -15px rgba(22, 128, 58, 0.28), 0 0 0 1px rgba(255, 255, 255, 0.12);
     overflow: hidden;
-    margin: 0 auto 3.5rem;
+    margin: 1.5rem auto 3.5rem;
     max-width: 980px;
     display: flex;
     flex-direction: column;
-    transition: all 0.3s ease;
+    position: relative;
+    transition: transform 0.15s ease-out, box-shadow 0.3s ease;
+    transform-style: preserve-3d;
+  }
+
+  .player-wrapper.is-hovered {
+    box-shadow: 0 32px 64px -18px rgba(22, 128, 58, 0.38), 0 0 0 1px rgba(34, 197, 94, 0.3);
   }
 
   .player-wrapper.is-fullscreen {
     max-width: 100%;
     border-radius: 0;
     height: 100vh;
-    justify-content: space-between;
+    transform: none !important;
   }
 
+  .glare-effect {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+    mix-blend-mode: overlay;
+    border-radius: inherit;
+    transition: background 0.05s ease;
+  }
+
+  /* Topbar */
   .player-topbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.9rem 1.4rem;
+    padding: 0.85rem 1.4rem;
     background: #1e293b;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     flex-wrap: wrap;
     gap: 0.75rem;
+    position: relative;
+    z-index: 6;
   }
 
   .player-status {
@@ -393,6 +638,11 @@
     animation: pulse 2s infinite;
   }
 
+  .pulse-indicator.scroll-pulse {
+    background: #38bdf8;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.3);
+  }
+
   @keyframes pulse {
     0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
     70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
@@ -401,18 +651,17 @@
 
   .status-label {
     color: #f8fafc;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     font-weight: 600;
-    letter-spacing: -0.01em;
   }
 
-  .format-tag {
-    font-size: 0.75rem;
+  .format-badge {
+    font-size: 0.72rem;
     background: rgba(255, 255, 255, 0.1);
     color: #94a3b8;
     padding: 0.15rem 0.5rem;
     border-radius: 4px;
-    font-weight: 500;
+    font-weight: 600;
   }
 
   .player-controls {
@@ -490,8 +739,8 @@
     background: var(--color-primary-light);
   }
 
-  /* Área da Animação */
-  .animation-stage {
+  /* Palco de Vídeo */
+  .video-stage {
     position: relative;
     width: 100%;
     aspect-ratio: 16 / 10;
@@ -499,64 +748,159 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
     overflow: hidden;
   }
 
-  .is-fullscreen .animation-stage {
+  .is-fullscreen .video-stage {
     flex: 1;
     aspect-ratio: auto;
   }
 
-  .lottie-box {
+  .main-video {
     width: 100%;
     height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .lottie-box :global(svg) {
-    width: 100% !important;
-    height: 100% !important;
-    max-height: 100%;
     object-fit: contain;
+    display: block;
+    background: transparent;
   }
 
-  .loading-overlay, .error-overlay {
+  .scroll-helper-badge {
     position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: #090d16;
-    z-index: 10;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(8px);
     color: #f8fafc;
-    gap: 0.6rem;
-    transition: opacity 0.3s ease;
-  }
-
-  .spinner {
-    width: 44px;
-    height: 44px;
-    border: 3.5px solid rgba(255, 255, 255, 0.15);
-    border-top-color: var(--color-primary-light);
-    border-radius: 50%;
-    animation: spin 0.9s linear infinite;
-  }
-
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-
-  .loading-text {
-    font-size: 1rem;
+    padding: 0.5rem 1.2rem;
+    border-radius: var(--radius-full);
+    font-size: 0.86rem;
     font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+    animation: bounce 2s infinite;
   }
 
-  .loading-subtext {
+  @keyframes bounce {
+    0%, 100% { transform: translate(-50%, 0); }
+    50% { transform: translate(-50%, -6px); }
+  }
+
+  /* Linha do Tempo (Timeline Scrubber) */
+  .timeline-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.75rem 1.4rem;
+    background: #131d2e;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    position: relative;
+    z-index: 6;
+  }
+
+  .time-display {
     font-size: 0.8rem;
+    font-weight: 600;
     color: #94a3b8;
+    min-width: 32px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-full);
+    position: relative;
+    cursor: pointer;
+    transition: height 0.15s ease;
+  }
+
+  .progress-track:hover {
+    height: 10px;
+  }
+
+  .progress-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .progress-handle {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+    margin-right: -7px;
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .progress-track:hover .progress-handle {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+
+  /* Capítulos / Cenas */
+  .chapters-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.65rem 1.4rem 0.9rem;
+    background: #0f172a;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    overflow-x: auto;
+    position: relative;
+    z-index: 6;
+  }
+
+  .chapter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: rgba(255, 255, 255, 0.05);
+    color: #94a3b8;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-full);
+    padding: 0.35rem 0.85rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: none;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+  }
+
+  .chapter-chip:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .chapter-chip.active {
+    background: rgba(22, 128, 58, 0.25);
+    border-color: var(--color-primary-light);
+    color: #4ade80;
+  }
+
+  .chapter-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
   }
 
   /* Cards de Destaque */
