@@ -1,25 +1,55 @@
 <script>
   import { onMount } from 'svelte';
 
-  let sectionRef = $state(null);
+  let scrollTrackRef = $state(null);
   let lottieContainer = $state(null);
   let anim = null;
-  let isPlaying = $state(false);
   let isLoading = $state(true);
   let hasError = $state(false);
-  let currentScene = $state(1);
 
-  // Cenas da Apresentação
-  const scenes = [
-    { id: 1, label: "01. Abertura", startFrame: 0, endFrame: 75, desc: "Introdução institucional" },
-    { id: 2, label: "02. Tema do Seminário", startFrame: 75, endFrame: 180, desc: "Telefarmácia e Cuidado Clínico" },
-    { id: 3, label: "03. Integrantes & Dados", startFrame: 180, endFrame: 308, desc: "Equipe de alunos e disciplina" }
+  // Progresso do scroll com interpolação suave (lerp)
+  let targetScrollRatio = $state(0);
+  let currentScrollRatio = $state(0);
+  let activeSceneIndex = $state(0);
+  let progressPercent = $state(0);
+
+  const sceneTitles = [
+    "01. Abertura & Identidade",
+    "02. Tema do Seminário",
+    "03. Integrantes & Dados"
   ];
+
+  // Mapeamento por patamares: cada cena tem sua animação e um momento de repouso para leitura
+  function mapScrollToFrame(s) {
+    if (s < 0.15) {
+      // 0 a 75
+      const t = s / 0.15;
+      return t * 75;
+    } else if (s < 0.35) {
+      // Repouso na Cena 1
+      return 75;
+    } else if (s < 0.55) {
+      // Transição 75 a 180
+      const t = (s - 0.35) / 0.20;
+      return 75 + t * (180 - 75);
+    } else if (s < 0.75) {
+      // Repouso na Cena 2
+      return 180;
+    } else if (s < 0.95) {
+      // Transição 180 a 308.4
+      const t = (s - 0.75) / 0.20;
+      return 180 + t * (308.4 - 180);
+    } else {
+      // Repouso na Cena 3 (conclusão)
+      return 308.4;
+    }
+  }
 
   onMount(() => {
     let isCancelled = false;
+    let rafId = null;
 
-    async function initLottie() {
+    async function loadLottie() {
       try {
         const [lottieModule, jsonResponse] = await Promise.all([
           import('lottie-web'),
@@ -40,11 +70,10 @@
         anim = lottie.loadAnimation({
           container: lottieContainer,
           renderer: 'svg',
-          loop: true,
+          loop: false,
           autoplay: false,
           animationData: animationData,
           rendererSettings: {
-            // meet garante que NADA seja cortado em nenhum monitor
             preserveAspectRatio: 'xMidYMid meet',
             progressiveLoad: true,
             hideOnTransparent: false
@@ -54,6 +83,10 @@
         const handleReady = () => {
           if (!isCancelled) {
             isLoading = false;
+            if (anim) {
+              const initialFrame = mapScrollToFrame(targetScrollRatio);
+              anim.goToAndStop(initialFrame, true);
+            }
           }
         };
 
@@ -67,33 +100,8 @@
 
         setTimeout(handleReady, 600);
 
-        // Observer: Inicia a animação quando a seção entra na tela do usuário
-        const observer = new IntersectionObserver((entries) => {
-          entries.forEach(entry => {
-            if (entry.isIntersecting) {
-              if (anim && !isPlaying) {
-                anim.play();
-                isPlaying = true;
-              }
-            } else {
-              if (anim && isPlaying) {
-                anim.pause();
-                isPlaying = false;
-              }
-            }
-          });
-        }, { threshold: 0.25 });
-
-        if (sectionRef) {
-          observer.observe(sectionRef);
-        }
-
-        return () => {
-          observer.disconnect();
-        };
-
       } catch (err) {
-        console.error('Erro ao inicializar animação:', err);
+        console.error('Erro ao carregar animação Lottie:', err);
         if (!isCancelled) {
           isLoading = false;
           hasError = true;
@@ -101,212 +109,466 @@
       }
     }
 
-    initLottie();
+    loadLottie();
+
+    // Rastreia a posição de rolagem
+    const handleScroll = () => {
+      if (!scrollTrackRef) return;
+      const rect = scrollTrackRef.getBoundingClientRect();
+      const maxScroll = rect.height - window.innerHeight;
+      if (maxScroll <= 0) return;
+
+      const scrolled = -rect.top;
+      targetScrollRatio = Math.max(0, Math.min(1, scrolled / maxScroll));
+      progressPercent = Math.round(targetScrollRatio * 100);
+
+      if (targetScrollRatio < 0.35) {
+        activeSceneIndex = 0;
+      } else if (targetScrollRatio < 0.75) {
+        activeSceneIndex = 1;
+      } else {
+        activeSceneIndex = 2;
+      }
+    };
+
+    // Loop com lerp suave a 60fps
+    const tick = () => {
+      const diff = targetScrollRatio - currentScrollRatio;
+      if (Math.abs(diff) > 0.0001) {
+        currentScrollRatio += diff * 0.15;
+        if (anim && !isLoading) {
+          const frame = mapScrollToFrame(currentScrollRatio);
+          anim.goToAndStop(frame, true);
+        }
+      } else {
+        currentScrollRatio = targetScrollRatio;
+      }
+
+      rafId = requestAnimationFrame(tick);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll, { passive: true });
+    handleScroll();
+    rafId = requestAnimationFrame(tick);
 
     return () => {
       isCancelled = true;
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+      if (rafId) cancelAnimationFrame(rafId);
       if (anim) {
         anim.destroy();
         anim = null;
       }
     };
   });
-
-  function togglePlay() {
-    if (!anim) return;
-    if (isPlaying) {
-      anim.pause();
-      isPlaying = false;
-    } else {
-      anim.play();
-      isPlaying = true;
-    }
-  }
-
-  function playScene(scene) {
-    if (!anim) return;
-    currentScene = scene.id;
-    anim.playSegments([scene.startFrame, scene.endFrame], true);
-    isPlaying = true;
-  }
-
-  function playFull() {
-    if (!anim) return;
-    currentScene = 0;
-    anim.playSegments([0, 308.4], true);
-    anim.setLoop(true);
-    isPlaying = true;
-  }
 </script>
 
-<section id="sobre" class="about-section" bind:this={sectionRef}>
-  <div class="container-full">
+<!-- Seção com trilha de rolagem estendida para navegação fluida por scroll -->
+<section id="sobre" class="scroll-showcase-section" bind:this={scrollTrackRef}>
+  
+  <!-- Viewport fixo preenchendo 100% da tela do monitor de ponta a ponta -->
+  <div class="sticky-viewport">
     
-    <!-- Cabeçalho da Seção -->
-    <div class="section-header">
-      <span class="section-badge">Apresentação Acadêmica</span>
-      <h2 class="section-title">Seminário Farmácia Conecta</h2>
-      <p class="section-subtitle">
-        Acompanhe a apresentação sobre Telefarmácia e Serviços Farmacêuticos Digitais, desenvolvida para o Bacharelado em Farmácia — Unigrande.
-      </p>
+    <!-- Barra Superior Sutil (sem cobrir o conteúdo) -->
+    <div class="hud-top">
+      <div class="hud-badge">
+        <span class="badge-dot"></span>
+        <span class="badge-title">Seminário Acadêmico</span>
+        <span class="badge-sub">• Role a página para avançar</span>
+      </div>
+      <div class="hud-progress">
+        <span>{progressPercent}%</span>
+      </div>
+    </div>
 
-      <!-- Navegação por Cenas (visualizar cada uma de uma vez) -->
-      <div class="scenes-nav" role="group" aria-label="Navegar pelas cenas da animação">
-        <button 
-          type="button" 
-          class="scene-btn" 
-          class:active={currentScene === 0}
-          onclick={playFull}
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-          </svg>
-          <span>Apresentação Completa</span>
-        </button>
+    <!-- Palco Principal: 100% visível, nunca cortado no topo ou base -->
+    <div class="stage-container">
+      {#if isLoading}
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Preparando apresentação...</p>
+        </div>
+      {/if}
 
-        {#each scenes as sc}
-          <button 
-            type="button" 
-            class="scene-btn" 
-            class:active={currentScene === sc.id}
-            onclick={() => playScene(sc)}
-            title={sc.desc}
-          >
-            <span>{sc.label}</span>
-          </button>
+      {#if hasError}
+        <div class="error-state">
+          <p>Não foi possível carregar a apresentação.</p>
+        </div>
+      {/if}
+
+      <div 
+        bind:this={lottieContainer} 
+        class="lottie-fullscreen"
+        class:is-ready={!isLoading && !hasError}
+      ></div>
+    </div>
+
+    <!-- Dica de Rolagem Inicial -->
+    {#if targetScrollRatio < 0.05}
+      <div class="scroll-hint">
+        <div class="mouse-icon">
+          <div class="mouse-wheel"></div>
+        </div>
+        <span>Role para baixo para animar</span>
+      </div>
+    {/if}
+
+    <!-- Rodapé do Player com Marcador de Cenas Ativas e Progresso -->
+    <div class="hud-bottom">
+      <div class="scene-pills">
+        {#each sceneTitles as title, idx}
+          <div class="scene-pill" class:active={activeSceneIndex === idx}>
+            <span class="scene-dot"></span>
+            <span>{title}</span>
+          </div>
         {/each}
       </div>
-    </div>
 
-    <!-- Palco Principal: Não cortado, preenchendo de um lado a outro com verde contínuo -->
-    <div class="presentation-stage">
-      
-      <!-- Fundo verde expansivo que cobre toda a largura da tela -->
-      <div class="presentation-backdrop">
-        
-        {#if isLoading}
-          <div class="stage-loading">
-            <div class="spinner"></div>
-            <p>Carregando apresentação...</p>
-          </div>
-        {/if}
-
-        {#if hasError}
-          <div class="stage-error">
-            <p>Não foi possível carregar o arquivo da apresentação.</p>
-          </div>
-        {/if}
-
-        <!-- Canvas do Lottie: Centralizado, 100% visível, nada cortado -->
-        <div 
-          bind:this={lottieContainer} 
-          class="lottie-viewport"
-          class:is-ready={!isLoading && !hasError}
-        ></div>
-
-        <!-- Barra flutuante de controle na base da apresentação -->
-        <div class="floating-controls">
-          <button 
-            type="button" 
-            class="ctrl-pill-btn" 
-            onclick={togglePlay}
-            title={isPlaying ? "Pausar" : "Reproduzir"}
-          >
-            {#if isPlaying}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <rect x="6" y="4" width="4" height="16"></rect>
-                <rect x="14" y="4" width="4" height="16"></rect>
-              </svg>
-              <span>Pausar</span>
-            {:else}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <polygon points="5 3 19 12 5 21 5 3"></polygon>
-              </svg>
-              <span>Reproduzir</span>
-            {/if}
-          </button>
-
-          <button 
-            type="button" 
-            class="ctrl-pill-btn" 
-            onclick={playFull}
-            title="Reiniciar do começo"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
-              <polyline points="3 3 3 8 8 8"></polyline>
-            </svg>
-            <span>Reiniciar</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Cards informativos complementares -->
-    <div class="container">
-      <div class="about-highlights">
-        <div class="highlight-card">
-          <div class="highlight-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
-              <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
-            </svg>
-          </div>
-          <h4 class="highlight-title">Ensino & Prática Farmacêutica</h4>
-          <p class="highlight-desc">
-            Desenvolvido no âmbito do Bacharelado em Farmácia (Unigrande), unindo teoria acadêmica e atendimento clínico qualificado.
-          </p>
-        </div>
-
-        <div class="highlight-card">
-          <div class="highlight-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
-            </svg>
-          </div>
-          <h4 class="highlight-title">Cuidado Centrado na Pessoa</h4>
-          <p class="highlight-desc">
-            Consultas humanizadas, revisão clínica de receitas, análise de interações e acompanhamento terapêutico dedicado.
-          </p>
-        </div>
-
-        <div class="highlight-card">
-          <div class="highlight-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="2" y1="12" x2="22" y2="12"></line>
-              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-            </svg>
-          </div>
-          <h4 class="highlight-title">Comunidade de Buriticupu</h4>
-          <p class="highlight-desc">
-            Orientação acessível para a população local, promovendo a segurança, o uso racional de medicamentos e o bem-estar diário.
-          </p>
-        </div>
+      <div class="bottom-progress-bar">
+        <div class="bottom-progress-fill" style="width: {currentScrollRatio * 100}%;"></div>
       </div>
     </div>
 
   </div>
 </section>
 
+<!-- Continuação natural do site após a apresentação em tela cheia -->
+<section class="about-details-section">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-badge">Farmácia Conecta</span>
+      <h2 class="section-title">Pilares do Nosso Cuidado</h2>
+      <p class="section-subtitle">
+        Conheça os fundamentos que norteiam a nossa prática acadêmica e compromisso comunitário em Buriticupu - MA.
+      </p>
+    </div>
+
+    <div class="about-highlights">
+      <div class="highlight-card">
+        <div class="highlight-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+            <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+          </svg>
+        </div>
+        <h4 class="highlight-title">Ensino & Prática Farmacêutica</h4>
+        <p class="highlight-desc">
+          Desenvolvido no âmbito do Bacharelado em Farmácia (Unigrande), unindo teoria acadêmica e atendimento clínico qualificado.
+        </p>
+      </div>
+
+      <div class="highlight-card">
+        <div class="highlight-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+          </svg>
+        </div>
+        <h4 class="highlight-title">Cuidado Centrado na Pessoa</h4>
+        <p class="highlight-desc">
+          Consultas humanizadas, revisão clínica de receitas, análise de interações e acompanhamento terapêutico dedicado.
+        </p>
+      </div>
+
+      <div class="highlight-card">
+        <div class="highlight-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+        </div>
+        <h4 class="highlight-title">Comunidade de Buriticupu</h4>
+        <p class="highlight-desc">
+          Orientação acessível para a população local, promovendo a segurança, o uso racional de medicamentos e o bem-estar diário.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <style>
-  .about-section {
-    padding: 5rem 0 6rem;
+  /* Trilha de rolagem estendida para navegação confortável */
+  .scroll-showcase-section {
+    position: relative;
+    height: 350vh;
+    background: #0d8d4b;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Viewport fixo que ocupa 100% da tela do monitor de ponta a ponta */
+  .sticky-viewport {
+    position: sticky;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    /* Fundo verde contínuo idêntico ao da apresentação */
+    background: #0d8d4b;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    /* Espaçamento superior para nunca conflitar com a barra fixa do site */
+    padding-top: 76px;
+    padding-bottom: 50px;
+    box-sizing: border-box;
+    z-index: 10;
+  }
+
+  /* HUD Superior */
+  .hud-top {
+    position: absolute;
+    top: 86px;
+    left: 1.5rem;
+    right: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 25;
+    pointer-events: none;
+  }
+
+  .hud-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: rgba(13, 141, 75, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 0.45rem 1.1rem;
+    border-radius: var(--radius-full);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+  }
+
+  .badge-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.7; }
+  }
+
+  .badge-title {
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .badge-sub {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .hud-progress {
+    background: rgba(13, 141, 75, 0.85);
+    backdrop-filter: blur(12px);
+    color: #ffffff;
+    font-size: 0.88rem;
+    font-weight: 800;
+    padding: 0.45rem 0.9rem;
+    border-radius: var(--radius-full);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Palco Principal */
+  .stage-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 1.5rem;
+    box-sizing: border-box;
+  }
+
+  .lottie-fullscreen {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .lottie-fullscreen.is-ready {
+    opacity: 1;
+  }
+
+  .lottie-fullscreen :global(svg) {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    display: block !important;
+    /* meet garante preservação absoluta sem cortes */
+    object-fit: contain !important;
+  }
+
+  /* Dica de Rolagem */
+  .scroll-hint {
+    position: absolute;
+    bottom: 4.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.45rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    pointer-events: none;
+    animation: fadeIn 0.4s ease;
+    z-index: 25;
+  }
+
+  .mouse-icon {
+    width: 20px;
+    height: 32px;
+    border: 2px solid #ffffff;
+    border-radius: 12px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    padding-top: 5px;
+  }
+
+  .mouse-wheel {
+    width: 3px;
+    height: 7px;
+    background-color: #ffffff;
+    border-radius: 2px;
+    animation: scrollWheel 1.6s ease infinite;
+  }
+
+  @keyframes scrollWheel {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(10px); opacity: 0; }
+  }
+
+  /* Rodapé do HUD */
+  .hud-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 25;
+    pointer-events: none;
+  }
+
+  .scene-pills {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: rgba(13, 141, 75, 0.85);
+    backdrop-filter: blur(12px);
+    padding: 0.4rem 0.9rem;
+    border-radius: var(--radius-full);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 0.85rem;
+  }
+
+  .scene-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.65);
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--radius-full);
+    transition: all 0.2s ease;
+  }
+
+  .scene-pill.active {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.22);
+  }
+
+  .scene-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  /* Linha de Progresso */
+  .bottom-progress-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  .bottom-progress-fill {
+    height: 100%;
+    background: #ffffff;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    transition: width 0.05s linear;
+  }
+
+  /* Loading e Erro */
+  .loading-state, .error-state {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.95rem;
+    z-index: 20;
+  }
+
+  .spinner {
+    width: 38px;
+    height: 38px;
+    border: 3.5px solid rgba(255, 255, 255, 0.25);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spin 0.85s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Seção de Detalhes Subsequente */
+  .about-details-section {
+    padding: 6rem 0;
     background: #ffffff;
     position: relative;
     border-top: 1px solid rgba(22, 128, 58, 0.12);
-  }
-
-  .container-full {
-    width: 100%;
-    margin: 0 auto;
+    z-index: 11;
   }
 
   .section-header {
     text-align: center;
-    max-width: 740px;
-    margin: 0 auto 2.5rem;
-    padding: 0 1.5rem;
+    max-width: 680px;
+    margin: 0 auto 3.5rem;
   }
 
   .section-badge {
@@ -331,158 +593,12 @@
     font-size: 1.05rem;
     color: var(--color-text-muted);
     line-height: 1.6;
-    margin-bottom: 1.8rem;
   }
 
-  /* Navegação pelas Cenas */
-  .scenes-nav {
-    display: inline-flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    background: #f1f8f3;
-    padding: 6px;
-    border-radius: var(--radius-full);
-    border: 1px solid rgba(22, 128, 58, 0.2);
-  }
-
-  .scene-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    background: transparent;
-    color: #334155;
-    border: none;
-    padding: 0.55rem 1.15rem;
-    font-size: 0.86rem;
-    font-weight: 600;
-    border-radius: var(--radius-full);
-    cursor: pointer;
-    box-shadow: none;
-    transition: all 0.2s ease;
-  }
-
-  .scene-btn:hover {
-    color: var(--color-primary);
-    background: rgba(255, 255, 255, 0.7);
-    transform: none;
-    box-shadow: none;
-  }
-
-  .scene-btn.active {
-    background: var(--color-primary);
-    color: #ffffff;
-    box-shadow: 0 2px 8px rgba(22, 128, 58, 0.25);
-  }
-
-  /* Palco Principal da Apresentação */
-  .presentation-stage {
-    width: 100%;
-    margin-bottom: 4.5rem;
-  }
-
-  .presentation-backdrop {
-    width: 100%;
-    /* O mesmo verde da apresentação preenchendo de ponta a ponta */
-    background: #0d8d4b;
-    position: relative;
-    padding: 3rem 1.5rem 4rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    box-shadow: inset 0 4px 16px rgba(0, 0, 0, 0.1), inset 0 -4px 16px rgba(0, 0, 0, 0.1);
-  }
-
-  .lottie-viewport {
-    width: 100%;
-    max-width: 960px;
-    /* Aspect ratio idêntico ao canvas 1920x1713 da apresentação */
-    aspect-ratio: 1920 / 1713;
-    margin: 0 auto;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  .lottie-viewport.is-ready {
-    opacity: 1;
-  }
-
-  .lottie-viewport :global(svg) {
-    width: 100% !important;
-    height: 100% !important;
-    display: block !important;
-    /* meet garante que 100% dos textos fiquem perfeitamente visíveis sem nenhum corte */
-    object-fit: contain !important;
-  }
-
-  /* Controles Flutuantes */
-  .floating-controls {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-top: 1.5rem;
-    z-index: 10;
-  }
-
-  .ctrl-pill-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: rgba(255, 255, 255, 0.95);
-    color: var(--color-primary);
-    border: none;
-    border-radius: var(--radius-full);
-    padding: 0.55rem 1.25rem;
-    font-size: 0.88rem;
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
-    transition: all 0.2s ease;
-  }
-
-  .ctrl-pill-btn:hover {
-    background: #ffffff;
-    color: var(--color-primary-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
-  }
-
-  /* Loading e Erro */
-  .stage-loading, .stage-error {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: #ffffff;
-    gap: 0.75rem;
-    font-weight: 600;
-  }
-
-  .spinner {
-    width: 40px;
-    height: 40px;
-    border: 3.5px solid rgba(255, 255, 255, 0.25);
-    border-top-color: #ffffff;
-    border-radius: 50%;
-    animation: spin 0.85s linear infinite;
-  }
-
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-
-  /* Cards de Destaque */
   .about-highlights {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 1.75rem;
-    max-width: 1160px;
-    margin: 0 auto;
-    padding: 0 1.5rem;
   }
 
   .highlight-card {
@@ -531,12 +647,16 @@
       gap: 1.25rem;
     }
 
-    .scenes-nav {
-      border-radius: 16px;
+    .scroll-showcase-section {
+      height: 260vh;
     }
 
-    .presentation-backdrop {
-      padding: 2rem 1rem 3rem;
+    .scene-pills {
+      display: none;
+    }
+
+    .badge-sub {
+      display: none;
     }
   }
 </style>
