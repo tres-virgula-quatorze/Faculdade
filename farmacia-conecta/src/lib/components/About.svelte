@@ -315,8 +315,8 @@
     align-items: center;
     justify-content: center;
     /* Espaçamento superior para nunca conflitar com a barra fixa do site */
-    padding-top: 76px;
-    padding-bottom: 50px;
+    padding-top: 72px;
+    padding-bottom: 0;
     box-sizing: border-box;
     z-index: 10;
   }
@@ -324,7 +324,7 @@
   /* HUD Superior */
   .hud-top {
     position: absolute;
-    top: 86px;
+    top: 82px;
     left: 1.5rem;
     right: 1.5rem;
     display: flex;
@@ -394,7 +394,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1rem 1.5rem;
+    padding: 0;
     box-sizing: border-box;
   }
 
