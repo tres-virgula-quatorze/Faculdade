@@ -215,20 +215,9 @@
       </div>
     {/if}
 
-    <!-- Rodapé do Player com Marcador de Cenas Ativas e Progresso -->
-    <div class="hud-bottom">
-      <div class="scene-pills">
-        {#each sceneTitles as title, idx}
-          <div class="scene-pill" class:active={activeSceneIndex === idx}>
-            <span class="scene-dot"></span>
-            <span>{title}</span>
-          </div>
-        {/each}
-      </div>
-
-      <div class="bottom-progress-bar">
-        <div class="bottom-progress-fill" style="width: {currentScrollRatio * 100}%;"></div>
-      </div>
+    <!-- Linha de Progresso na extremidade inferior -->
+    <div class="bottom-progress-bar">
+      <div class="bottom-progress-fill" style="width: {currentScrollRatio * 100}%;"></div>
     </div>
 
   </div>
@@ -308,23 +297,22 @@
     height: 100vh;
     height: 100dvh;
     overflow: hidden;
-    /* Fundo verde contínuo idêntico ao da apresentação */
+    /* Fundo verde contínuo preenchendo a tela inteira de cima a baixo */
     background: #0d8d4b;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    /* Espaçamento superior para nunca conflitar com a barra fixa do site */
-    padding-top: 72px;
-    padding-bottom: 0;
+    padding: 0;
     box-sizing: border-box;
-    z-index: 10;
+    /* Fica acima da navbar sticky para o verde ocupar 100% da tela verticalmente */
+    z-index: 1001;
   }
 
-  /* HUD Superior */
+  /* HUD Superior Discreto */
   .hud-top {
     position: absolute;
-    top: 82px;
+    top: 1.25rem;
     left: 1.5rem;
     right: 1.5rem;
     display: flex;
@@ -427,7 +415,7 @@
   /* Dica de Rolagem */
   .scroll-hint {
     position: absolute;
-    bottom: 4.5rem;
+    bottom: 3.5rem;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -467,60 +455,15 @@
     100% { transform: translateY(10px); opacity: 0; }
   }
 
-  /* Rodapé do HUD */
-  .hud-bottom {
+  /* Linha de Progresso na Base */
+  .bottom-progress-bar {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    z-index: 25;
-    pointer-events: none;
-  }
-
-  .scene-pills {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.6rem;
-    background: rgba(13, 141, 75, 0.85);
-    backdrop-filter: blur(12px);
-    padding: 0.4rem 0.9rem;
-    border-radius: var(--radius-full);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    margin-bottom: 0.85rem;
-  }
-
-  .scene-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.65);
-    padding: 0.15rem 0.5rem;
-    border-radius: var(--radius-full);
-    transition: all 0.2s ease;
-  }
-
-  .scene-pill.active {
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.22);
-  }
-
-  .scene-dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: currentColor;
-  }
-
-  /* Linha de Progresso */
-  .bottom-progress-bar {
-    width: 100%;
-    height: 4px;
+    height: 3px;
     background: rgba(0, 0, 0, 0.2);
+    z-index: 25;
   }
 
   .bottom-progress-fill {
@@ -649,10 +592,6 @@
 
     .scroll-showcase-section {
       height: 260vh;
-    }
-
-    .scene-pills {
-      display: none;
     }
 
     .badge-sub {
