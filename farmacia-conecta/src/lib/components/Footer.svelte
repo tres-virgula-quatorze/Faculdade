@@ -1,4 +1,4 @@
-<footer id="sobre" class="footer">
+<footer class="footer">
   <div class="container">
     <div class="footer-top">
       <div class="footer-brand">

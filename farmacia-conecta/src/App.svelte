@@ -3,6 +3,7 @@
   import Hero from './lib/components/Hero.svelte'
   import Services from './lib/components/Services.svelte'
   import BookingForm from './lib/components/BookingForm.svelte'
+  import About from './lib/components/About.svelte'
   import Footer from './lib/components/Footer.svelte'
 </script>
 
@@ -11,6 +12,7 @@
   <Hero />
   <Services />
   <BookingForm />
+  <About />
 </main>
 <Footer />
 
