@@ -11,7 +11,6 @@
   let targetProgress = 0;
   let currentProgress = $state(0);
   let totalFrames = 308.4;
-  let isScrolling = $state(false);
 
   let progressPercent = $derived(Math.round(currentProgress * 100));
 
@@ -29,7 +28,7 @@
         if (isCancelled || !lottieContainer) return;
 
         if (!jsonResponse.ok) {
-          throw new Error('Não foi possível carregar o arquivo da animação');
+          throw new Error('Não foi possível carregar a animação');
         }
 
         const animationData = await jsonResponse.json();
@@ -45,16 +44,15 @@
           autoplay: false,
           animationData: animationData,
           rendererSettings: {
-            preserveAspectRatio: 'xMidYMid meet',
+            preserveAspectRatio: 'xMidYMid slice',
             progressiveLoad: true,
-            hideOnTransparent: true
+            hideOnTransparent: false
           }
         });
 
         const markReady = () => {
           if (!isCancelled) {
             isLoading = false;
-            // Posiciona no primeiro quadro
             if (anim) {
               anim.goToAndStop(0, true);
             }
@@ -69,8 +67,7 @@
         anim.addEventListener('data_ready', markReady);
         anim.addEventListener('firstFrame', markReady);
 
-        // Timeout de segurança para ocultar o spinner
-        setTimeout(markReady, 1000);
+        setTimeout(markReady, 800);
 
       } catch (err) {
         console.error('Erro ao carregar animação Lottie:', err);
@@ -83,7 +80,7 @@
 
     loadLottie();
 
-    // Cálculo do scroll em relação ao container de rolagem
+    // Cálculo da rolagem no scroll track
     const handleScroll = () => {
       if (!scrollTrackRef) return;
       const rect = scrollTrackRef.getBoundingClientRect();
@@ -92,12 +89,10 @@
 
       const scrolled = -rect.top;
       targetProgress = Math.max(0, Math.min(1, scrolled / maxScroll));
-      isScrolling = true;
     };
 
-    // Loop de animação contínuo para interpolação suave (lerp)
+    // Loop de interpolação contínua (lerp) para 60fps macio
     const tick = () => {
-      // Lerp suave (fator 0.16 para resposta rápida e macia)
       const diff = targetProgress - currentProgress;
       if (Math.abs(diff) > 0.0002) {
         currentProgress += diff * 0.16;
@@ -131,14 +126,14 @@
 </script>
 
 <section id="sobre" class="scroll-showcase-section" bind:this={scrollTrackRef}>
-  <!-- Viewport fixo que ocupa 100% da tela do monitor -->
+  <!-- Viewport fixo que ocupa 100% da tela do monitor de ponta a ponta -->
   <div class="sticky-viewport">
     
     <!-- Elementos Flutuantes da Interface (HUD) -->
     <div class="hud-top">
       <div class="hud-badge">
         <span class="badge-dot"></span>
-        <span class="badge-title">Apresentação Interativa</span>
+        <span class="badge-title">Apresentação Institucional</span>
         <span class="badge-sub">• Role para explorar</span>
       </div>
       <div class="progress-counter">
@@ -146,18 +141,18 @@
       </div>
     </div>
 
-    <!-- Palco Principal da Animação Fullscreen -->
+    <!-- Palco Principal da Animação Fullscreen Edge-to-Edge -->
     <div class="stage-container">
       {#if isLoading}
         <div class="loading-state">
           <div class="spinner"></div>
-          <p>Preparando animação...</p>
+          <p>Carregando apresentação...</p>
         </div>
       {/if}
 
       {#if hasError}
         <div class="error-state">
-          <p>Não foi possível carregar a animação.</p>
+          <p>Não foi possível carregar a apresentação.</p>
         </div>
       {/if}
 
@@ -240,23 +235,26 @@
 </section>
 
 <style>
-  /* Trilha de Rolagem: altura estendida para permitir rolagem suave da animação */
+  /* Trilha de Rolagem para controle suave da animação */
   .scroll-showcase-section {
     position: relative;
     height: 280vh;
-    background: #ffffff;
+    background: #0d8d4b;
+    margin: 0;
+    padding: 0;
   }
 
-  /* Viewport fixo na tela inteira do monitor */
+  /* Viewport fixo na tela inteira do monitor (100vw x 100vh de ponta a ponta) */
   .sticky-viewport {
     position: sticky;
     top: 0;
     left: 0;
+    width: 100vw;
     width: 100%;
     height: 100vh;
     height: 100dvh;
     overflow: hidden;
-    background: radial-gradient(circle at 50% 50%, #f7fdf9 0%, #eef8f2 100%);
+    background: #0d8d4b; /* Fundo idêntico ao verde da apresentação */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -267,13 +265,13 @@
   /* HUD Superior */
   .hud-top {
     position: absolute;
-    top: 1.5rem;
+    top: 5.5rem; /* Abaixo do menu superior */
     left: 1.5rem;
     right: 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    z-index: 20;
+    z-index: 25;
     pointer-events: none;
   }
 
@@ -281,21 +279,21 @@
     display: inline-flex;
     align-items: center;
     gap: 0.6rem;
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(13, 141, 75, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     padding: 0.5rem 1.1rem;
     border-radius: var(--radius-full);
-    box-shadow: 0 4px 16px rgba(22, 128, 58, 0.1);
-    border: 1px solid rgba(22, 128, 58, 0.18);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
   }
 
   .badge-dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(22, 128, 58, 0.25);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35);
     animation: pulse 2s infinite;
   }
 
@@ -307,49 +305,53 @@
   .badge-title {
     font-size: 0.88rem;
     font-weight: 700;
-    color: var(--color-text);
+    color: #ffffff;
   }
 
   .badge-sub {
     font-size: 0.82rem;
     font-weight: 500;
-    color: var(--color-text-muted);
+    color: rgba(255, 255, 255, 0.85);
   }
 
   .progress-counter {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(13, 141, 75, 0.85);
     backdrop-filter: blur(12px);
-    color: var(--color-primary);
+    color: #ffffff;
     font-size: 0.88rem;
     font-weight: 800;
     padding: 0.5rem 0.9rem;
     border-radius: var(--radius-full);
-    border: 1px solid rgba(22, 128, 58, 0.18);
-    box-shadow: 0 4px 16px rgba(22, 128, 58, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
     font-variant-numeric: tabular-nums;
   }
 
-  /* Palco Fullscreen */
+  /* Palco Fullscreen Edge-to-Edge */
   .stage-container {
+    width: 100vw;
     width: 100%;
-    height: 100%;
+    height: 100vh;
+    height: 100dvh;
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 3rem 1.5rem;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
   }
 
   .lottie-fullscreen {
+    width: 100vw;
     width: 100%;
-    height: 100%;
-    max-width: 100vw;
-    max-height: 90vh;
+    height: 100vh;
+    height: 100dvh;
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
-    transition: opacity 0.4s ease;
+    transition: opacity 0.3s ease;
   }
 
   .lottie-fullscreen.is-ready {
@@ -357,12 +359,14 @@
   }
 
   .lottie-fullscreen :global(svg) {
+    width: 100vw !important;
     width: 100% !important;
+    height: 100vh !important;
     height: 100% !important;
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    transform: translate3d(0, 0, 0);
+    min-width: 100vw !important;
+    min-height: 100vh !important;
+    display: block !important;
+    object-fit: cover !important;
   }
 
   /* Dica de Rolagem */
@@ -375,19 +379,19 @@
     flex-direction: column;
     align-items: center;
     gap: 0.45rem;
-    color: var(--color-text-muted);
+    color: rgba(255, 255, 255, 0.9);
     font-size: 0.82rem;
     font-weight: 600;
     letter-spacing: 0.02em;
     pointer-events: none;
     animation: fadeIn 0.4s ease;
-    z-index: 20;
+    z-index: 25;
   }
 
   .mouse-icon {
     width: 20px;
     height: 32px;
-    border: 2px solid var(--color-primary);
+    border: 2px solid #ffffff;
     border-radius: 12px;
     position: relative;
     display: flex;
@@ -398,7 +402,7 @@
   .mouse-wheel {
     width: 3px;
     height: 7px;
-    background-color: var(--color-primary);
+    background-color: #ffffff;
     border-radius: 2px;
     animation: scrollWheel 1.6s ease infinite;
   }
@@ -414,14 +418,15 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 4px;
-    background: rgba(22, 128, 58, 0.08);
-    z-index: 20;
+    height: 5px;
+    background: rgba(0, 0, 0, 0.2);
+    z-index: 25;
   }
 
   .bottom-progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+    background: #ffffff;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
     transition: width 0.05s linear;
   }
 
@@ -432,16 +437,17 @@
     flex-direction: column;
     align-items: center;
     gap: 0.75rem;
-    color: var(--color-text-muted);
+    color: #ffffff;
     font-weight: 600;
     font-size: 0.95rem;
+    z-index: 20;
   }
 
   .spinner {
     width: 38px;
     height: 38px;
-    border: 3.5px solid rgba(22, 128, 58, 0.15);
-    border-top-color: var(--color-primary);
+    border: 3.5px solid rgba(255, 255, 255, 0.25);
+    border-top-color: #ffffff;
     border-radius: 50%;
     animation: spin 0.85s linear infinite;
   }
@@ -543,6 +549,10 @@
 
     .scroll-showcase-section {
       height: 220vh;
+    }
+
+    .hud-top {
+      top: 4.8rem;
     }
 
     .badge-sub {
