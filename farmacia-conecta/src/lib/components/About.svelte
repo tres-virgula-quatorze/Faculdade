@@ -40,13 +40,169 @@
     }
   }
 
+  function adaptAnimationData(orig, targetW, targetH) {
+    const data = JSON.parse(JSON.stringify(orig));
+    data.w = targetW;
+    data.h = targetH;
+
+    const layers = {};
+    data.layers.forEach((l) => (layers[l.ind] = l));
+
+    // Base scale is 0.56 for 1920x880.
+    const scaleH = targetH / 880;
+    const scaleW = targetW / 1920;
+    let scale = 0.56 * Math.min(scaleW, scaleH);
+    scale = Math.max(0.32, Math.min(0.56, scale));
+
+    const scaleVec = [scale * 100, scale * 100];
+
+    const marginX = targetW < 1200 ? 25 : 45;
+    const marginY = targetW < 1200 ? 25 : 35;
+    const marginBot = targetW < 1200 ? 28 : 40;
+
+    // Apply scale to layers
+    [842, 756, 4, 13, 434, 435, 304, 668].forEach((ind) => {
+      if (layers[ind] && layers[ind].ks && layers[ind].ks.s) {
+        layers[ind].ks.s = { a: 0, k: scaleVec };
+      }
+    });
+
+    // 1. Top-Left: College (434)
+    if (layers[434]) layers[434].ks.p = { a: 0, k: [marginX, marginY] };
+
+    // 2. Top-Right: Course (543 / 544 / 595, etc.)
+    const xEndIn544 = (targetW - 2 * marginX) / scale;
+    const shiftCourse = xEndIn544 - 1305.66;
+    if (layers[595]) layers[595].ks.p = { a: 0, k: [656.388 + shiftCourse, 0] };
+    if (layers[590]) layers[590].ks.p = { a: 0, k: [770.112 + shiftCourse, 0] };
+    if (layers[567]) layers[567].ks.p = { a: 0, k: [825.696 + shiftCourse, 0] };
+    if (layers[562]) layers[562].ks.p = { a: 0, k: [1063.44 + shiftCourse, 0] };
+    if (layers[545]) layers[545].ks.p = { a: 0, k: [1132.812 + shiftCourse, 0] };
+
+    // 3. Bottom-Left: Disciplina (435, 304)
+    const lineSpacing = 38 * (scale / 0.56);
+    if (layers[304]) layers[304].ks.p = { a: 0, k: [marginX, targetH - marginBot] };
+    if (layers[435]) layers[435].ks.p = { a: 0, k: [marginX, targetH - marginBot - lineSpacing] };
+
+    // 4. Bottom-Right: Buriticupu (668)
+    const buriWidth = 219.056 * scale;
+    if (layers[668]) layers[668].ks.p = { a: 0, k: [targetW - marginX - buriWidth, targetH - marginBot] };
+
+    // 5. Title (842) - Centered at targetW / 2
+    const titleX = targetW / 2 - 691.545 * scale;
+    const titleY = Math.max(marginY + 25, targetH * 0.17);
+    if (layers[842]) layers[842].ks.p = { a: 0, k: [titleX, titleY] };
+
+    // 6. Seminário (756) & Logo (4) - Centered group at targetW / 2
+    const semW = 485 * scale;
+    const logoW = 921 * scale;
+    const gap = 196 * scale;
+    const totalW = semW + gap + logoW;
+    const groupStart = targetW / 2 - totalW / 2;
+    const semEndX = groupStart;
+    const logoEndX = semEndX + semW + gap;
+    const semAloneX = targetW / 2 - semW / 2;
+    const logoDelta = 100 * scale;
+    const logoStartX = logoEndX - logoDelta;
+
+    const midY = Math.max(titleY + 120 * scale, targetH * 0.49);
+    const logoYOffset = 60 * (scale / 0.56);
+
+    if (layers[756]) {
+      layers[756].ks.p = {
+        a: 1,
+        k: [
+          { t: 0, s: [semAloneX, midY], i: { x: [1, 1], y: [1, 1] }, o: { x: [0, 0], y: [0, 0] } },
+          { t: 193.122, s: [semAloneX, midY], i: { x: [0, 1], y: [1, 1] }, o: { x: [0.5, 0], y: [0, 0] } },
+          { t: 241.122, s: [semEndX, midY], i: { x: [1, 1], y: [1, 1] }, o: { x: [0, 0], y: [0, 0] } },
+          { t: 308.4, s: [semEndX, midY], h: 1 }
+        ]
+      };
+    }
+
+    if (layers[4]) {
+      layers[4].ks.p = {
+        a: 1,
+        k: [
+          { t: 0, s: [logoStartX, midY + logoYOffset], i: { x: [1, 1], y: [1, 1] }, o: { x: [0, 0], y: [0, 0] } },
+          { t: 208.02, s: [logoStartX, midY + logoYOffset], i: { x: [0, 1], y: [1, 1] }, o: { x: [0.5, 0], y: [0, 0] } },
+          { t: 256.02, s: [logoEndX, midY + logoYOffset], i: { x: [1, 1], y: [1, 1] }, o: { x: [0, 0], y: [0, 0] } },
+          { t: 308.4, s: [logoEndX, midY + logoYOffset], h: 1 }
+        ]
+      };
+    }
+
+    // 7. Integrantes (13) - Right Lateral
+    const intWidth = 638 * scale;
+    const intHeight = 244 * scale;
+    const intY = Math.max(midY + 30 * scale, Math.min(targetH * 0.62, targetH - marginBot - intHeight - 15));
+    if (layers[13]) layers[13].ks.p = { a: 0, k: [targetW - marginX - intWidth, intY] };
+
+    return data;
+  }
+
   onMount(() => {
     let isCancelled = false;
     let rafId = null;
+    let resizeTimer = null;
+    let lottieModuleRef = null;
+    let rawAnimationData = null;
+    let lastW = 0;
+    let lastH = 0;
+
+    function renderLottie() {
+      if (isCancelled || !lottieContainer || !lottieModuleRef || !rawAnimationData) return;
+
+      const w = lottieContainer.clientWidth || window.innerWidth;
+      const h = lottieContainer.clientHeight || window.innerHeight;
+      lastW = w;
+      lastH = h;
+
+      const adaptedData = adaptAnimationData(rawAnimationData, w, h);
+
+      if (anim) {
+        anim.destroy();
+        anim = null;
+      }
+
+      const lottie = lottieModuleRef.default || lottieModuleRef;
+
+      anim = lottie.loadAnimation({
+        container: lottieContainer,
+        renderer: 'svg',
+        loop: false,
+        autoplay: false,
+        animationData: adaptedData,
+        rendererSettings: {
+          preserveAspectRatio: 'none',
+          progressiveLoad: true,
+          hideOnTransparent: true
+        }
+      });
+
+      const handleReady = () => {
+        if (!isCancelled) {
+          isLoading = false;
+          if (anim) {
+            const frame = mapScrollToFrame(currentScrollRatio || targetScrollRatio);
+            anim.goToAndStop(frame, true);
+          }
+        }
+      };
+
+      if (anim.isLoaded) {
+        handleReady();
+      }
+
+      anim.addEventListener('DOMLoaded', handleReady);
+      anim.addEventListener('data_ready', handleReady);
+      anim.addEventListener('firstFrame', handleReady);
+      setTimeout(handleReady, 300);
+    }
 
     async function loadLottie() {
       try {
-        const [lottieModule, jsonResponse] = await Promise.all([
+        const [lottieMod, jsonResponse] = await Promise.all([
           import('lottie-web'),
           fetch('/16-10.json?v=' + Date.now())
         ]);
@@ -57,44 +213,10 @@
           throw new Error('Falha ao carregar arquivo de animação');
         }
 
-        const animationData = await jsonResponse.json();
-        if (isCancelled || !lottieContainer) return;
+        lottieModuleRef = lottieMod;
+        rawAnimationData = await jsonResponse.json();
 
-        const lottie = lottieModule.default || lottieModule;
-
-        anim = lottie.loadAnimation({
-          container: lottieContainer,
-          renderer: 'svg',
-          loop: false,
-          autoplay: false,
-          animationData: animationData,
-          rendererSettings: {
-            preserveAspectRatio: 'xMidYMid meet',
-            progressiveLoad: true,
-            hideOnTransparent: true
-          }
-        });
-
-        const handleReady = () => {
-          if (!isCancelled) {
-            isLoading = false;
-            if (anim) {
-              const initialFrame = mapScrollToFrame(targetScrollRatio);
-              anim.goToAndStop(initialFrame, true);
-            }
-          }
-        };
-
-        if (anim.isLoaded) {
-          handleReady();
-        }
-
-        anim.addEventListener('DOMLoaded', handleReady);
-        anim.addEventListener('data_ready', handleReady);
-        anim.addEventListener('firstFrame', handleReady);
-
-        setTimeout(handleReady, 500);
-
+        renderLottie();
       } catch (err) {
         console.error('Erro ao carregar animação Lottie:', err);
         if (!isCancelled) {
@@ -116,6 +238,19 @@
       targetScrollRatio = Math.max(0, Math.min(1, scrolled / maxScroll));
     };
 
+    const handleResize = () => {
+      handleScroll();
+      if (!lottieContainer || !rawAnimationData) return;
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        const newW = lottieContainer.clientWidth || window.innerWidth;
+        const newH = lottieContainer.clientHeight || window.innerHeight;
+        if (Math.abs(newW - lastW) > 15 || Math.abs(newH - lastH) > 15) {
+          renderLottie();
+        }
+      }, 200);
+    };
+
     const tick = () => {
       const diff = targetScrollRatio - currentScrollRatio;
       if (Math.abs(diff) > 0.0001) {
@@ -132,14 +267,15 @@
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleScroll, { passive: true });
+    window.addEventListener('resize', handleResize, { passive: true });
     handleScroll();
     rafId = requestAnimationFrame(tick);
 
     return () => {
       isCancelled = true;
+      clearTimeout(resizeTimer);
       window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleScroll);
+      window.removeEventListener('resize', handleResize);
       if (rafId) cancelAnimationFrame(rafId);
       if (anim) {
         anim.destroy();
@@ -314,7 +450,6 @@
     max-width: 100% !important;
     max-height: 100% !important;
     display: block !important;
-    object-fit: contain !important;
   }
 
   /* Dica de Rolagem */
