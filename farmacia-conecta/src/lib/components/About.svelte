@@ -319,49 +319,50 @@
   }
 
   .corner-element.top-left {
-    top: 2rem;
-    left: 2.5rem;
+    top: 1.75rem;
+    left: 2rem;
   }
 
   .corner-element.top-right {
-    top: 2rem;
-    right: 2.5rem;
+    top: 1.75rem;
+    right: 2rem;
     text-align: right;
   }
 
   .corner-element.bottom-left {
-    bottom: 2rem;
-    left: 2.5rem;
+    bottom: 1.75rem;
+    left: 2rem;
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.15rem;
   }
 
   .corner-element.bottom-right {
-    bottom: 2rem;
-    right: 2.5rem;
+    bottom: 1.75rem;
+    right: 2rem;
     text-align: right;
   }
 
   .corner-text {
-    font-size: 0.88rem;
+    font-size: 0.74rem;
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.9);
-    letter-spacing: 0.02em;
-    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.78);
+    letter-spacing: 0.025em;
+    line-height: 1.35;
   }
 
   .corner-subtext {
-    font-size: 0.76rem;
+    font-size: 0.65rem;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.75);
-    letter-spacing: 0.04em;
+    color: rgba(255, 255, 255, 0.65);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
   }
 
   /* Bloco de Integrantes na Área Direita (marcação vermelha) */
   .right-integrantes-box {
     position: absolute;
-    right: 3.5rem;
+    right: 3rem;
     top: 50%;
     transform: translateY(-50%);
     z-index: 25;
@@ -382,18 +383,18 @@
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: 0.35rem;
   }
 
   .integrante-item {
-    font-size: 0.92rem;
+    font-size: 0.78rem;
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.95);
+    color: rgba(255, 255, 255, 0.85);
     letter-spacing: 0.015em;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
     opacity: 0;
-    transform: translateX(18px);
-    transition: opacity 0.45s ease, transform 0.45s ease;
+    transform: translateX(14px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
   }
 
   .right-integrantes-box.is-visible .integrante-item {
@@ -403,30 +404,30 @@
 
   @media (max-width: 900px) {
     .corner-element.top-left {
-      top: 1.2rem;
-      left: 1.2rem;
+      top: 1rem;
+      left: 1rem;
     }
     .corner-element.top-right {
-      top: 1.2rem;
-      right: 1.2rem;
+      top: 1rem;
+      right: 1rem;
     }
     .corner-element.bottom-left {
-      bottom: 1.2rem;
-      left: 1.2rem;
+      bottom: 1rem;
+      left: 1rem;
     }
     .corner-element.bottom-right {
-      bottom: 1.2rem;
-      right: 1.2rem;
+      bottom: 1rem;
+      right: 1rem;
     }
     .right-integrantes-box {
-      right: 1.2rem;
+      right: 1rem;
       top: 72%;
     }
     .corner-text {
-      font-size: 0.78rem;
+      font-size: 0.68rem;
     }
     .integrante-item {
-      font-size: 0.82rem;
+      font-size: 0.72rem;
     }
   }
 
@@ -438,7 +439,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 3.5rem 3rem;
+    padding: 3rem 3rem;
     box-sizing: border-box;
     overflow: hidden;
   }
