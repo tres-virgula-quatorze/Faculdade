@@ -10,39 +10,47 @@
     return (currentRatio - center) / 0.05; 
   }
 
+  function easeOut(x) { return 1 - Math.pow(1 - Math.max(0, Math.min(1, x)), 4); }
+  function easeIn(x) { return Math.pow(Math.max(0, Math.min(1, x)), 4); }
+
   function getOp(t, delay = 0) {
-    const adjustedT = t > 0 ? t - delay * 2 : t + delay * 2;
-    const absT = Math.abs(adjustedT);
-    if (absT >= 1) return 0;
-    if (absT <= 0.4) return 1;
-    return (1 - absT) / 0.6;
+    const d = delay * 1.2;
+    const adjustedT = t > 0 ? t - d : t + d;
+    if (adjustedT < -1 || adjustedT > 1) return 0;
+    if (adjustedT >= -0.4 && adjustedT <= 0.4) return 1;
+    if (adjustedT < -0.4) return easeOut((adjustedT + 1) / 0.6);
+    return 1 - easeIn((adjustedT - 0.4) / 0.6);
   }
 
   function getTy(t, delay = 0) {
-    const adjustedT = t > 0 ? t - delay * 2 : t + delay * 2;
-    if (adjustedT < -0.4) return Math.pow(Math.abs(adjustedT + 0.4), 1.5) * 150;
-    if (adjustedT > 0.4) return -Math.pow(Math.abs(adjustedT - 0.4), 1.5) * 150;
+    const d = delay * 1.2;
+    const adjustedT = t > 0 ? t - d : t + d;
+    if (adjustedT < -0.4) return 120 * (1 - easeOut((adjustedT + 1) / 0.6));
+    if (adjustedT > 0.4) return -120 * easeIn((adjustedT - 0.4) / 0.6);
     return 0;
   }
 
   function getTxLeft(t, delay = 0) {
-    const adjustedT = t > 0 ? t - delay * 2 : t + delay * 2;
-    if (adjustedT < -0.4) return -Math.pow(Math.abs(adjustedT + 0.4), 1.5) * 200;
-    if (adjustedT > 0.4) return Math.pow(Math.abs(adjustedT - 0.4), 1.5) * 200;
+    const d = delay * 1.2;
+    const adjustedT = t > 0 ? t - d : t + d;
+    if (adjustedT < -0.4) return -180 * (1 - easeOut((adjustedT + 1) / 0.6));
+    if (adjustedT > 0.4) return 180 * easeIn((adjustedT - 0.4) / 0.6);
     return 0;
   }
 
   function getTxRight(t, delay = 0) {
-    const adjustedT = t > 0 ? t - delay * 2 : t + delay * 2;
-    if (adjustedT < -0.4) return Math.pow(Math.abs(adjustedT + 0.4), 1.5) * 200;
-    if (adjustedT > 0.4) return -Math.pow(Math.abs(adjustedT - 0.4), 1.5) * 200;
+    const d = delay * 1.2;
+    const adjustedT = t > 0 ? t - d : t + d;
+    if (adjustedT < -0.4) return 180 * (1 - easeOut((adjustedT + 1) / 0.6));
+    if (adjustedT > 0.4) return -180 * easeIn((adjustedT - 0.4) / 0.6);
     return 0;
   }
 
   function getScale(t, delay = 0) {
-    const adjustedT = t > 0 ? t - delay * 2 : t + delay * 2;
-    if (adjustedT < -0.4) return 1 - Math.abs(adjustedT + 0.4) * 0.3;
-    if (adjustedT > 0.4) return 1 - Math.abs(adjustedT - 0.4) * 0.3;
+    const d = delay * 1.2;
+    const adjustedT = t > 0 ? t - d : t + d;
+    if (adjustedT < -0.4) return 0.85 + 0.15 * easeOut((adjustedT + 1) / 0.6);
+    if (adjustedT > 0.4) return 1 - 0.15 * easeIn((adjustedT - 0.4) / 0.6);
     return 1;
   }
 
