@@ -2,46 +2,130 @@
   import { onMount } from 'svelte';
 
   let scrollTrackRef = $state(null);
+  let lottieContainer = $state(null);
+  let anim = null;
+  let isLoading = $state(true);
+  let hasError = $state(false);
+
+  // Progresso do scroll com interpolação suave (lerp)
   let targetScrollRatio = $state(0);
   let currentScrollRatio = $state(0);
-  let activeScene = $state(0); // 0, 1, 2
+  let activeSceneIndex = $state(0);
   let progressPercent = $state(0);
 
-  // Calcula opacidade e translateY para transições puras e ultra-suaves a 60fps
-  let scene1Opacity = $state(1);
-  let scene1TranslateY = $state(0);
-
-  let scene2Opacity = $state(0);
-  let scene2TranslateY = $state(30);
-
-  let scene3Opacity = $state(0);
-  let scene3TranslateY = $state(30);
-
-  const sceneTitles = [
-    { num: "01", label: "Título & Abertura" },
-    { num: "02", label: "Seminário & Logo" },
-    { num: "03", label: "Integrantes & Dados" }
+  const sceneSteps = [
+    { num: "01", label: "Título", ratio: 0.18 },
+    { num: "02", label: "Seminário & Logo", ratio: 0.52 },
+    { num: "03", label: "Integrantes", ratio: 0.90 }
   ];
 
-  function scrollToScene(idx) {
+  function jumpToScene(ratio) {
     if (!scrollTrackRef) return;
     const rect = scrollTrackRef.getBoundingClientRect();
     const scrollTop = window.scrollY || window.pageYOffset;
     const trackTop = rect.top + scrollTop;
     const maxScroll = rect.height - window.innerHeight;
-    
-    // Alvos de scroll: 0%, 50%, 90%
-    const targetRatios = [0.05, 0.50, 0.88];
-    const targetScroll = trackTop + (maxScroll * targetRatios[idx]);
-    
+    const targetScroll = trackTop + (maxScroll * ratio);
     window.scrollTo({
       top: targetScroll,
       behavior: 'smooth'
     });
   }
 
+  // Mapeamento por patamares:
+  // 1. Título aparece (0 a 75) e repousa
+  // 2. Nome Seminário, data e logo aparecem (75 a 245) e repousam
+  // 3. Integrantes e dados finais aparecem (245 a 308.4) e repousam
+  function mapScrollToFrame(s) {
+    if (s < 0.15) {
+      // Entrada do Título
+      const t = s / 0.15;
+      return t * 75;
+    } else if (s < 0.32) {
+      // Repouso do Título
+      return 75;
+    } else if (s < 0.50) {
+      // Entrada do Seminário, Data e Logo
+      const t = (s - 0.32) / 0.18;
+      return 75 + t * (245 - 75);
+    } else if (s < 0.68) {
+      // Repouso do Seminário, Data e Logo
+      return 245;
+    } else if (s < 0.86) {
+      // Entrada dos Integrantes e dados finais
+      const t = (s - 0.68) / 0.18;
+      return 245 + t * (308.4 - 245);
+    } else {
+      // Repouso final completo
+      return 308.4;
+    }
+  }
+
   onMount(() => {
+    let isCancelled = false;
     let rafId = null;
+
+    async function loadLottie() {
+      try {
+        const [lottieModule, jsonResponse] = await Promise.all([
+          import('lottie-web'),
+          fetch('/16-10.json')
+        ]);
+
+        if (isCancelled || !lottieContainer) return;
+
+        if (!jsonResponse.ok) {
+          throw new Error('Falha ao carregar arquivo de animação');
+        }
+
+        const animationData = await jsonResponse.json();
+        if (isCancelled || !lottieContainer) return;
+
+        const lottie = lottieModule.default || lottieModule;
+
+        anim = lottie.loadAnimation({
+          container: lottieContainer,
+          renderer: 'svg',
+          loop: false,
+          autoplay: false,
+          animationData: animationData,
+          rendererSettings: {
+            preserveAspectRatio: 'xMidYMid meet',
+            progressiveLoad: true,
+            hideOnTransparent: true
+          }
+        });
+
+        const handleReady = () => {
+          if (!isCancelled) {
+            isLoading = false;
+            if (anim) {
+              const initialFrame = mapScrollToFrame(targetScrollRatio);
+              anim.goToAndStop(initialFrame, true);
+            }
+          }
+        };
+
+        if (anim.isLoaded) {
+          handleReady();
+        }
+
+        anim.addEventListener('DOMLoaded', handleReady);
+        anim.addEventListener('data_ready', handleReady);
+        anim.addEventListener('firstFrame', handleReady);
+
+        setTimeout(handleReady, 500);
+
+      } catch (err) {
+        console.error('Erro ao carregar animação Lottie:', err);
+        if (!isCancelled) {
+          isLoading = false;
+          hasError = true;
+        }
+      }
+    }
+
+    loadLottie();
 
     const handleScroll = () => {
       if (!scrollTrackRef) return;
@@ -54,71 +138,26 @@
       progressPercent = Math.round(targetScrollRatio * 100);
 
       if (targetScrollRatio < 0.35) {
-        activeScene = 0;
+        activeSceneIndex = 0;
       } else if (targetScrollRatio < 0.70) {
-        activeScene = 1;
+        activeSceneIndex = 1;
       } else {
-        activeScene = 2;
-      }
-    };
-
-    const updateTransitions = (r) => {
-      // Cena 1 (0 a 0.35)
-      if (r <= 0.25) {
-        scene1Opacity = 1;
-        scene1TranslateY = 0;
-      } else if (r < 0.38) {
-        const t = (r - 0.25) / 0.13;
-        scene1Opacity = Math.max(0, 1 - t);
-        scene1TranslateY = -t * 40;
-      } else {
-        scene1Opacity = 0;
-        scene1TranslateY = -40;
-      }
-
-      // Cena 2 (0.30 a 0.72)
-      if (r < 0.28) {
-        scene2Opacity = 0;
-        scene2TranslateY = 40;
-      } else if (r < 0.40) {
-        const t = (r - 0.28) / 0.12;
-        scene2Opacity = Math.min(1, t);
-        scene2TranslateY = 40 * (1 - t);
-      } else if (r <= 0.62) {
-        scene2Opacity = 1;
-        scene2TranslateY = 0;
-      } else if (r < 0.74) {
-        const t = (r - 0.62) / 0.12;
-        scene2Opacity = Math.max(0, 1 - t);
-        scene2TranslateY = -t * 40;
-      } else {
-        scene2Opacity = 0;
-        scene2TranslateY = -40;
-      }
-
-      // Cena 3 (0.64 a 1.0)
-      if (r < 0.64) {
-        scene3Opacity = 0;
-        scene3TranslateY = 40;
-      } else if (r < 0.76) {
-        const t = (r - 0.64) / 0.12;
-        scene3Opacity = Math.min(1, t);
-        scene3TranslateY = 40 * (1 - t);
-      } else {
-        scene3Opacity = 1;
-        scene3TranslateY = 0;
+        activeSceneIndex = 2;
       }
     };
 
     const tick = () => {
       const diff = targetScrollRatio - currentScrollRatio;
-      if (Math.abs(diff) > 0.0002) {
-        currentScrollRatio += diff * 0.15;
+      if (Math.abs(diff) > 0.0001) {
+        currentScrollRatio += diff * 0.16;
+        if (anim && !isLoading) {
+          const frame = mapScrollToFrame(currentScrollRatio);
+          anim.goToAndStop(frame, true);
+        }
       } else {
         currentScrollRatio = targetScrollRatio;
       }
 
-      updateTransitions(currentScrollRatio);
       rafId = requestAnimationFrame(tick);
     };
 
@@ -128,9 +167,14 @@
     rafId = requestAnimationFrame(tick);
 
     return () => {
+      isCancelled = true;
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleScroll);
       if (rafId) cancelAnimationFrame(rafId);
+      if (anim) {
+        anim.destroy();
+        anim = null;
+      }
     };
   });
 </script>
@@ -141,7 +185,7 @@
   <!-- Viewport fixo preenchendo 100% da tela do monitor de ponta a ponta -->
   <div class="sticky-viewport">
     
-    <!-- HUD Superior elegante com atalhos de navegação entre as 3 cenas -->
+    <!-- HUD Superior Discreto com atalhos de cena -->
     <div class="hud-top">
       <div class="hud-badge">
         <span class="badge-dot"></span>
@@ -149,18 +193,17 @@
         <span class="badge-sub">• Role a página para avançar</span>
       </div>
 
-      <!-- Pílulas das 3 etapas -->
       <div class="scene-nav-pills">
-        {#each sceneTitles as item, idx}
+        {#each sceneSteps as step, idx}
           <button 
             type="button"
             class="scene-nav-btn" 
-            class:active={activeScene === idx}
-            onclick={() => scrollToScene(idx)}
-            aria-label="Ir para {item.label}"
+            class:active={activeSceneIndex === idx}
+            onclick={() => jumpToScene(step.ratio)}
+            aria-label="Ir para {step.label}"
           >
-            <span class="pill-num">{item.num}</span>
-            <span class="pill-text">{item.label}</span>
+            <span class="pill-num">{step.num}</span>
+            <span class="pill-text">{step.label}</span>
           </button>
         {/each}
       </div>
@@ -170,146 +213,37 @@
       </div>
     </div>
 
-    <!-- Palco Principal: Cada cena ocupa 100% da tela exclusiva e respirada -->
+    <!-- Palco Principal: Animação original do JSON em tela cheia verde -->
     <div class="stage-container">
-      
-      <!-- CENA 1: TÍTULO & ABERTURA -->
+      {#if isLoading}
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Preparando apresentação...</p>
+        </div>
+      {/if}
+
+      {#if hasError}
+        <div class="error-state">
+          <p>Não foi possível carregar a apresentação.</p>
+        </div>
+      {/if}
+
       <div 
-        class="scene scene-1"
-        style="opacity: {scene1Opacity}; transform: translateY({scene1TranslateY}px); pointer-events: {scene1Opacity > 0.5 ? 'auto' : 'none'};"
-      >
-        <div class="scene-content">
-          <div class="institution-tag">
-            <span class="tag-icon">🏛️</span>
-            <span>Centro Universitário UNIGRANDE • Bacharelado em Farmácia</span>
-          </div>
-
-          <h1 class="main-title">
-            Telefarmácia e Serviços Farmacêuticos Digitais:
-            <span class="title-highlight">O Cuidado Clínico Mediado por Tecnologia</span>
-          </h1>
-
-          <div class="scroll-prompt">
-            <div class="mouse-icon">
-              <div class="mouse-wheel"></div>
-            </div>
-            <span>Role para baixo para ver a data, evento e logo ↓</span>
-          </div>
-        </div>
-
-        <div class="scene-footer">
-          <span>Disciplina: Fundamentos da Prática Farmacêutica</span>
-          <span>Buriticupu - MA</span>
-        </div>
-      </div>
-
-      <!-- CENA 2: SEMINÁRIO, DATA & LOGO UNIGRANDE -->
-      <div 
-        class="scene scene-2"
-        style="opacity: {scene2Opacity}; transform: translateY({scene2TranslateY}px); pointer-events: {scene2Opacity > 0.5 ? 'auto' : 'none'};"
-      >
-        <div class="scene-content">
-          <div class="date-badge">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-              <line x1="16" y1="2" x2="16" y2="6"></line>
-              <line x1="8" y1="2" x2="8" y2="6"></line>
-              <line x1="3" y1="10" x2="21" y2="10"></line>
-            </svg>
-            <span>14 de Outubro de 2026</span>
-          </div>
-
-          <h2 class="event-headline">SEMINÁRIO ACADÊMICO</h2>
-
-          <!-- Logo Oficial UNIGRANDE Nítida e em Destaque -->
-          <div class="logo-showcase-box">
-            <img 
-              src="/unigrande-logo.png" 
-              alt="Centro Universitário UNIGRANDE" 
-              class="unigrande-large-logo"
-            />
-          </div>
-
-          <p class="event-caption">
-            Apresentação sobre a regulamentação, prática clínica e expansão do atendimento farmacêutico remoto.
-          </p>
-
-          <div class="scroll-prompt subtle">
-            <span>Role para ver os integrantes ↓</span>
-          </div>
-        </div>
-
-        <div class="scene-footer">
-          <span>Centro Universitário UNIGRANDE</span>
-          <span>Buriticupu - MA</span>
-        </div>
-      </div>
-
-      <!-- CENA 3: INTEGRANTES & DADOS -->
-      <div 
-        class="scene scene-3"
-        style="opacity: {scene3Opacity}; transform: translateY({scene3TranslateY}px); pointer-events: {scene3Opacity > 0.5 ? 'auto' : 'none'};"
-      >
-        <div class="scene-content">
-          <div class="team-header">
-            <span class="section-tag-mini">Equipe do Seminário</span>
-            <h2 class="team-title">Integrantes & Apresentação</h2>
-            <p class="team-subtitle">
-              Acadêmicos responsáveis pela condução do estudo e apresentação da temática:
-            </p>
-          </div>
-
-          <!-- Grid dos 4 Integrantes Espaçoso e Elegante -->
-          <div class="team-grid">
-            <div class="member-card">
-              <div class="member-avatar">
-                <span>YL</span>
-              </div>
-              <div class="member-info">
-                <span class="member-role">Acadêmica de Farmácia</span>
-                <h4 class="member-name">Yara Lima da Silva</h4>
-              </div>
-            </div>
-
-            <div class="member-card">
-              <div class="member-avatar">
-                <span>EH</span>
-              </div>
-              <div class="member-info">
-                <span class="member-role">Acadêmico de Farmácia</span>
-                <h4 class="member-name">Ezequiel Holanda de Oliveira</h4>
-              </div>
-            </div>
-
-            <div class="member-card">
-              <div class="member-avatar">
-                <span>TS</span>
-              </div>
-              <div class="member-info">
-                <span class="member-role">Acadêmica de Farmácia</span>
-                <h4 class="member-name">Thamyres dos Santos de Souza</h4>
-              </div>
-            </div>
-
-            <div class="member-card">
-              <div class="member-avatar">
-                <span>AE</span>
-              </div>
-              <div class="member-info">
-                <span class="member-role">Acadêmico de Farmácia</span>
-                <h4 class="member-name">Antonio Erick Conceição da Silva</h4>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="scene-footer">
-          <span>Curso de Bacharelado em Farmácia • UNIGRANDE</span>
-          <span>Seminário 2026</span>
-        </div>
-      </div>
-
+        bind:this={lottieContainer} 
+        class="lottie-fullscreen"
+        class:is-ready={!isLoading && !hasError}
+      ></div>
     </div>
+
+    <!-- Dica de Rolagem Inicial -->
+    {#if targetScrollRatio < 0.05}
+      <div class="scroll-hint">
+        <div class="mouse-icon">
+          <div class="mouse-wheel"></div>
+        </div>
+        <span>Role para baixo para animar</span>
+      </div>
+    {/if}
 
     <!-- Barra de Progresso Fina na Extremidade Inferior -->
     <div class="bottom-progress-bar">
@@ -403,7 +337,7 @@
     z-index: 1001; /* Fica acima da navbar durante a apresentação */
   }
 
-  /* HUD Superior */
+  /* HUD Superior Discreto */
   .hud-top {
     position: absolute;
     top: 1.25rem;
@@ -414,6 +348,7 @@
     align-items: center;
     gap: 1rem;
     z-index: 30;
+    pointer-events: auto;
   }
 
   .hud-badge {
@@ -426,6 +361,7 @@
     padding: 0.45rem 1.1rem;
     border-radius: var(--radius-full);
     border: 1px solid rgba(255, 255, 255, 0.2);
+    pointer-events: none;
   }
 
   .badge-dot {
@@ -454,7 +390,7 @@
     color: rgba(255, 255, 255, 0.85);
   }
 
-  /* Navegação por Pílulas no Topo */
+  /* Navegação rápida por etapas */
   .scene-nav-pills {
     display: inline-flex;
     align-items: center;
@@ -509,6 +445,7 @@
     border-radius: var(--radius-full);
     border: 1px solid rgba(255, 255, 255, 0.2);
     font-variant-numeric: tabular-nums;
+    pointer-events: none;
   }
 
   /* Palco Principal */
@@ -519,114 +456,69 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 3.5rem 2rem 2rem;
+    box-sizing: border-box;
     overflow: hidden;
   }
 
-  /* Estrutura Base de Cada Cena */
-  .scene {
-    position: absolute;
-    inset: 0;
+  .lottie-fullscreen {
     width: 100%;
     height: 100%;
+    max-width: 100%;
+    max-height: 100%;
     display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 6rem 3.5rem 3rem;
-    box-sizing: border-box;
-    transition: opacity 0.1s linear, transform 0.1s linear;
-  }
-
-  .scene-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    text-align: center;
-    max-width: 1300px;
-    margin: 0 auto;
-    width: 100%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
   }
 
-  .scene-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    font-size: 0.88rem;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.7);
-    letter-spacing: 0.03em;
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
-    padding-top: 1rem;
+  .lottie-fullscreen.is-ready {
+    opacity: 1;
   }
 
-  /* Estilos Cena 1 */
-  .institution-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: rgba(255, 255, 255, 0.15);
-    color: #ffffff;
-    font-size: 0.95rem;
-    font-weight: 700;
-    padding: 0.5rem 1.3rem;
-    border-radius: var(--radius-full);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    margin-bottom: 2rem;
-    letter-spacing: 0.02em;
+  .lottie-fullscreen :global(svg) {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    display: block !important;
+    object-fit: contain !important;
   }
 
-  .main-title {
-    font-size: clamp(2.4rem, 4.8vw, 4.5rem);
-    font-weight: 900;
-    color: #ffffff;
-    line-height: 1.15;
-    letter-spacing: -0.03em;
-    max-width: 1150px;
-    margin: 0 0 3rem;
-    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
-  }
-
-  .title-highlight {
-    display: block;
-    margin-top: 0.85rem;
-    color: #e2fbe8;
-    font-weight: 700;
-    font-size: 0.75em;
-    letter-spacing: -0.01em;
-  }
-
-  .scroll-prompt {
+  /* Dica de Rolagem */
+  .scroll-hint {
+    position: absolute;
+    bottom: 3.5rem;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.45rem;
     color: rgba(255, 255, 255, 0.9);
-    font-size: 0.92rem;
+    font-size: 0.82rem;
     font-weight: 600;
-  }
-
-  .scroll-prompt.subtle {
-    color: rgba(255, 255, 255, 0.75);
-    font-size: 0.85rem;
-    margin-top: 1.5rem;
+    letter-spacing: 0.02em;
+    pointer-events: none;
+    animation: fadeIn 0.4s ease;
+    z-index: 25;
   }
 
   .mouse-icon {
-    width: 22px;
-    height: 36px;
+    width: 20px;
+    height: 32px;
     border: 2px solid #ffffff;
-    border-radius: 14px;
+    border-radius: 12px;
     position: relative;
     display: flex;
     justify-content: center;
-    padding-top: 6px;
+    padding-top: 5px;
   }
 
   .mouse-wheel {
-    width: 3.5px;
-    height: 8px;
+    width: 3px;
+    height: 7px;
     background-color: #ffffff;
     border-radius: 2px;
     animation: scrollWheel 1.6s ease infinite;
@@ -634,167 +526,10 @@
 
   @keyframes scrollWheel {
     0% { transform: translateY(0); opacity: 1; }
-    100% { transform: translateY(12px); opacity: 0; }
+    100% { transform: translateY(10px); opacity: 0; }
   }
 
-  /* Estilos Cena 2 */
-  .date-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.6rem;
-    background: #ffffff;
-    color: #0d8d4b;
-    font-size: 1.05rem;
-    font-weight: 800;
-    padding: 0.6rem 1.5rem;
-    border-radius: var(--radius-full);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-    margin-bottom: 1.25rem;
-  }
-
-  .event-headline {
-    font-size: clamp(2.8rem, 5.5vw, 5.2rem);
-    font-weight: 900;
-    color: #ffffff;
-    letter-spacing: 0.04em;
-    margin: 0 0 2rem;
-    text-transform: uppercase;
-    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
-  }
-
-  .logo-showcase-box {
-    background: rgba(255, 255, 255, 0.98);
-    padding: 2rem 3.5rem;
-    border-radius: 24px;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    margin-bottom: 2rem;
-    max-width: 650px;
-    width: 90%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.3s ease;
-  }
-
-  .logo-showcase-box:hover {
-    transform: scale(1.02);
-  }
-
-  .unigrande-large-logo {
-    max-width: 100%;
-    height: auto;
-    max-height: 120px;
-    object-fit: contain;
-    display: block;
-  }
-
-  .event-caption {
-    font-size: 1.15rem;
-    color: rgba(255, 255, 255, 0.92);
-    max-width: 760px;
-    line-height: 1.6;
-    margin: 0;
-  }
-
-  /* Estilos Cena 3 */
-  .team-header {
-    margin-bottom: 2.5rem;
-  }
-
-  .section-tag-mini {
-    display: inline-block;
-    color: #e2fbe8;
-    font-weight: 800;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 0.5rem;
-  }
-
-  .team-title {
-    font-size: clamp(2.2rem, 4vw, 3.6rem);
-    font-weight: 900;
-    color: #ffffff;
-    letter-spacing: -0.02em;
-    margin: 0 0 0.75rem;
-  }
-
-  .team-subtitle {
-    font-size: 1.05rem;
-    color: rgba(255, 255, 255, 0.85);
-    max-width: 680px;
-    margin: 0 auto;
-    line-height: 1.5;
-  }
-
-  .team-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
-    width: 100%;
-    max-width: 980px;
-  }
-
-  .member-card {
-    display: flex;
-    align-items: center;
-    gap: 1.25rem;
-    background: rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 18px;
-    padding: 1.35rem 1.6rem;
-    text-align: left;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    transition: all 0.25s ease;
-  }
-
-  .member-card:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-4px);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
-  }
-
-  .member-avatar {
-    width: 52px;
-    height: 52px;
-    border-radius: 16px;
-    background: #ffffff;
-    color: #0d8d4b;
-    font-weight: 900;
-    font-size: 1.1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
-  }
-
-  .member-info {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-
-  .member-role {
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: #e2fbe8;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .member-name {
-    font-size: 1.2rem;
-    font-weight: 800;
-    color: #ffffff;
-    margin: 0;
-    letter-spacing: -0.01em;
-  }
-
-  /* Barra de Progresso */
+  /* Linha de Progresso na Base */
   .bottom-progress-bar {
     position: absolute;
     bottom: 0;
@@ -808,8 +543,34 @@
   .bottom-progress-fill {
     height: 100%;
     background: #ffffff;
-    box-shadow: 0 0 12px rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.9);
     transition: width 0.05s linear;
+  }
+
+  /* Loading e Erro */
+  .loading-state, .error-state {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.95rem;
+    z-index: 20;
+  }
+
+  .spinner {
+    width: 38px;
+    height: 38px;
+    border: 3.5px solid rgba(255, 255, 255, 0.25);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spin 0.85s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
 
   /* Seção de Detalhes Subsequente */
@@ -898,11 +659,6 @@
   }
 
   @media (max-width: 900px) {
-    .team-grid {
-      grid-template-columns: 1fr;
-      gap: 1rem;
-    }
-
     .scene-nav-pills {
       display: none;
     }
@@ -912,16 +668,8 @@
       right: 1rem;
     }
 
-    .scene {
-      padding: 5rem 1.5rem 2rem;
-    }
-
     .badge-sub {
       display: none;
-    }
-
-    .logo-showcase-box {
-      padding: 1.5rem;
     }
   }
 
