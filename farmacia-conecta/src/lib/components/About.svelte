@@ -13,8 +13,8 @@
 
   // Mapeamento por patamares:
   // 1. Título aparece (0 a 75) e repousa
-  // 2. Nome Seminário, data e logo aparecem (75 a 245) e repousam
-  // 3. Integrantes e dados finais aparecem (245 a 308.4) e repousam
+  // 2. Nome Seminário, data e logo aparecem e deslizam até suas posições centrais (75 a 258) e repousam
+  // 3. Integrantes e dados finais aparecem (258 a 308.4) e repousam
   function mapScrollToFrame(s) {
     if (s < 0.15) {
       // Entrada do Título
@@ -23,17 +23,17 @@
     } else if (s < 0.32) {
       // Repouso do Título
       return 75;
-    } else if (s < 0.50) {
-      // Entrada do Seminário, Data e Logo
-      const t = (s - 0.32) / 0.18;
-      return 75 + t * (245 - 75);
-    } else if (s < 0.68) {
-      // Repouso do Seminário, Data e Logo
-      return 245;
-    } else if (s < 0.86) {
+    } else if (s < 0.52) {
+      // Entrada do Seminário, Data e deslizamento com a Logo
+      const t = (s - 0.32) / 0.20;
+      return 75 + t * (258 - 75);
+    } else if (s < 0.70) {
+      // Repouso do Seminário, Data e Logo juntos
+      return 258;
+    } else if (s < 0.88) {
       // Entrada dos Integrantes e dados finais
-      const t = (s - 0.68) / 0.18;
-      return 245 + t * (308.4 - 245);
+      const t = (s - 0.70) / 0.18;
+      return 258 + t * (308.4 - 258);
     } else {
       // Repouso final completo
       return 308.4;
