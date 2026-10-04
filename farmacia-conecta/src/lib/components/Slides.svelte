@@ -533,7 +533,6 @@
     padding: clamp(4.5rem, 9vh, 7rem) clamp(1.25rem, 6vw, 6rem);
     background: transparent;
     opacity: 0;
-    visibility: hidden;
     
     pointer-events: none;
     z-index: 1;
