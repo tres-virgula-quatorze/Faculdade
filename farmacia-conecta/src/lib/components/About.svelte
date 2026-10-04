@@ -12,28 +12,22 @@
   let currentScrollRatio = $state(0);
 
   // Mapeamento por patamares:
+  // Mapeamento por patamares sincronizado:
   // 1. Título aparece (0 a 75) e repousa
-  // 2. Nome Seminário, data e logo aparecem e deslizam até suas posições centrais (75 a 258) e repousam
-  // 3. Integrantes e dados finais aparecem (258 a 308.4) e repousam
+  // 2. Movimento síncrono: Seminário desliza, Logo se revela e todos os outros elementos realizam o efeito de desfoque/blur juntos (75 a 258)
+  // 3. Repouso final completo da apresentação (258 a 308.4)
   function mapScrollToFrame(s) {
-    if (s < 0.15) {
+    if (s < 0.18) {
       // Entrada do Título
-      const t = s / 0.15;
+      const t = s / 0.18;
       return t * 75;
-    } else if (s < 0.32) {
+    } else if (s < 0.35) {
       // Repouso do Título
       return 75;
-    } else if (s < 0.52) {
-      // Entrada do Seminário, Data e deslizamento com a Logo
-      const t = (s - 0.32) / 0.20;
+    } else if (s < 0.72) {
+      // Deslizamento do Seminário, revelação da Logo e efeito de blur síncrono em todos os elementos
+      const t = (s - 0.35) / 0.37;
       return 75 + t * (258 - 75);
-    } else if (s < 0.70) {
-      // Repouso do Seminário, Data e Logo juntos
-      return 258;
-    } else if (s < 0.88) {
-      // Entrada dos Integrantes e dados finais
-      const t = (s - 0.70) / 0.18;
-      return 258 + t * (308.4 - 258);
     } else {
       // Repouso final completo
       return 308.4;
