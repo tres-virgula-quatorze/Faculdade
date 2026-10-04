@@ -48,17 +48,17 @@
     const layers = {};
     data.layers.forEach((l) => (layers[l.ind] = l));
 
-    // Base scale is 0.56 for 1920x880.
+    // Base scale is 0.38 for 1920x880 (compact & elegant layout).
     const scaleH = targetH / 880;
     const scaleW = targetW / 1920;
-    let scale = 0.56 * Math.min(scaleW, scaleH);
-    scale = Math.max(0.32, Math.min(0.56, scale));
+    let scale = 0.38 * Math.min(scaleW, scaleH);
+    scale = Math.max(0.24, Math.min(0.38, scale));
 
     const scaleVec = [scale * 100, scale * 100];
 
     const marginX = targetW < 1200 ? 25 : 45;
     const marginY = targetW < 1200 ? 25 : 35;
-    const marginBot = targetW < 1200 ? 28 : 40;
+    const marginBot = targetW < 1200 ? 25 : 35;
 
     // Apply scale to layers
     [842, 756, 4, 13, 434, 435, 304, 668].forEach((ind) => {
@@ -80,7 +80,7 @@
     if (layers[545]) layers[545].ks.p = { a: 0, k: [1132.812 + shiftCourse, 0] };
 
     // 3. Bottom-Left: Disciplina (435, 304)
-    const lineSpacing = 38 * (scale / 0.56);
+    const lineSpacing = 32 * (scale / 0.38);
     if (layers[304]) layers[304].ks.p = { a: 0, k: [marginX, targetH - marginBot] };
     if (layers[435]) layers[435].ks.p = { a: 0, k: [marginX, targetH - marginBot - lineSpacing] };
 
@@ -90,13 +90,13 @@
 
     // 5. Title (842) - Centered at targetW / 2
     const titleX = targetW / 2 - 691.545 * scale;
-    const titleY = Math.max(marginY + 25, targetH * 0.17);
+    const titleY = Math.max(marginY + 20, targetH * 0.18);
     if (layers[842]) layers[842].ks.p = { a: 0, k: [titleX, titleY] };
 
     // 6. Seminário (756) & Logo (4) - Centered group at targetW / 2
     const semW = 485 * scale;
     const logoW = 921 * scale;
-    const gap = 196 * scale;
+    const gap = 160 * scale;
     const totalW = semW + gap + logoW;
     const groupStart = targetW / 2 - totalW / 2;
     const semEndX = groupStart;
@@ -105,8 +105,8 @@
     const logoDelta = 100 * scale;
     const logoStartX = logoEndX - logoDelta;
 
-    const midY = Math.max(titleY + 120 * scale, targetH * 0.49);
-    const logoYOffset = 60 * (scale / 0.56);
+    const midY = Math.max(titleY + 110 * scale, targetH * 0.52);
+    const logoYOffset = 50 * (scale / 0.38);
 
     if (layers[756]) {
       layers[756].ks.p = {
@@ -135,7 +135,7 @@
     // 7. Integrantes (13) - Right Lateral
     const intWidth = 638 * scale;
     const intHeight = 244 * scale;
-    const intY = Math.max(midY + 30 * scale, Math.min(targetH * 0.62, targetH - marginBot - intHeight - 15));
+    const intY = Math.max(midY + 20 * scale, Math.min(targetH * 0.65, targetH - marginBot - intHeight - 15));
     if (layers[13]) layers[13].ks.p = { a: 0, k: [targetW - marginX - intWidth, intY] };
 
     return data;
