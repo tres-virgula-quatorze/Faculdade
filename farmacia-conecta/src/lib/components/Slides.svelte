@@ -541,26 +541,23 @@
   /* ===== Reveal on scroll ===== */
   .rv {
     opacity: 0;
-    transform: translateY(30px);
-    filter: blur(8px);
+    transform: translateY(20px);
     transition:
-      opacity 0.85s ease,
-      transform 0.95s cubic-bezier(0.16, 1, 0.3, 1),
-      filter 0.85s ease;
+      opacity 1s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 1s cubic-bezier(0.16, 1, 0.3, 1);
     transition-delay: var(--d, 0s);
     will-change: transform, opacity;
   }
-  .rv-l { transform: translateX(-90px); }
-  .rv-r { transform: translateX(90px); }
-  .rv-up { transform: translateY(50px); }
-  .rv-zoom { transform: scale(0.92) translateY(20px); }
-  .rv-focus { transform: scale(0.82); filter: blur(18px); }
-  .rv-slide-l { transform: translateX(-220px); }
-  .rv-slide-r { transform: translateX(220px); }
+  .rv-l { transform: translateX(-40px); }
+  .rv-r { transform: translateX(40px); }
+  .rv-up { transform: translateY(40px); }
+  .rv-zoom { transform: scale(0.96) translateY(10px); }
+  .rv-focus { transform: scale(0.95); }
+  .rv-slide-l { transform: translateX(-80px); }
+  .rv-slide-r { transform: translateX(80px); }
   .vis .rv {
     opacity: 1;
     transform: none;
-    filter: none;
   }
   .slide.vis {
     opacity: 1;
