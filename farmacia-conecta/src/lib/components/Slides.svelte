@@ -54,6 +54,22 @@
     return 1;
   }
 
+  function getBlur(t, delay = 0) {
+    const d = delay * 1.2;
+    const adjustedT = t > 0 ? t - d : t + d;
+    if (adjustedT >= -0.4 && adjustedT <= 0.4) return 0;
+    if (adjustedT < -0.4) return 15 * (1 - easeOut((adjustedT + 1) / 0.6));
+    return 15 * easeIn((adjustedT - 0.4) / 0.6);
+  }
+
+  function getRotate(t, delay = 0, dir = 1) {
+    const d = delay * 1.2;
+    const adjustedT = t > 0 ? t - d : t + d;
+    if (adjustedT < -0.4) return dir * 15 * (1 - easeOut((adjustedT + 1) / 0.6));
+    if (adjustedT > 0.4) return -dir * 15 * easeIn((adjustedT - 0.4) / 0.6);
+    return 0;
+  }
+
   const slideIds = ['sobre', ...Array.from({ length: 9 }, (_, i) => `slide-${i + 2}`)];
 
   let compareMode = $state('side');
@@ -148,16 +164,21 @@
   <!-- SLIDE 2 -->
   {#if true}
   {@const t = getT(1)}
-<section id="slide-2" class="slide" style="opacity: {getOp(t)}; pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
+<section id="slide-2" class="slide" style="opacity: {getOp(t)}; filter: blur({getBlur(t)}px); pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="slide-inner">
-      <header class="slide-head" style="opacity: {getOp(t, 0)}; transform: translateY({getTy(t, 0)}px);">
+
+      <svg class="deco deco-1" style="opacity: {getOp(t, 0.25)}; transform: translate({getTxRight(t, 0.25)}px, {getTy(t, 0.25)}px) rotate({getRotate(t, 0.25, 1)}deg);" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round"><path d="M12 4v16m-8-8h16"/></svg>
+      <svg class="deco deco-2" style="opacity: {getOp(t, 0.35)}; transform: translate({getTxLeft(t, 0.35)}px, {getTy(t, 0.35)}px) rotate({getRotate(t, 0.35, -1)}deg);" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3"><circle cx="12" cy="12" r="9"/></svg>
+      <svg class="deco deco-3" style="opacity: {getOp(t, 0.45)}; transform: translate({getTxRight(t, 0.45)}px, {getTy(t, 0.45)}px) rotate({getRotate(t, 0.45, 1)}deg);" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+
+      <header class="slide-head" style="opacity: {getOp(t, 0)}; filter: blur({getBlur(t, 0)}px); transform: translateY({getTy(t, 0)}px);">
         <span class="eyebrow">Slide 02 · Conceito</span>
         <h2>O que Define a Telefarmácia no Brasil?</h2>
         <p>Exercício Clínico vs. Mero Comércio Eletrônico</p>
       </header>
 
       <div class="grid-2">
-        <article class="card card-ok" style="opacity: {getOp(t, 0.15)}; transform: translateX({getTxLeft(t, 0.15)}px);" >
+        <article class="card card-ok" style="opacity: {getOp(t, 0.15)}; filter: blur({getBlur(t, 0.15)}px); transform: translateX({getTxLeft(t, 0.15)}px);" >
           <div class="card-tag ok">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
             Definição Legal
@@ -173,7 +194,7 @@
           </div>
         </article>
 
-        <article class="card card-no" style="opacity: {getOp(t, 0.3)}; transform: translateX({getTxRight(t, 0.3)}px);" >
+        <article class="card card-no" style="opacity: {getOp(t, 0.3)}; filter: blur({getBlur(t, 0.3)}px); transform: translateX({getTxRight(t, 0.3)}px);" >
           <svg class="ban" viewBox="0 0 24 24" width="120" height="120" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="m4.9 4.9 14.2 14.2" /></svg>
           <div class="card-tag no">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
@@ -192,9 +213,14 @@
   <!-- SLIDE 3 -->
   {#if true}
   {@const t = getT(2)}
-<section id="slide-3" class="slide alt" style="opacity: {getOp(t)}; pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
+<section id="slide-3" class="slide alt" style="opacity: {getOp(t)}; filter: blur({getBlur(t)}px); pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="slide-inner">
-      <header class="slide-head" style="opacity: {getOp(t, 0)}; transform: translateY({getTy(t, 0)}px);">
+
+      <svg class="deco deco-1" style="opacity: {getOp(t, 0.25)}; transform: translate({getTxRight(t, 0.25)}px, {getTy(t, 0.25)}px) rotate({getRotate(t, 0.25, 1)}deg);" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round"><path d="M12 4v16m-8-8h16"/></svg>
+      <svg class="deco deco-2" style="opacity: {getOp(t, 0.35)}; transform: translate({getTxLeft(t, 0.35)}px, {getTy(t, 0.35)}px) rotate({getRotate(t, 0.35, -1)}deg);" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3"><circle cx="12" cy="12" r="9"/></svg>
+      <svg class="deco deco-3" style="opacity: {getOp(t, 0.45)}; transform: translate({getTxRight(t, 0.45)}px, {getTy(t, 0.45)}px) rotate({getRotate(t, 0.45, 1)}deg);" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+
+      <header class="slide-head" style="opacity: {getOp(t, 0)}; filter: blur({getBlur(t, 0)}px); transform: translateY({getTy(t, 0)}px);">
         <span class="eyebrow">Slide 03 · Atendimento remoto</span>
         <h2>Modalidades da Telefarmácia</h2>
         <p>Nota Técnica CFF 2022 &amp; Resolução 727/2022</p>
@@ -202,7 +228,7 @@
 
       <div class="grid-4">
         {#each modalities as m, i}
-          <article class="card glass hover-lift" style="opacity: {getOp(t, 0)}; transform: translateY({getTy(t, 0)}px);" >
+          <article class="card glass hover-lift" style="opacity: {getOp(t, 0)}; filter: blur({getBlur(t, 0)}px); transform: translateY({getTy(t, 0)}px);" >
             <div class="icon-bubble">
               {#if m.icon === 'video'}
                 <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z" /><rect x="2" y="6" width="14" height="12" rx="2" /></svg>
@@ -227,23 +253,28 @@
   <!-- SLIDE 4 -->
   {#if true}
   {@const t = getT(3)}
-<section id="slide-4" class="slide" style="opacity: {getOp(t)}; pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
+<section id="slide-4" class="slide" style="opacity: {getOp(t)}; filter: blur({getBlur(t)}px); pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="slide-inner">
-      <header class="slide-head" style="opacity: {getOp(t, 0)}; transform: translateY({getTy(t, 0)}px);">
+
+      <svg class="deco deco-1" style="opacity: {getOp(t, 0.25)}; transform: translate({getTxRight(t, 0.25)}px, {getTy(t, 0.25)}px) rotate({getRotate(t, 0.25, 1)}deg);" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round"><path d="M12 4v16m-8-8h16"/></svg>
+      <svg class="deco deco-2" style="opacity: {getOp(t, 0.35)}; transform: translate({getTxLeft(t, 0.35)}px, {getTy(t, 0.35)}px) rotate({getRotate(t, 0.35, -1)}deg);" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3"><circle cx="12" cy="12" r="9"/></svg>
+      <svg class="deco deco-3" style="opacity: {getOp(t, 0.45)}; transform: translate({getTxRight(t, 0.45)}px, {getTy(t, 0.45)}px) rotate({getRotate(t, 0.45, 1)}deg);" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+
+      <header class="slide-head" style="opacity: {getOp(t, 0)}; filter: blur({getBlur(t, 0)}px); transform: translateY({getTy(t, 0)}px);">
         <span class="eyebrow">Slide 04 · Arcabouço legal</span>
         <h2>Legislação e Limites da Atuação Digital</h2>
       </header>
 
       <div class="mosaic">
-        <article class="card glass badge-card" style="opacity: {getOp(t, 0.15)}; transform: translateX({getTxLeft(t, 0.15)}px);" >
+        <article class="card glass badge-card" style="opacity: {getOp(t, 0.15)}; filter: blur({getBlur(t, 0.15)}px); transform: translateX({getTxLeft(t, 0.15)}px);" >
           <span class="law">Lei Federal nº 14.510/2022</span>
           <p>Disciplina a Telessaúde no Brasil em âmbito nacional e no SUS.</p>
         </article>
-        <article class="card glass badge-card" style="opacity: {getOp(t, 0.3)}; transform: translateX({getTxRight(t, 0.3)}px);" >
+        <article class="card glass badge-card" style="opacity: {getOp(t, 0.3)}; filter: blur({getBlur(t, 0.3)}px); transform: translateX({getTxRight(t, 0.3)}px);" >
           <span class="law">Resolução CFF nº 10/2024</span>
           <p>Regulamenta o uso de novas tecnologias, Saúde Digital e Inteligência Artificial na prática farmacêutica.</p>
         </article>
-        <article class="ethic-banner pulse-red" style="opacity: {getOp(t, 0.45)}; transform: scale({getScale(t, 0.45)}) translateY({getTy(t, 0.45)}px);" >
+        <article class="ethic-banner pulse-red" style="opacity: {getOp(t, 0.45)}; filter: blur({getBlur(t, 0.45)}px); transform: scale({getScale(t, 0.45)}) translateY({getTy(t, 0.45)}px);" >
           <div class="ethic-label">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4M12 17h.01" /></svg>
             Resolução CFF nº 727/2022 · Art. 3º
@@ -259,15 +290,20 @@
   <!-- SLIDE 5 -->
   {#if true}
   {@const t = getT(4)}
-<section id="slide-5" class="slide alt" style="opacity: {getOp(t)}; pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
+<section id="slide-5" class="slide alt" style="opacity: {getOp(t)}; filter: blur({getBlur(t)}px); pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="slide-inner">
-      <header class="slide-head" style="opacity: {getOp(t, 0)}; transform: translateY({getTy(t, 0)}px);">
+
+      <svg class="deco deco-1" style="opacity: {getOp(t, 0.25)}; transform: translate({getTxRight(t, 0.25)}px, {getTy(t, 0.25)}px) rotate({getRotate(t, 0.25, 1)}deg);" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round"><path d="M12 4v16m-8-8h16"/></svg>
+      <svg class="deco deco-2" style="opacity: {getOp(t, 0.35)}; transform: translate({getTxLeft(t, 0.35)}px, {getTy(t, 0.35)}px) rotate({getRotate(t, 0.35, -1)}deg);" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3"><circle cx="12" cy="12" r="9"/></svg>
+      <svg class="deco deco-3" style="opacity: {getOp(t, 0.45)}; transform: translate({getTxRight(t, 0.45)}px, {getTy(t, 0.45)}px) rotate({getRotate(t, 0.45, 1)}deg);" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+
+      <header class="slide-head" style="opacity: {getOp(t, 0)}; filter: blur({getBlur(t, 0)}px); transform: translateY({getTy(t, 0)}px);">
         <span class="eyebrow">Slide 05 · Segurança cibernética</span>
         <h2>Privacidade e Registro Clínico Obrigatório</h2>
       </header>
 
       <div class="security-panel">
-        <div class="vault" style="opacity: {getOp(t, 0.1)}; transform: scale({getScale(t, 0.1)}) translateY({getTy(t, 0.1)}px);" aria-hidden="true">
+        <div class="vault" style="opacity: {getOp(t, 0.1)}; filter: blur({getBlur(t, 0.1)}px); transform: scale({getScale(t, 0.1)}) translateY({getTy(t, 0.1)}px);" aria-hidden="true">
           <div class="vault-body">
             <div class="vault-ring"></div>
             <svg class="doc" viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6M9 13h6M9 17h4" /></svg>
@@ -278,7 +314,7 @@
         </div>
 
         <div class="sec-list">
-          <article class="card glass sec-item" style="opacity: {getOp(t, 0.2)}; transform: translateX({getTxRight(t, 0.2)}px);" >
+          <article class="card glass sec-item" style="opacity: {getOp(t, 0.2)}; filter: blur({getBlur(t, 0.2)}px); transform: translateX({getTxRight(t, 0.2)}px);" >
             <div class="sec-icon">
               <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" /></svg>
             </div>
@@ -287,7 +323,7 @@
               <p>Dados de saúde do paciente são classificados legalmente como <strong>dados pessoais sensíveis</strong>.</p>
             </div>
           </article>
-          <article class="card glass sec-item" style="opacity: {getOp(t, 0.35)}; transform: translateX({getTxRight(t, 0.35)}px);" >
+          <article class="card glass sec-item" style="opacity: {getOp(t, 0.35)}; filter: blur({getBlur(t, 0.35)}px); transform: translateX({getTxRight(t, 0.35)}px);" >
             <div class="sec-icon">
               <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
             </div>
@@ -296,7 +332,7 @@
               <p>Obrigatoriedade de registrar todos os atendimentos prestados em prontuário seguro, garantindo sigilo profissional.</p>
             </div>
           </article>
-          <article class="card glass sec-item" style="opacity: {getOp(t, 0.5)}; transform: translateX({getTxRight(t, 0.5)}px);" >
+          <article class="card glass sec-item" style="opacity: {getOp(t, 0.5)}; filter: blur({getBlur(t, 0.5)}px); transform: translateX({getTxRight(t, 0.5)}px);" >
             <div class="sec-icon">
               <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6" /><path d="m8.5 14-1.5 8 5-3 5 3-1.5-8" /></svg>
             </div>
@@ -314,15 +350,20 @@
   <!-- SLIDE 6 -->
   {#if true}
   {@const t = getT(5)}
-<section id="slide-6" class="slide" style="opacity: {getOp(t)}; pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
+<section id="slide-6" class="slide" style="opacity: {getOp(t)}; filter: blur({getBlur(t)}px); pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="slide-inner">
-      <header class="slide-head" style="opacity: {getOp(t, 0)}; transform: translateY({getTy(t, 0)}px);">
+
+      <svg class="deco deco-1" style="opacity: {getOp(t, 0.25)}; transform: translate({getTxRight(t, 0.25)}px, {getTy(t, 0.25)}px) rotate({getRotate(t, 0.25, 1)}deg);" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round"><path d="M12 4v16m-8-8h16"/></svg>
+      <svg class="deco deco-2" style="opacity: {getOp(t, 0.35)}; transform: translate({getTxLeft(t, 0.35)}px, {getTy(t, 0.35)}px) rotate({getRotate(t, 0.35, -1)}deg);" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3"><circle cx="12" cy="12" r="9"/></svg>
+      <svg class="deco deco-3" style="opacity: {getOp(t, 0.45)}; transform: translate({getTxRight(t, 0.45)}px, {getTy(t, 0.45)}px) rotate({getRotate(t, 0.45, 1)}deg);" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+
+      <header class="slide-head" style="opacity: {getOp(t, 0)}; filter: blur({getBlur(t, 0)}px); transform: translateY({getTy(t, 0)}px);">
         <span class="eyebrow">Slide 06 · O protótipo</span>
         <h2>Fluxo de Atendimento no Nosso Protótipo Digital</h2>
         <p>A jornada do paciente no nosso site</p>
       </header>
 
-      <ol class="stepper" style="opacity: {getOp(t, 0.1)}; transform: translateY({getTy(t, 0.1)}px);" >
+      <ol class="stepper" style="opacity: {getOp(t, 0.1)}; filter: blur({getBlur(t, 0.1)}px); transform: translateY({getTy(t, 0.1)}px);" >
         <div class="track"><div class="track-fill" style="--f:{Math.min(1, stepProgress * 1.25)}"></div></div>
         {#each steps as s, i}
           <li class="step" class:lit={stepProgress * 1.25 >= i / 3 - 0.001}>
@@ -341,16 +382,21 @@
   <!-- SLIDE 7 -->
   {#if true}
   {@const t = getT(6)}
-<section id="slide-7" class="slide alt" style="opacity: {getOp(t)}; pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
+<section id="slide-7" class="slide alt" style="opacity: {getOp(t)}; filter: blur({getBlur(t)}px); pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="slide-inner">
-      <header class="slide-head" style="opacity: {getOp(t, 0)}; transform: translateY({getTy(t, 0)}px);">
+
+      <svg class="deco deco-1" style="opacity: {getOp(t, 0.25)}; transform: translate({getTxRight(t, 0.25)}px, {getTy(t, 0.25)}px) rotate({getRotate(t, 0.25, 1)}deg);" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round"><path d="M12 4v16m-8-8h16"/></svg>
+      <svg class="deco deco-2" style="opacity: {getOp(t, 0.35)}; transform: translate({getTxLeft(t, 0.35)}px, {getTy(t, 0.35)}px) rotate({getRotate(t, 0.35, -1)}deg);" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3"><circle cx="12" cy="12" r="9"/></svg>
+      <svg class="deco deco-3" style="opacity: {getOp(t, 0.45)}; transform: translate({getTxRight(t, 0.45)}px, {getTy(t, 0.45)}px) rotate({getRotate(t, 0.45, 1)}deg);" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+
+      <header class="slide-head" style="opacity: {getOp(t, 0)}; filter: blur({getBlur(t, 0)}px); transform: translateY({getTy(t, 0)}px);">
         <span class="eyebrow">Slide 07 · Prática clínica I</span>
         <h2>Cuidado Clínico na Teleconsulta</h2>
         <p>Foco em Pacientes Hipertensos, Diabéticos e Polimedicados</p>
       </header>
 
       <div class="grid-clinical">
-        <div class="video-mock" style="opacity: {getOp(t, 0.15)}; transform: translateY({getTy(t, 0.15)}px);" aria-hidden="true">
+        <div class="video-mock" style="opacity: {getOp(t, 0.15)}; filter: blur({getBlur(t, 0.15)}px); transform: translateY({getTy(t, 0.15)}px);" aria-hidden="true">
           <div class="vm-bar">
             <span class="rec"><i></i> AO VIVO</span>
             <span>Teleconsulta Farmacêutica</span>
@@ -376,7 +422,7 @@
 
         <ul class="checklist">
           {#each checklist as c, i}
-            <li class="" style="opacity: {getOp(t, 0)}; transform: translateX({getTxRight(t, 0)}px);" >
+            <li class="" style="opacity: {getOp(t, 0)}; filter: blur({getBlur(t, 0)}px); transform: translateX({getTxRight(t, 0)}px);" >
               <button type="button" class="check-item" class:done={checks[i]} onclick={() => (checks[i] = !checks[i])} aria-pressed={checks[i]}>
                 <span class="box">
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
@@ -397,34 +443,39 @@
   <!-- SLIDE 8 -->
   {#if true}
   {@const t = getT(7)}
-<section id="slide-8" class="slide" style="opacity: {getOp(t)}; pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
+<section id="slide-8" class="slide" style="opacity: {getOp(t)}; filter: blur({getBlur(t)}px); pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="slide-inner">
-      <header class="slide-head" style="opacity: {getOp(t, 0)}; transform: translateY({getTy(t, 0)}px);">
+
+      <svg class="deco deco-1" style="opacity: {getOp(t, 0.25)}; transform: translate({getTxRight(t, 0.25)}px, {getTy(t, 0.25)}px) rotate({getRotate(t, 0.25, 1)}deg);" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round"><path d="M12 4v16m-8-8h16"/></svg>
+      <svg class="deco deco-2" style="opacity: {getOp(t, 0.35)}; transform: translate({getTxLeft(t, 0.35)}px, {getTy(t, 0.35)}px) rotate({getRotate(t, 0.35, -1)}deg);" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3"><circle cx="12" cy="12" r="9"/></svg>
+      <svg class="deco deco-3" style="opacity: {getOp(t, 0.45)}; transform: translate({getTxRight(t, 0.45)}px, {getTy(t, 0.45)}px) rotate({getRotate(t, 0.45, 1)}deg);" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+
+      <header class="slide-head" style="opacity: {getOp(t, 0)}; filter: blur({getBlur(t, 0)}px); transform: translateY({getTy(t, 0)}px);">
         <span class="eyebrow">Slide 08 · Prática clínica II</span>
         <h2>Diferenciação Regulatória e Prescrição</h2>
         <p>Suplementos Alimentares vs. Medicamentos</p>
       </header>
 
-      <div class="toggle" style="opacity: {getOp(t, 0.1)}; transform: translateY({getTy(t, 0.1)}px);" role="group" aria-label="Alternar comparação">
+      <div class="toggle" style="opacity: {getOp(t, 0.1)}; filter: blur({getBlur(t, 0.1)}px); transform: translateY({getTy(t, 0.1)}px);" role="group" aria-label="Alternar comparação">
         <button type="button" class:on={compareMode === 'side'} onclick={() => (compareMode = 'side')}>Lado a lado</button>
         <button type="button" class:on={compareMode === 'sup'} onclick={() => (compareMode = 'sup')}>Suplemento</button>
         <button type="button" class:on={compareMode === 'med'} onclick={() => (compareMode = 'med')}>Medicamento</button>
       </div>
 
       <div class="compare" data-mode={compareMode}>
-        <article class="card cmp cmp-sup -l" style="opacity: {getOp(t, 0.2)}; transform: translateY({getTy(t, 0.2)}px);" >
+        <article class="card cmp cmp-sup -l" style="opacity: {getOp(t, 0.2)}; filter: blur({getBlur(t, 0.2)}px); transform: translateY({getTy(t, 0.2)}px);" >
           <span class="chip chip-gold">Anvisa</span>
           <h3>Suplementos Alimentares</h3>
           <p>Não são medicamentos; destinam-se a suprir nutrientes em pessoas saudáveis e <strong>não tratam doenças</strong>.</p>
         </article>
-        <article class="card cmp cmp-med -r" style="opacity: {getOp(t, 0.2)}; transform: translateY({getTy(t, 0.2)}px);" >
+        <article class="card cmp cmp-med -r" style="opacity: {getOp(t, 0.2)}; filter: blur({getBlur(t, 0.2)}px); transform: translateY({getTy(t, 0.2)}px);" >
           <span class="chip chip-green">Res. CFF nº 586/2013</span>
           <h3>Prescrição Farmacêutica</h3>
           <p>Autonomia restrita à indicação de <strong>Medicamentos Isentos de Prescrição (MIPs)</strong> e fitoterápicos.</p>
         </article>
       </div>
 
-      <div class="root-cause card glass" style="opacity: {getOp(t, 0.45)}; transform: translateY({getTy(t, 0.45)}px);" >
+      <div class="root-cause card glass" style="opacity: {getOp(t, 0.45)}; filter: blur({getBlur(t, 0.45)}px); transform: translateY({getTy(t, 0.45)}px);" >
         <div class="icon-bubble sm">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
         </div>
@@ -437,35 +488,40 @@
   <!-- SLIDE 9 -->
   {#if true}
   {@const t = getT(8)}
-<section id="slide-9" class="slide danger" style="opacity: {getOp(t)}; pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
+<section id="slide-9" class="slide danger" style="opacity: {getOp(t)}; filter: blur({getBlur(t)}px); pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="slide-inner">
-      <header class="slide-head" style="opacity: {getOp(t, 0)}; transform: translateY({getTy(t, 0)}px);">
+
+      <svg class="deco deco-1" style="opacity: {getOp(t, 0.25)}; transform: translate({getTxRight(t, 0.25)}px, {getTy(t, 0.25)}px) rotate({getRotate(t, 0.25, 1)}deg);" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round"><path d="M12 4v16m-8-8h16"/></svg>
+      <svg class="deco deco-2" style="opacity: {getOp(t, 0.35)}; transform: translate({getTxLeft(t, 0.35)}px, {getTy(t, 0.35)}px) rotate({getRotate(t, 0.35, -1)}deg);" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3"><circle cx="12" cy="12" r="9"/></svg>
+      <svg class="deco deco-3" style="opacity: {getOp(t, 0.45)}; transform: translate({getTxRight(t, 0.45)}px, {getTy(t, 0.45)}px) rotate({getRotate(t, 0.45, 1)}deg);" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+
+      <header class="slide-head" style="opacity: {getOp(t, 0)}; filter: blur({getBlur(t, 0)}px); transform: translateY({getTy(t, 0)}px);">
         <span class="eyebrow eyebrow-red">Slide 09 · Triagem digital</span>
         <h2>Limites Clínicos e Sinais de Alarme (Red Flags)</h2>
         <p>Triagem Digital e Limites do Atendimento</p>
       </header>
 
-      <div class="alert-panel" style="opacity: {getOp(t, 0.15)}; transform: scale({getScale(t, 0.15)}) translateY({getTy(t, 0.15)}px);" >
+      <div class="alert-panel" style="opacity: {getOp(t, 0.15)}; filter: blur({getBlur(t, 0.15)}px); transform: scale({getScale(t, 0.15)}) translateY({getTy(t, 0.15)}px);" >
         <div class="alert-top">
           <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4M12 17h.01" /></svg>
           <strong>ALERTA CRÍTICO · EMERGÊNCIA</strong>
         </div>
         <ul class="risk-list">
-          <li class="" style="opacity: {getOp(t, 0.3)}; transform: translateY({getTy(t, 0.3)}px);" >
+          <li class="" style="opacity: {getOp(t, 0.3)}; filter: blur({getBlur(t, 0.3)}px); transform: translateY({getTy(t, 0.3)}px);" >
             <span class="risk-ico">!</span>
             <div>
               <h3>Sintomas de Emergência</h3>
               <p>Dor no peito, falta de ar súbita, febre alta persistente ou sinais de AVC exigem <strong>Pronto-Atendimento Presencial Imediato</strong>.</p>
             </div>
           </li>
-          <li class="" style="opacity: {getOp(t, 0.45)}; transform: translateY({getTy(t, 0.45)}px);" >
+          <li class="" style="opacity: {getOp(t, 0.45)}; filter: blur({getBlur(t, 0.45)}px); transform: translateY({getTy(t, 0.45)}px);" >
             <span class="risk-ico">!</span>
             <div>
               <h3>Impossibilidade do Exame Físico</h3>
               <p>O canal remoto não substitui a palpação, ausculta ou inspeção presencial.</p>
             </div>
           </li>
-          <li class="" style="opacity: {getOp(t, 0.6)}; transform: translateY({getTy(t, 0.6)}px);" >
+          <li class="" style="opacity: {getOp(t, 0.6)}; filter: blur({getBlur(t, 0.6)}px); transform: translateY({getTy(t, 0.6)}px);" >
             <span class="risk-ico">!</span>
             <div>
               <h3>Conduta Ética</h3>
@@ -481,9 +537,14 @@
   <!-- SLIDE 10 -->
   {#if true}
   {@const t = getT(9)}
-<section id="slide-10" class="slide final" style="opacity: {getOp(t)}; pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
+<section id="slide-10" class="slide final" style="opacity: {getOp(t)}; filter: blur({getBlur(t)}px); pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="slide-inner">
-      <article class="final-card" style="opacity: {getOp(t, 0.1)}; transform: scale({getScale(t, 0.1)}) translateY({getTy(t, 0.1)}px);" >
+
+      <svg class="deco deco-1" style="opacity: {getOp(t, 0.25)}; transform: translate({getTxRight(t, 0.25)}px, {getTy(t, 0.25)}px) rotate({getRotate(t, 0.25, 1)}deg);" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round"><path d="M12 4v16m-8-8h16"/></svg>
+      <svg class="deco deco-2" style="opacity: {getOp(t, 0.35)}; transform: translate({getTxLeft(t, 0.35)}px, {getTy(t, 0.35)}px) rotate({getRotate(t, 0.35, -1)}deg);" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3"><circle cx="12" cy="12" r="9"/></svg>
+      <svg class="deco deco-3" style="opacity: {getOp(t, 0.45)}; transform: translate({getTxRight(t, 0.45)}px, {getTy(t, 0.45)}px) rotate({getRotate(t, 0.45, 1)}deg);" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+
+      <article class="final-card" style="opacity: {getOp(t, 0.1)}; filter: blur({getBlur(t, 0.1)}px); transform: scale({getScale(t, 0.1)}) translateY({getTy(t, 0.1)}px);" >
         <span class="eyebrow">Slide 10 · Conclusão e encerramento</span>
         <h2>Telefarmácia: Tecnologia a Serviço do Cuidado Humano</h2>
 
@@ -529,6 +590,12 @@
     color: var(--color-white);
   }
 
+  
+  .deco { position: absolute; pointer-events: none; z-index: -1; }
+  .deco-1 { top: -2rem; right: -3rem; }
+  .deco-2 { bottom: 2rem; left: -4rem; }
+  .deco-3 { top: 40%; right: -5rem; }
+
   /* ===== Slide base ===== */
   .slide {
     position: absolute;
@@ -538,7 +605,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: clamp(4.5rem, 9vh, 7rem) clamp(1.25rem, 6vw, 6rem);
+    padding: clamp(2.5rem, 5vh, 3.5rem) clamp(1rem, 3vw, 2.5rem);
     background: transparent;
     opacity: 0;
     
@@ -552,14 +619,14 @@
   .slide-inner {
     position: relative;
     width: 100%;
-    max-width: 1180px;
+    max-width: 980px;
     display: flex;
     flex-direction: column;
-    gap: clamp(1.4rem, 3.5vh, 2.6rem);
+    gap: clamp(0.9rem, 1.8vh, 1.5rem);
   }
 
   .slide-head h2 {
-    font-size: clamp(1.7rem, 3.6vw, 3rem);
+    font-size: clamp(1.25rem, 2.2vw, 1.8rem);
     line-height: 1.12;
     font-weight: 800;
     letter-spacing: -0.02em;
@@ -569,7 +636,7 @@
   .slide-head p {
     margin-top: 0.55rem;
     color: rgba(255, 255, 255, 0.9);
-    font-size: clamp(1rem, 1.5vw, 1.2rem);
+    font-size: clamp(0.8rem, 0.9vw, 0.95rem);
     font-weight: 500;
   }
   .eyebrow {
@@ -594,21 +661,21 @@
   /* ===== Cards ===== */
   .card {
     border-radius: var(--radius-md);
-    padding: clamp(1.3rem, 2.4vw, 2rem);
+    padding: clamp(1rem, 1.5vw, 1.4rem);
     position: relative;
     background: var(--color-white);
     border: 1px solid var(--color-border);
     box-shadow: var(--shadow-sm);
   }
   .card h3 {
-    font-size: clamp(1.05rem, 1.5vw, 1.3rem);
+    font-size: clamp(0.95rem, 1.1vw, 1.1rem);
     font-weight: 700;
     margin-bottom: 0.5rem;
     color: var(--color-text);
   }
   .card p {
     color: var(--color-text-muted);
-    font-size: clamp(0.92rem, 1.2vw, 1.05rem);
+    font-size: clamp(0.85rem, 0.95vw, 0.9rem);
     line-height: 1.6;
   }
   .card strong { color: var(--color-text); }
@@ -622,8 +689,8 @@
     transform: translateY(-4px);
     box-shadow: var(--shadow-md);
   }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 2.4vw, 2rem); }
-  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(0.9rem, 1.6vw, 1.4rem); }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(0.8rem, 1.5vw, 1.5rem); }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(0.8rem, 1vw, 1rem); }
 
   .icon-bubble {
     width: 48px; height: 48px;
@@ -811,14 +878,14 @@
     background: transparent;
   }
   .final-card {
-    position: relative; padding: clamp(1.6rem, 4vw, 3rem); border-radius: 30px; text-align: center;
+    position: relative; padding: clamp(1.2rem, 2.5vw, 2rem); border-radius: 30px; text-align: center;
     background: var(--color-white); border: 1px solid var(--color-border);
     overflow: hidden;
     box-shadow: var(--shadow-md);
   }
   .final-card::before, .final-card::after { display: none; }
   .final-card > * { position: relative; z-index: 1; }
-  .final-card h2 { font-size: clamp(1.6rem, 3.4vw, 2.7rem); line-height: 1.15; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1.8rem; color: var(--color-primary-dark); }
+  .final-card h2 { font-size: clamp(1.3rem, 2.5vw, 2rem); line-height: 1.15; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1.8rem; color: var(--color-primary-dark); }
   .final-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; text-align: left; }
   .final-block { padding: 1.1rem; border-radius: 16px; background: rgba(38, 50, 56, 0.02); border: 1px solid var(--color-border); }
   .final-block h3 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-primary); margin-bottom: 0.4rem; }
