@@ -166,7 +166,7 @@
     // 7. Integrantes (13) - Right Lateral
     const intWidth = 638 * scale;
     const intHeight = 244 * scale;
-    const intY = Math.max(midY + 20 * scale, Math.min(targetH * 0.65, targetH - marginBot - intHeight - 15));
+    const intY = targetH - marginBot - intHeight - (20 * (scale / 0.38));
     if (layers[13]) layers[13].ks.p = { a: 0, k: [targetW - marginX - intWidth, intY] };
 
     return data;
