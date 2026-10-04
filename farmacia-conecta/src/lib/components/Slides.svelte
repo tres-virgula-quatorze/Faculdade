@@ -164,7 +164,7 @@
             <!-- SLIDE 2 -->
   {#if true}
   {@const t = getT(1)}
-  <section id="slide-2" class="slide" style="opacity: {getOp(t)}; filter: blur({getBlur(t)}px); pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
+  <section id="slide-2" class="slide" style="pointer-events: {Math.abs(t) < 0.9 ? \'auto\' : \'none\'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="abs-layout" style="perspective: 1200px;">
       
       <!-- BACKGROUND: Formas geométricas lúdicas gigantes (Flat Design) -->
@@ -183,17 +183,17 @@
         <line x1="20" y1="50" x2="80" y2="50" />
       </svg>
       
-      <!-- ELEMENTOS DE MOLDURA (Frame) IDÊNTICOS AO SLIDE 1 -->
-      <div class="abs top-left" style="top: 4vh; left: 4vw; opacity: {getOp(t, 0.05)}; transform: translateX({getTxLeft(t, 0.05)}px);">
+            <!-- ELEMENTOS DE MOLDURA (Frame) -->
+      <div class="abs top-left" style="top: 4vh; left: 4vw; opacity: {getOp(t, 0.05)}; transform: translateY({Math.abs(t)*-20}px);">
         <p style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(255,255,255,0.7);">02 / Conceitos Fundamentais</p>
       </div>
-      <div class="abs top-right" style="top: 4vh; right: 4vw; opacity: {getOp(t, 0.05)}; transform: translateX({getTxRight(t, 0.05)}px); text-align: right;">
+      <div class="abs top-right" style="top: 4vh; right: 4vw; opacity: {getOp(t, 0.05)}; transform: translateY({Math.abs(t)*-20}px); text-align: right;">
         <p style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(255,255,255,0.7);">Telefarmácia no Brasil</p>
       </div>
-      <div class="abs bottom-left" style="bottom: 4vh; left: 4vw; opacity: {getOp(t, 0.1)}; transform: translateY({getTy(t, 0.1)}px);">
+      <div class="abs bottom-left" style="bottom: 4vh; left: 4vw; opacity: {getOp(t, 0.1)}; transform: translateY({Math.abs(t)*20}px);">
         <p style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(255,255,255,0.7);">+ Resoluções CFF</p>
       </div>
-      <div class="abs bottom-right" style="bottom: 4vh; right: 4vw; opacity: {getOp(t, 0.1)}; transform: translateY({getTy(t, 0.1)}px); text-align: right;">
+      <div class="abs bottom-right" style="bottom: 4vh; right: 4vw; opacity: {getOp(t, 0.1)}; transform: translateY({Math.abs(t)*20}px); text-align: right;">
         <p style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(255,255,255,0.7);">Legislação</p>
       </div>
       
@@ -253,7 +253,7 @@
     <!-- SLIDE 3 -->
   {#if true}
   {@const t = getT(2)}
-  <section id="slide-3" class="slide alt" style="opacity: {getOp(t)}; filter: blur({getBlur(t)}px); pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
+  <section id="slide-3" class="slide alt" style="pointer-events: {Math.abs(t) < 0.9 ? \'auto\' : \'none\'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="abs-layout">
       <!-- Decos -->
       <svg class="deco deco-3" style="opacity: {getOp(t, 0.45)}; transform: translate({getTxRight(t, 0.45)}px, {getTy(t, 0.45)}px) rotate({getRotate(t, 0.45, 1)}deg);" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
@@ -305,7 +305,7 @@
     <!-- SLIDE 4 -->
   {#if true}
   {@const t = getT(3)}
-  <section id="slide-4" class="slide" style="opacity: {getOp(t)}; filter: blur({getBlur(t)}px); pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
+  <section id="slide-4" class="slide" style="pointer-events: {Math.abs(t) < 0.9 ? \'auto\' : \'none\'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="abs-layout">
       <!-- Decos -->
       <svg class="deco deco-2" style="opacity: {getOp(t, 0.35)}; transform: translate({getTxLeft(t, 0.35)}px, {getTy(t, 0.35)}px) rotate({getRotate(t, 0.35, -1)}deg);" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3"><circle cx="12" cy="12" r="9"/></svg>
@@ -354,7 +354,7 @@
     <!-- SLIDE 5 -->
   {#if true}
   {@const t = getT(4)}
-  <section id="slide-5" class="slide alt" style="opacity: {getOp(t)}; filter: blur({getBlur(t)}px); pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
+  <section id="slide-5" class="slide alt" style="pointer-events: {Math.abs(t) < 0.9 ? \'auto\' : \'none\'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="abs-layout">
       <!-- Decos -->
       <svg class="deco deco-3" style="opacity: {getOp(t, 0.45)}; transform: translate({getTxRight(t, 0.45)}px, {getTy(t, 0.45)}px) rotate({getRotate(t, 0.45, 1)}deg);" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
@@ -410,7 +410,7 @@
     <!-- SLIDE 6 -->
   {#if true}
   {@const t = getT(5)}
-  <section id="slide-6" class="slide" style="opacity: {getOp(t)}; filter: blur({getBlur(t)}px); pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
+  <section id="slide-6" class="slide" style="pointer-events: {Math.abs(t) < 0.9 ? \'auto\' : \'none\'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="abs-layout">
       <!-- Decos -->
       <svg class="deco deco-2" style="opacity: {getOp(t, 0.35)}; transform: translate({getTxLeft(t, 0.35)}px, {getTy(t, 0.35)}px) rotate({getRotate(t, 0.35, -1)}deg);" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3"><circle cx="12" cy="12" r="9"/></svg>
@@ -444,7 +444,7 @@
     <!-- SLIDE 7 -->
   {#if true}
   {@const t = getT(6)}
-  <section id="slide-7" class="slide alt" style="opacity: {getOp(t)}; filter: blur({getBlur(t)}px); pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
+  <section id="slide-7" class="slide alt" style="pointer-events: {Math.abs(t) < 0.9 ? \'auto\' : \'none\'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="abs-layout">
       <!-- Decos -->
       <svg class="deco deco-1" style="opacity: {getOp(t, 0.25)}; transform: translate({getTxRight(t, 0.25)}px, {getTy(t, 0.25)}px) rotate({getRotate(t, 0.25, 1)}deg);" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round"><path d="M12 4v16m-8-8h16"/></svg>
@@ -501,7 +501,7 @@
     <!-- SLIDE 8 -->
   {#if true}
   {@const t = getT(7)}
-  <section id="slide-8" class="slide" style="opacity: {getOp(t)}; filter: blur({getBlur(t)}px); pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
+  <section id="slide-8" class="slide" style="pointer-events: {Math.abs(t) < 0.9 ? \'auto\' : \'none\'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="abs-layout">
       <!-- Decos -->
       <svg class="deco deco-3" style="opacity: {getOp(t, 0.45)}; transform: translate({getTxRight(t, 0.45)}px, {getTy(t, 0.45)}px) rotate({getRotate(t, 0.45, 1)}deg);" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
@@ -548,7 +548,7 @@
     <!-- SLIDE 9 -->
   {#if true}
   {@const t = getT(8)}
-  <section id="slide-9" class="slide danger" style="opacity: {getOp(t)}; filter: blur({getBlur(t)}px); pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
+  <section id="slide-9" class="slide danger" style="pointer-events: {Math.abs(t) < 0.9 ? \'auto\' : \'none\'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="abs-layout">
       <!-- Decos -->
       <svg class="deco deco-2" style="opacity: {getOp(t, 0.35)}; transform: translate({getTxLeft(t, 0.35)}px, {getTy(t, 0.35)}px) rotate({getRotate(t, 0.35, -1)}deg);" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3"><circle cx="12" cy="12" r="9"/></svg>
@@ -599,7 +599,7 @@
     <!-- SLIDE 10 -->
   {#if true}
   {@const t = getT(9)}
-  <section id="slide-10" class="slide final" style="opacity: {getOp(t)}; filter: blur({getBlur(t)}px); pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
+  <section id="slide-10" class="slide final" style="pointer-events: {Math.abs(t) < 0.9 ? \'auto\' : \'none\'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="abs-layout">
       <!-- Decos -->
       <svg class="deco deco-1" style="opacity: {getOp(t, 0.25)}; transform: translate({getTxRight(t, 0.25)}px, {getTy(t, 0.25)}px) rotate({getRotate(t, 0.25, 1)}deg);" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round"><path d="M12 4v16m-8-8h16"/></svg>

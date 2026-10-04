@@ -85,8 +85,13 @@
       }
     });
 
-    // Apply class to corner elements for CSS effects
-    [434, 595, 590, 567, 562, 545, 304, 435, 668, 842].forEach(ind => {
+    // Classify elements for CSS scroll animations
+    if (layers[842]) layers[842].cl = "lottie-title";
+    if (layers[756]) layers[756].cl = "lottie-seminario";
+    if (layers[4]) layers[4].cl = "lottie-seminario";
+    if (layers[13]) layers[13].cl = "lottie-integrantes";
+
+    [434, 595, 590, 567, 562, 545, 304, 435, 668].forEach(ind => {
       if (layers[ind]) {
         layers[ind].cl = "corner-element";
       }
@@ -343,7 +348,16 @@
         bind:this={lottieContainer} 
         class="lottie-fullscreen"
         class:is-ready={!isLoading && !hasError}
-        style="opacity: {activePhase === 0 ? 1 : 0}; pointer-events: {activePhase === 0 ? 'auto' : 'none'}; transition: opacity 0.5s ease; --corner-blur: {transitionProgress * 6}px; --corner-opacity: {1 - (transitionProgress * 0.7)};"
+        style="
+          opacity: 1; pointer-events: {activePhase === 0 ? 'auto' : 'none'};
+          --title-op: {currentScrollRatio < 0.05 ? 1 : Math.max(0, 1 - (currentScrollRatio - 0.05) * 20)};
+          --title-ty: {currentScrollRatio < 0.05 ? 0 : -(currentScrollRatio - 0.05) * 1500}px;
+          --seminario-op: {currentScrollRatio < 0.12 ? 1 : Math.max(0, 1 - (currentScrollRatio - 0.12) * 20)};
+          --seminario-ty: {currentScrollRatio < 0.12 ? 0 : -(currentScrollRatio - 0.12) * 1500}px;
+          --integrantes-op: {currentScrollRatio < 0.18 ? 1 : Math.max(0, 1 - (currentScrollRatio - 0.18) * 20)};
+          --integrantes-tx: {currentScrollRatio < 0.18 ? 0 : (currentScrollRatio - 0.18) * 1000}px;
+          --corner-opacity: {currentScrollRatio > 0.95 ? Math.max(0, 1 - (currentScrollRatio - 0.95) * 20) : 1};
+        "
       ></div>
       
       <!-- Slides 2-10 rendered absolutely over the stage -->
@@ -437,11 +451,7 @@
     display: block !important;
   }
 
-  .lottie-fullscreen :global(.corner-element) {
-    filter: blur(var(--corner-blur, 0px));
-    opacity: var(--corner-opacity, 1);
-    transition: filter 0.1s linear, opacity 0.1s linear;
-  }
+  
 
   /* Dica de Rolagem */
   .scroll-hint {
@@ -626,5 +636,21 @@
     .scroll-showcase-section {
       height: 2000vh;
     }
+  }
+
+  .lottie-fullscreen :global(.lottie-title) {
+    opacity: var(--title-op);
+    transform: translateY(var(--title-ty));
+  }
+  .lottie-fullscreen :global(.lottie-seminario) {
+    opacity: var(--seminario-op);
+    transform: translateY(var(--seminario-ty));
+  }
+  .lottie-fullscreen :global(.lottie-integrantes) {
+    opacity: var(--integrantes-op);
+    transform: translateX(var(--integrantes-tx));
+  }
+  .lottie-fullscreen :global(.corner-element) {
+    opacity: var(--corner-opacity);
   }
 </style>
