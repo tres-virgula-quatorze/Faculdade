@@ -11,6 +11,20 @@
   // Progresso do scroll com interpolação suave (lerp)
   let targetScrollRatio = $state(0);
   let currentScrollRatio = $state(0);
+  let activePhase = $derived(Math.min(9, Math.floor(currentScrollRatio * 10)));
+  
+  let transitionProgress = $derived.by(() => {
+    if (currentScrollRatio <= 0.32 || currentScrollRatio >= 0.52) return 0;
+    return Math.sin(((currentScrollRatio - 0.32) / 0.20) * Math.PI);
+  });
+
+  function scrollToPhase(phaseIndex) {
+    if (!scrollTrackRef) return;
+    const rect = scrollTrackRef.getBoundingClientRect();
+    const maxScroll = scrollTrackRef.scrollHeight - window.innerHeight;
+    const targetY = window.scrollY + rect.top + (phaseIndex / 10) * maxScroll + 5; 
+    window.scrollTo({ top: targetY, behavior: 'smooth' });
+  }
 
   // Mapeamento por patamares:
   // 1. Título aparece (0 a 75) e repousa
@@ -57,42 +71,58 @@
 
     const scaleVec = [scale * 100, scale * 100];
 
-    const marginX = targetW < 1200 ? 25 : 45;
-    const marginY = targetW < 1200 ? 25 : 35;
-    const marginBot = targetW < 1200 ? 25 : 35;
+    const marginX = 20;
+    const marginY = 30;
+    const marginBot = 45;
 
     // Apply scale to layers
     [842, 756, 4, 13, 434, 435, 304, 668].forEach((ind) => {
       if (layers[ind] && layers[ind].ks && layers[ind].ks.s) {
-        layers[ind].ks.s = { a: 0, k: scaleVec };
+        // Keep original animation if present, just multiply scale
+        if (layers[ind].ks.s.a === 0) {
+          layers[ind].ks.s = { a: 0, k: scaleVec };
+        }
       }
     });
 
+    // Apply class to corner elements for CSS effects
+    [434, 595, 590, 567, 562, 545, 304, 435, 668, 842].forEach(ind => {
+      if (layers[ind]) {
+        layers[ind].cl = "corner-element";
+      }
+    });
+
+    // Helper to override position without destroying keyframes if we just want static pos
+    const setPos = (ind, x, y) => {
+      if (!layers[ind]) return;
+      layers[ind].ks.p = { a: 0, k: [x, y] };
+    };
+
     // 1. Top-Left: College (434)
-    if (layers[434]) layers[434].ks.p = { a: 0, k: [marginX, marginY] };
+    setPos(434, marginX, marginY);
 
     // 2. Top-Right: Course (543 / 544 / 595, etc.)
-    const xEndIn544 = (targetW - 2 * marginX) / scale;
+    const xEndIn544 = (targetW - marginX) / scale;
     const shiftCourse = xEndIn544 - 1305.66;
-    if (layers[595]) layers[595].ks.p = { a: 0, k: [656.388 + shiftCourse, 0] };
-    if (layers[590]) layers[590].ks.p = { a: 0, k: [770.112 + shiftCourse, 0] };
-    if (layers[567]) layers[567].ks.p = { a: 0, k: [825.696 + shiftCourse, 0] };
-    if (layers[562]) layers[562].ks.p = { a: 0, k: [1063.44 + shiftCourse, 0] };
-    if (layers[545]) layers[545].ks.p = { a: 0, k: [1132.812 + shiftCourse, 0] };
+    setPos(595, 656.388 + shiftCourse, 0);
+    setPos(590, 770.112 + shiftCourse, 0);
+    setPos(567, 825.696 + shiftCourse, 0);
+    setPos(562, 1063.44 + shiftCourse, 0);
+    setPos(545, 1132.812 + shiftCourse, 0);
 
     // 3. Bottom-Left: Disciplina (435, 304)
     const lineSpacing = 32 * (scale / 0.38);
-    if (layers[304]) layers[304].ks.p = { a: 0, k: [marginX, targetH - marginBot] };
-    if (layers[435]) layers[435].ks.p = { a: 0, k: [marginX, targetH - marginBot - lineSpacing] };
+    setPos(304, marginX, targetH - marginBot);
+    setPos(435, marginX, targetH - marginBot - lineSpacing);
 
     // 4. Bottom-Right: Buriticupu (668)
     const buriWidth = 219.056 * scale;
-    if (layers[668]) layers[668].ks.p = { a: 0, k: [targetW - marginX - buriWidth, targetH - marginBot] };
+    setPos(668, targetW - marginX - buriWidth, targetH - marginBot);
 
     // 5. Title (842) - Centered at targetW / 2
     const titleX = targetW / 2 - 691.545 * scale;
     const titleY = Math.max(marginY + 20, targetH * 0.18);
-    if (layers[842]) layers[842].ks.p = { a: 0, k: [titleX, titleY] };
+    setPos(842, titleX, titleY);
 
     // 6. Seminário (756) & Logo (4) - Centered group at targetW / 2
     const semW = 485 * scale;
@@ -257,7 +287,9 @@
       if (Math.abs(diff) > 0.0001) {
         currentScrollRatio += diff * 0.16;
         if (anim && !isLoading) {
-          const frame = mapScrollToFrame(currentScrollRatio);
+          // Lottie is active from 0 to 0.1 (phase 0)
+          const lottieRatio = Math.min(1, Math.max(0, currentScrollRatio * 10));
+          const frame = mapScrollToFrame(lottieRatio);
           anim.goToAndStop(frame, true);
         }
       } else {
@@ -311,7 +343,11 @@
         bind:this={lottieContainer} 
         class="lottie-fullscreen"
         class:is-ready={!isLoading && !hasError}
+        style="opacity: {activePhase === 0 ? 1 : 0}; pointer-events: {activePhase === 0 ? 'auto' : 'none'}; transition: opacity 0.5s ease; --corner-blur: {transitionProgress * 6}px; --corner-opacity: {1 - (transitionProgress * 0.7)};"
       ></div>
+      
+      <!-- Slides 2-10 rendered absolutely over the stage -->
+      <Slides {activePhase} currentRatio={currentScrollRatio} {scrollToPhase} />
     </div>
 
     <!-- Dica de Rolagem Inicial -->
@@ -332,14 +368,13 @@
   </div>
 </section>
 
-<!-- Slides 2 a 10 da apresentação -->
-<Slides />
+<!-- Slides component now inside stage-container -->
 
 <style>
   /* Trilha de rolagem estendida */
   .scroll-showcase-section {
     position: relative;
-    height: 350vh;
+    height: 2500vh; /* 250vh por slide (10 slides) */
     background: #0d8d4b;
     margin: 0;
     padding: 0;
@@ -400,6 +435,12 @@
     max-width: 100% !important;
     max-height: 100% !important;
     display: block !important;
+  }
+
+  .lottie-fullscreen :global(.corner-element) {
+    filter: blur(var(--corner-blur, 0px));
+    opacity: var(--corner-opacity, 1);
+    transition: filter 0.1s linear, opacity 0.1s linear;
   }
 
   /* Dica de Rolagem */
@@ -583,7 +624,7 @@
     }
 
     .scroll-showcase-section {
-      height: 280vh;
+      height: 2000vh;
     }
   }
 </style>

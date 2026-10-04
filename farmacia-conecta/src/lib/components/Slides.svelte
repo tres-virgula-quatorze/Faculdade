@@ -1,16 +1,11 @@
 <script>
-  import { onMount } from 'svelte';
+  let { activePhase = 0, currentRatio = 0, scrollToPhase } = $props();
 
   const TOTAL = 10;
   const slideIds = ['sobre', ...Array.from({ length: 9 }, (_, i) => `slide-${i + 2}`)];
 
-  let activeIndex = $state(0);
-  let showNav = $state(false);
-  let visible = $state({});
-  let stepProgress = $state(0);
   let compareMode = $state('side');
   let checks = $state([true, false, false]);
-  let slide6Ref = $state(null);
 
   const modalities = [
     {
@@ -57,9 +52,14 @@
     }
   ];
 
+  let stepProgress = $derived(
+    activePhase === 5 
+      ? Math.min(1, Math.max(0, (currentRatio - 0.5) * 10))
+      : (activePhase > 5 ? 1 : 0)
+  );
+
   function goTo(i) {
-    const el = document.getElementById(slideIds[i]);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (scrollToPhase) scrollToPhase(i);
   }
 
   function toTop() {
@@ -69,86 +69,12 @@
   function pad(n) {
     return String(n).padStart(2, '0');
   }
-
-  onMount(() => {
-    const vh = () => window.innerHeight;
-    let ticking = false;
-
-    const update = () => {
-      ticking = false;
-      const mid = vh() * 0.5;
-      let idx = 0;
-      let first = null;
-      let last = null;
-      slideIds.forEach((id, i) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        const r = el.getBoundingClientRect();
-        if (i === 0) first = r;
-        if (i === slideIds.length - 1) last = r;
-        if (r.top <= mid + 2) idx = i;
-      });
-      activeIndex = idx;
-      showNav = !!first && !!last && first.top <= mid && last.bottom >= mid;
-
-      // Progresso do stepper (slide 6)
-      if (slide6Ref) {
-        const r = slide6Ref.getBoundingClientRect();
-        const p = (vh() * 0.85 - r.top) / (r.height * 0.85);
-        stepProgress = Math.max(0, Math.min(1, p));
-      }
-    };
-
-    const onScroll = () => {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(update);
-      }
-    };
-
-    // Revelação por slide
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          visible[e.target.id] = e.intersectionRatio > 0.35;
-        });
-      },
-      { threshold: [0, 0.2, 0.35, 0.6, 1] }
-    );
-    slideIds.slice(1).forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) io.observe(el);
-    });
-
-    // Scroll snap suave apenas enquanto os slides estão na tela
-    const snapIo = new IntersectionObserver(
-      (entries) => {
-        const on = entries.some((e) => e.isIntersecting);
-        document.documentElement.style.scrollSnapType = on ? 'y proximity' : '';
-      },
-      { threshold: 0.05 }
-    );
-    const wrap = document.getElementById('slides-wrap');
-    if (wrap) snapIo.observe(wrap);
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll, { passive: true });
-    update();
-
-    return () => {
-      io.disconnect();
-      snapIo.disconnect();
-      document.documentElement.style.scrollSnapType = '';
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
-    };
-  });
 </script>
 
 <!-- Indicador lateral de slide ativo -->
-<nav class="slide-nav" class:show={showNav} aria-label="Navegação entre slides">
+<nav class="slide-nav show" aria-label="Navegação entre slides">
   <div class="slide-counter">
-    <strong>{pad(activeIndex + 1)}</strong><span>/{TOTAL}</span>
+    <strong>{pad(activePhase + 1)}</strong><span>/{TOTAL}</span>
   </div>
   <ul>
     {#each slideIds as _, i}
@@ -156,9 +82,9 @@
         <button
           type="button"
           class="dot"
-          class:on={i === activeIndex}
+          class:on={i === activePhase}
           aria-label="Ir para o slide {i + 1}"
-          aria-current={i === activeIndex ? 'true' : undefined}
+          aria-current={i === activePhase ? 'true' : undefined}
           onclick={() => goTo(i)}
         ></button>
       </li>
@@ -168,7 +94,7 @@
 
 <div id="slides-wrap" class="slides-wrap">
   <!-- SLIDE 2 -->
-  <section id="slide-2" class="slide" class:vis={visible['slide-2']}>
+  <section id="slide-2" class="slide" class:vis={activePhase === 1}>
     <div class="slide-inner">
       <header class="slide-head rv">
         <span class="eyebrow">Slide 02 · Conceito</span>
@@ -209,7 +135,7 @@
   </section>
 
   <!-- SLIDE 3 -->
-  <section id="slide-3" class="slide alt" class:vis={visible['slide-3']}>
+  <section id="slide-3" class="slide alt" class:vis={activePhase === 2}>
     <div class="slide-inner">
       <header class="slide-head rv">
         <span class="eyebrow">Slide 03 · Atendimento remoto</span>
@@ -241,7 +167,7 @@
   </section>
 
   <!-- SLIDE 4 -->
-  <section id="slide-4" class="slide" class:vis={visible['slide-4']}>
+  <section id="slide-4" class="slide" class:vis={activePhase === 3}>
     <div class="slide-inner">
       <header class="slide-head rv">
         <span class="eyebrow">Slide 04 · Arcabouço legal</span>
@@ -270,7 +196,7 @@
   </section>
 
   <!-- SLIDE 5 -->
-  <section id="slide-5" class="slide alt" class:vis={visible['slide-5']}>
+  <section id="slide-5" class="slide alt" class:vis={activePhase === 4}>
     <div class="slide-inner">
       <header class="slide-head rv">
         <span class="eyebrow">Slide 05 · Segurança cibernética</span>
@@ -322,7 +248,7 @@
   </section>
 
   <!-- SLIDE 6 -->
-  <section id="slide-6" class="slide" class:vis={visible['slide-6']} bind:this={slide6Ref}>
+  <section id="slide-6" class="slide" class:vis={activePhase === 5}>
     <div class="slide-inner">
       <header class="slide-head rv">
         <span class="eyebrow">Slide 06 · O protótipo</span>
@@ -346,7 +272,7 @@
   </section>
 
   <!-- SLIDE 7 -->
-  <section id="slide-7" class="slide alt" class:vis={visible['slide-7']}>
+  <section id="slide-7" class="slide alt" class:vis={activePhase === 6}>
     <div class="slide-inner">
       <header class="slide-head rv">
         <span class="eyebrow">Slide 07 · Prática clínica I</span>
@@ -399,7 +325,7 @@
   </section>
 
   <!-- SLIDE 8 -->
-  <section id="slide-8" class="slide" class:vis={visible['slide-8']}>
+  <section id="slide-8" class="slide" class:vis={activePhase === 7}>
     <div class="slide-inner">
       <header class="slide-head rv">
         <span class="eyebrow">Slide 08 · Prática clínica II</span>
@@ -436,7 +362,7 @@
   </section>
 
   <!-- SLIDE 9 -->
-  <section id="slide-9" class="slide danger" class:vis={visible['slide-9']}>
+  <section id="slide-9" class="slide danger" class:vis={activePhase === 8}>
     <div class="slide-inner">
       <header class="slide-head rv">
         <span class="eyebrow eyebrow-red">Slide 09 · Triagem digital</span>
@@ -477,7 +403,7 @@
   </section>
 
   <!-- SLIDE 10 -->
-  <section id="slide-10" class="slide final" class:vis={visible['slide-10']}>
+  <section id="slide-10" class="slide final" class:vis={activePhase === 9}>
     <div class="slide-inner">
       <article class="final-card rv rv-zoom" style="--d:.1s">
         <span class="eyebrow">Slide 10 · Conclusão e encerramento</span>
@@ -525,19 +451,21 @@
     --red: #ff4d5e;
     --ink: #eaf3ff;
     --muted: #a9bad3;
-    position: relative;
-    z-index: 2;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    pointer-events: none;
     color: var(--ink);
-    background: var(--navy);
   }
 
   /* ===== Slide base ===== */
   .slide {
-    position: relative;
-    min-height: 100vh;
-    min-height: 100dvh;
-    scroll-snap-align: start;
-    scroll-snap-stop: normal;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -546,6 +474,11 @@
       radial-gradient(ellipse 60% 50% at 85% 0%, rgba(31, 191, 107, 0.16), transparent 70%),
       radial-gradient(ellipse 50% 50% at 0% 100%, rgba(245, 185, 66, 0.08), transparent 70%),
       linear-gradient(160deg, var(--navy) 0%, var(--navy-2) 100%);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.6s ease, visibility 0.6s ease;
+    pointer-events: none;
+    z-index: 1;
     overflow: hidden;
   }
   .slide.alt {
@@ -578,14 +511,11 @@
     font-weight: 800;
     letter-spacing: -0.02em;
     padding-bottom: 0.14em;
-    background: linear-gradient(90deg, #fff 30%, #bff0d6 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    color: var(--color-primary-dark);
   }
   .slide-head p {
     margin-top: 0.55rem;
-    color: var(--muted);
+    color: var(--color-text-muted);
     font-size: clamp(1rem, 1.5vw, 1.2rem);
     font-weight: 500;
   }
@@ -598,14 +528,14 @@
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--gold);
-    background: rgba(245, 185, 66, 0.12);
-    border: 1px solid rgba(245, 185, 66, 0.3);
+    color: var(--color-primary);
+    background: rgba(22, 128, 58, 0.1);
+    border: 1px solid rgba(22, 128, 58, 0.2);
   }
   .eyebrow-red {
-    color: #ffb4a0;
-    background: rgba(255, 77, 94, 0.14);
-    border-color: rgba(255, 77, 94, 0.4);
+    color: #d32f2f;
+    background: rgba(211, 47, 47, 0.1);
+    border-color: rgba(211, 47, 47, 0.2);
   }
 
   /* ===== Reveal on scroll ===== */
@@ -632,288 +562,267 @@
     transform: none;
     filter: none;
   }
+  .slide.vis {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    z-index: 2;
+  }
 
   /* ===== Cards ===== */
   .card {
-    border-radius: 22px;
+    border-radius: var(--radius-md);
     padding: clamp(1.3rem, 2.4vw, 2rem);
     position: relative;
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
   }
   .card h3 {
     font-size: clamp(1.05rem, 1.5vw, 1.3rem);
     font-weight: 700;
     margin-bottom: 0.5rem;
-    color: #fff;
+    color: var(--color-text);
   }
   .card p {
-    color: var(--muted);
+    color: var(--color-text-muted);
     font-size: clamp(0.92rem, 1.2vw, 1.05rem);
     line-height: 1.6;
   }
-  .card strong { color: #fff; }
+  .card strong { color: var(--color-text); }
   .glass {
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
   }
-  .hover-lift { transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s, background 0.3s, opacity 0.85s ease, filter 0.85s ease; }
+  .hover-lift { transition: transform 0.25s ease, box-shadow 0.25s ease; }
   .vis .hover-lift:hover {
-    transform: translateY(-8px);
-    border-color: rgba(31, 191, 107, 0.6);
-    background: rgba(31, 191, 107, 0.1);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
   }
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 2.4vw, 2rem); }
   .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(0.9rem, 1.6vw, 1.4rem); }
 
   .icon-bubble {
-    width: 56px; height: 56px;
+    width: 48px; height: 48px;
     display: grid; place-items: center;
-    border-radius: 16px;
-    color: var(--green);
-    background: rgba(31, 191, 107, 0.14);
-    border: 1px solid rgba(31, 191, 107, 0.35);
+    border-radius: var(--radius-sm);
+    color: var(--color-primary);
+    background: rgba(22, 128, 58, 0.1);
     margin-bottom: 1rem;
   }
-  .icon-bubble.sm { width: 46px; height: 46px; margin: 0; flex-shrink: 0; color: var(--gold); background: rgba(245,185,66,.12); border-color: rgba(245,185,66,.35); }
+  .icon-bubble.sm { width: 40px; height: 40px; margin: 0; flex-shrink: 0; color: #d32f2f; background: rgba(211,47,47,.1); }
   .num {
     position: absolute; top: 1.1rem; right: 1.3rem;
-    font-weight: 800; font-size: 1.6rem; color: rgba(255, 255, 255, 0.1);
+    font-weight: 800; font-size: 1.6rem; color: rgba(38, 50, 56, 0.05);
   }
 
   /* ===== Slide 2 ===== */
   .card-ok {
-    background: linear-gradient(160deg, rgba(31, 191, 107, 0.22), rgba(13, 141, 75, 0.1));
-    border: 1px solid rgba(31, 191, 107, 0.5);
-    box-shadow: 0 20px 50px rgba(13, 141, 75, 0.25);
+    background: #e8f5e9;
+    border: 1px solid #c8e6c9;
   }
   .card-no {
     overflow: hidden;
-    background: linear-gradient(160deg, rgba(255, 77, 94, 0.2), rgba(120, 20, 40, 0.14));
-    border: 1px solid rgba(255, 77, 94, 0.5);
-    box-shadow: 0 20px 50px rgba(255, 77, 94, 0.18);
+    background: #ffebee;
+    border: 1px solid #ffcdd2;
   }
-  .ban { position: absolute; right: -14px; bottom: -14px; color: rgba(255, 77, 94, 0.22); }
+  .ban { position: absolute; right: -14px; bottom: -14px; color: rgba(211, 47, 47, 0.05); }
   .card-tag {
     display: inline-flex; align-items: center; gap: 0.45rem;
     font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
     padding: 0.35rem 0.8rem; border-radius: 999px; margin-bottom: 1rem;
   }
-  .card-tag.ok { color: #a8f5cb; background: rgba(31, 191, 107, 0.2); }
-  .card-tag.no { color: #ffb0b8; background: rgba(255, 77, 94, 0.2); }
+  .card-tag.ok { color: #2e7d32; background: #c8e6c9; }
+  .card-tag.no { color: #c62828; background: #ffcdd2; }
   .norm {
-    margin-top: 1.2rem; padding: 0.8rem 1rem; border-radius: 14px;
-    background: rgba(0, 0, 0, 0.22); display: flex; flex-direction: column; gap: 0.15rem;
+    margin-top: 1.2rem; padding: 0.8rem 1rem; border-radius: 8px;
+    background: rgba(38, 50, 56, 0.04); display: flex; flex-direction: column; gap: 0.15rem;
   }
-  .norm span { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold); font-weight: 700; }
-  .norm strong { font-size: 0.98rem; }
+  .norm span { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-primary-dark); font-weight: 700; }
+  .norm strong { font-size: 0.98rem; color: var(--color-text); }
 
   /* ===== Slide 4 ===== */
   .mosaic { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 2vw, 1.6rem); }
   .badge-card .law {
-    display: inline-block; margin-bottom: 0.7rem; padding: 0.4rem 0.9rem; border-radius: 10px;
-    font-weight: 800; font-size: 0.95rem; color: var(--navy);
-    background: linear-gradient(90deg, var(--gold), #ffd98a);
+    display: inline-block; margin-bottom: 0.7rem; padding: 0.4rem 0.9rem; border-radius: 8px;
+    font-weight: 800; font-size: 0.95rem; color: var(--color-white);
+    background: var(--color-primary);
   }
   .ethic-banner {
     grid-column: 1 / -1;
     padding: clamp(1.4rem, 3vw, 2.2rem);
-    border-radius: 24px;
-    background: linear-gradient(135deg, rgba(255, 77, 94, 0.22), rgba(255, 138, 61, 0.14));
-    border: 2px solid rgba(255, 77, 94, 0.6);
+    border-radius: var(--radius-md);
+    background: #ffebee;
+    border: 1px solid #ffcdd2;
     text-align: center;
   }
   .ethic-label {
     display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem;
-    color: #ffc2c8; font-weight: 700; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase;
+    color: #c62828; font-weight: 700; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase;
   }
-  .ethic-banner h3 { font-size: clamp(1.15rem, 2.3vw, 1.8rem); line-height: 1.3; color: #fff; font-weight: 800; }
-  .ethic-banner p { margin-top: 0.6rem; color: #ffd0d4; font-weight: 600; }
-  .ethic-banner.pulse { animation: redPulse 1.8s ease-in-out infinite; }
-  @keyframes redPulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 77, 94, 0.55), 0 0 30px rgba(255, 77, 94, 0.25); }
-    50% { box-shadow: 0 0 0 16px rgba(255, 77, 94, 0), 0 0 60px rgba(255, 77, 94, 0.55); }
-  }
+  .ethic-banner h3 { font-size: clamp(1.15rem, 2.3vw, 1.8rem); line-height: 1.3; color: #b71c1c; font-weight: 800; }
+  .ethic-banner p { margin-top: 0.6rem; color: #c62828; font-weight: 600; }
+  .ethic-banner.pulse { animation: none; }
 
   /* ===== Slide 5 ===== */
   .security-panel { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: clamp(1.4rem, 3vw, 3rem); align-items: center; }
   .vault { display: flex; flex-direction: column; align-items: center; gap: 0.8rem; }
   .vault-body {
     position: relative; width: min(270px, 60vw); aspect-ratio: 1;
-    border-radius: 28px; display: grid; place-items: center;
-    background: linear-gradient(145deg, #17335c, #0a1a33);
-    border: 2px solid rgba(255, 255, 255, 0.15);
-    box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.5), 0 24px 50px rgba(0, 0, 0, 0.45), 0 0 50px rgba(31, 191, 107, 0.15);
+    border-radius: var(--radius-lg); display: grid; place-items: center;
+    background: var(--color-bg);
+    border: 2px solid var(--color-border);
     overflow: hidden;
   }
   .vault-ring {
     position: absolute; inset: 18%; border-radius: 50%;
-    border: 3px dashed rgba(245, 185, 66, 0.5);
+    border: 3px dashed var(--color-primary);
     animation: spin 18s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .doc { position: absolute; color: #fff; transform: translateY(-190px); opacity: 0; transition: transform 1.1s cubic-bezier(0.34, 1.3, 0.5, 1) 0.5s, opacity 0.5s ease 0.5s; }
-  .lock { position: absolute; bottom: 14%; color: var(--gold); transform: scale(0); transition: transform 0.5s cubic-bezier(0.34, 1.8, 0.5, 1) 1.5s; }
+  .doc { position: absolute; color: var(--color-text); transform: translateY(-190px); opacity: 0; transition: transform 1.1s cubic-bezier(0.34, 1.3, 0.5, 1) 0.5s, opacity 0.5s ease 0.5s; }
+  .lock { position: absolute; bottom: 14%; color: var(--color-primary-dark); transform: scale(0); transition: transform 0.5s cubic-bezier(0.34, 1.8, 0.5, 1) 1.5s; }
   .seal {
     position: absolute; top: 12%; right: 10%; padding: 0.25rem 0.6rem; border-radius: 8px;
-    font-size: 0.8rem; font-weight: 800; letter-spacing: 0.08em; color: var(--navy);
-    background: linear-gradient(90deg, var(--green), #8cf0b9);
+    font-size: 0.8rem; font-weight: 800; letter-spacing: 0.08em; color: var(--color-white);
+    background: var(--color-primary);
     transform: rotate(10deg) scale(0); transition: transform 0.5s cubic-bezier(0.34, 1.8, 0.5, 1) 1.9s;
   }
   .vis .doc { transform: translateY(-8px); opacity: 1; }
   .vis .lock { transform: scale(1); }
   .vis .seal { transform: rotate(10deg) scale(1); }
-  .vault-base { font-size: 0.72rem; letter-spacing: 0.3em; font-weight: 700; color: var(--muted); }
+  .vault-base { font-size: 0.72rem; letter-spacing: 0.3em; font-weight: 700; color: var(--color-text-muted); }
   .sec-list { display: flex; flex-direction: column; gap: 1rem; }
   .sec-item { display: flex; gap: 1rem; align-items: flex-start; padding: 1.1rem 1.3rem; }
   .sec-icon {
-    flex-shrink: 0; width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center;
-    color: var(--green); background: rgba(31, 191, 107, 0.14); border: 1px solid rgba(31, 191, 107, 0.35);
+    flex-shrink: 0; width: 46px; height: 46px; border-radius: var(--radius-sm); display: grid; place-items: center;
+    color: var(--color-primary); background: rgba(22, 128, 58, 0.1); border: 1px solid rgba(22, 128, 58, 0.2);
   }
 
   /* ===== Slide 6 ===== */
   .stepper { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.2rem; list-style: none; padding-top: 1rem; }
-  .track { position: absolute; top: calc(1rem + 22px); left: 12%; right: 12%; height: 4px; border-radius: 4px; background: rgba(255, 255, 255, 0.12); }
-  .track-fill { height: 100%; border-radius: 4px; width: 100%; transform-origin: left; transform: scaleX(var(--f)); background: linear-gradient(90deg, var(--green), var(--gold)); box-shadow: 0 0 14px rgba(31, 191, 107, 0.7); }
+  .track { position: absolute; top: calc(1rem + 22px); left: 12%; right: 12%; height: 4px; border-radius: 4px; background: rgba(38, 50, 56, 0.1); }
+  .track-fill { height: 100%; border-radius: 4px; width: 100%; transform-origin: left; transform: scaleX(var(--f)); background: var(--color-primary); }
   .step { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1.2rem; text-align: center; }
   .step-dot {
     position: relative; z-index: 1; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center;
-    font-weight: 800; color: var(--muted); background: var(--navy-2); border: 2px solid rgba(255, 255, 255, 0.2);
+    font-weight: 800; color: var(--color-text-muted); background: var(--color-bg); border: 2px solid var(--color-border);
     transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .step.lit .step-dot { color: var(--navy); background: var(--green); border-color: #bff0d6; box-shadow: 0 0 0 8px rgba(31, 191, 107, 0.2), 0 0 28px rgba(31, 191, 107, 0.7); transform: scale(1.12); }
+  .step.lit .step-dot { color: var(--color-white); background: var(--color-primary); border-color: var(--color-primary); transform: scale(1.12); }
   .step-card { opacity: 0.45; transform: translateY(10px) scale(0.97); transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1); width: 100%; padding: 1.2rem; }
-  .step.lit .step-card { opacity: 1; transform: none; border-color: rgba(31, 191, 107, 0.5); }
+  .step.lit .step-card { opacity: 1; transform: none; border-color: var(--color-primary); }
 
   /* ===== Slide 7 ===== */
   .grid-clinical { display: grid; grid-template-columns: 1.15fr 1fr; gap: clamp(1.2rem, 3vw, 2.6rem); align-items: center; }
   .video-mock {
-    border-radius: 22px; overflow: hidden; background: #060f1f; border: 1px solid rgba(255, 255, 255, 0.14);
-    box-shadow: 0 28px 60px rgba(0, 0, 0, 0.5), 0 0 60px rgba(31, 191, 107, 0.15);
+    border-radius: 22px; overflow: hidden; background: var(--color-white); border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
   }
-  .vm-bar { display: flex; justify-content: space-between; gap: 0.5rem; padding: 0.7rem 1rem; font-size: 0.75rem; font-weight: 600; color: var(--muted); background: rgba(255, 255, 255, 0.05); }
-  .rec { display: inline-flex; align-items: center; gap: 0.4rem; color: #ff8a95; font-weight: 800; }
-  .rec i { width: 8px; height: 8px; border-radius: 50%; background: var(--red); animation: blink 1.2s infinite; }
+  .vm-bar { display: flex; justify-content: space-between; gap: 0.5rem; padding: 0.7rem 1rem; font-size: 0.75rem; font-weight: 600; color: var(--color-text); background: rgba(38, 50, 56, 0.05); }
+  .rec { display: inline-flex; align-items: center; gap: 0.4rem; color: #d32f2f; font-weight: 800; }
+  .rec i { width: 8px; height: 8px; border-radius: 50%; background: #d32f2f; animation: blink 1.2s infinite; }
   @keyframes blink { 50% { opacity: 0.2; } }
-  .vm-stage { position: relative; aspect-ratio: 16 / 10; background: radial-gradient(circle at 50% 40%, #1a3d6b, #08162b); display: grid; place-items: center; }
+  .vm-stage { position: relative; aspect-ratio: 16 / 10; background: #e0e0e0; display: grid; place-items: center; }
   .vm-patient { display: flex; flex-direction: column; align-items: center; gap: 0.8rem; }
-  .avatar { width: 84px; height: 84px; border-radius: 50%; background: linear-gradient(145deg, #3d7dd8, #1fbf6b); box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.08); }
-  .avatar.small { width: 46px; height: 46px; box-shadow: none; }
+  .avatar { width: 84px; height: 84px; border-radius: 50%; background: var(--color-primary); }
+  .avatar.small { width: 46px; height: 46px; }
   .pills { display: flex; gap: 0.5rem; }
-  .pills span { width: 34px; height: 52px; border-radius: 8px; background: linear-gradient(180deg, #fff 0 35%, var(--orange) 35% 100%); opacity: 0.9; }
-  .pills span:nth-child(2) { background: linear-gradient(180deg, #fff 0 35%, var(--green) 35% 100%); }
-  .pills span:nth-child(3) { background: linear-gradient(180deg, #fff 0 35%, var(--gold) 35% 100%); }
-  .vm-patient em, .vm-pharma em { font-style: normal; font-size: 0.72rem; color: var(--muted); }
-  .vm-pharma { position: absolute; right: 4%; bottom: 6%; display: flex; flex-direction: column; align-items: center; gap: 0.3rem; padding: 0.6rem; border-radius: 14px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); }
-  .vm-controls { display: flex; justify-content: center; gap: 0.8rem; padding: 0.8rem; background: rgba(255, 255, 255, 0.04); }
-  .vm-controls span { width: 34px; height: 34px; border-radius: 50%; background: rgba(255, 255, 255, 0.14); }
-  .vm-controls .end { background: var(--red); }
+  .pills span { width: 34px; height: 52px; border-radius: 8px; background: #bdbdbd; opacity: 0.9; }
+  .vm-patient em, .vm-pharma em { font-style: normal; font-size: 0.72rem; color: var(--color-text-muted); }
+  .vm-pharma { position: absolute; right: 4%; bottom: 6%; display: flex; flex-direction: column; align-items: center; gap: 0.3rem; padding: 0.6rem; border-radius: 14px; background: var(--color-white); border: 1px solid var(--color-border); }
+  .vm-controls { display: flex; justify-content: center; gap: 0.8rem; padding: 0.8rem; background: var(--color-white); }
+  .vm-controls span { width: 34px; height: 34px; border-radius: 50%; background: rgba(38, 50, 56, 0.1); }
+  .vm-controls .end { background: #d32f2f; }
   .checklist { list-style: none; display: flex; flex-direction: column; gap: 0.9rem; }
   .check-item {
     width: 100%; display: flex; gap: 0.9rem; align-items: flex-start; text-align: left; border-radius: 18px; padding: 1rem 1.2rem;
-    color: var(--ink); background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: none; font-weight: 400;
+    color: var(--color-text); background: var(--color-white); border: 1px solid var(--color-border); font-weight: 400;
   }
-  .check-item:hover { background: rgba(31, 191, 107, 0.1); transform: translateX(-4px); box-shadow: none; }
-  .check-item .box { flex-shrink: 0; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; color: transparent; border: 2px solid rgba(255, 255, 255, 0.3); transition: all 0.3s; margin-top: 2px; }
-  .check-item.done .box { color: var(--navy); background: var(--green); border-color: var(--green); }
+  .check-item:hover { background: rgba(22, 128, 58, 0.05); transform: translateX(-4px); }
+  .check-item .box { flex-shrink: 0; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; color: transparent; border: 2px solid var(--color-border); transition: all 0.3s; margin-top: 2px; }
+  .check-item.done .box { color: var(--color-white); background: var(--color-primary); border-color: var(--color-primary); }
   .check-text { display: flex; flex-direction: column; gap: 0.25rem; }
-  .check-text strong { font-size: 1.02rem; color: #fff; }
-  .check-text small { font-size: 0.9rem; color: var(--muted); line-height: 1.5; }
-  .check-item.done { border-color: rgba(31, 191, 107, 0.55); }
+  .check-text strong { font-size: 1.02rem; color: var(--color-text); }
+  .check-text small { font-size: 0.9rem; color: var(--color-text-muted); line-height: 1.5; }
+  .check-item.done { border-color: var(--color-primary); }
 
   /* ===== Slide 8 ===== */
-  .toggle { display: inline-flex; align-self: flex-start; padding: 0.3rem; border-radius: 999px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.14); }
-  .toggle button { background: transparent; box-shadow: none; padding: 0.6rem 1.2rem; font-size: 0.9rem; color: var(--muted); }
-  .toggle button:hover { background: rgba(255, 255, 255, 0.08); transform: none; box-shadow: none; }
-  .toggle button.on { background: linear-gradient(90deg, var(--green), #38d98a); color: var(--navy); font-weight: 700; }
+  .toggle { display: inline-flex; align-self: flex-start; padding: 0.3rem; border-radius: 999px; background: var(--color-white); border: 1px solid var(--color-border); }
+  .toggle button { background: transparent; box-shadow: none; padding: 0.6rem 1.2rem; font-size: 0.9rem; color: var(--color-text-muted); }
+  .toggle button:hover { background: rgba(38, 50, 56, 0.05); transform: none; box-shadow: none; }
+  .toggle button.on { background: var(--color-primary); color: var(--color-white); font-weight: 700; }
   .compare { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 2.4vw, 2rem); }
   .cmp { transition: opacity 0.85s ease, transform 0.95s cubic-bezier(0.16, 1, 0.3, 1), filter 0.85s ease, flex 0.4s; }
-  .cmp-sup { background: linear-gradient(160deg, rgba(245, 185, 66, 0.18), rgba(255, 138, 61, 0.08)); border: 1px solid rgba(245, 185, 66, 0.45); }
-  .cmp-med { background: linear-gradient(160deg, rgba(31, 191, 107, 0.2), rgba(13, 141, 75, 0.08)); border: 1px solid rgba(31, 191, 107, 0.5); }
+  .cmp-sup { background: var(--color-white); border: 1px solid var(--color-border); }
+  .cmp-med { background: var(--color-white); border: 1px solid var(--color-border); }
   .chip { display: inline-block; margin-bottom: 0.8rem; padding: 0.3rem 0.8rem; border-radius: 999px; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.06em; }
-  .chip-gold { color: var(--navy); background: var(--gold); }
-  .chip-green { color: var(--navy); background: var(--green); }
+  .chip-gold { color: var(--color-white); background: var(--color-primary-light); }
+  .chip-green { color: var(--color-white); background: var(--color-primary); }
   .vis .compare[data-mode='sup'] .cmp-med,
   .vis .compare[data-mode='med'] .cmp-sup { opacity: 0.25; transform: scale(0.95); filter: grayscale(0.8); }
   .vis .compare[data-mode='sup'] .cmp-sup,
-  .vis .compare[data-mode='med'] .cmp-med { transform: scale(1.03); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35); }
+  .vis .compare[data-mode='med'] .cmp-med { transform: scale(1.03); box-shadow: var(--shadow-md); }
   .root-cause { display: flex; align-items: center; gap: 1rem; padding: 1.1rem 1.4rem; }
 
   /* ===== Slide 9 ===== */
   .slide.danger {
-    background:
-      radial-gradient(ellipse 60% 55% at 50% 0%, rgba(255, 77, 94, 0.28), transparent 70%),
-      radial-gradient(ellipse 50% 50% at 100% 100%, rgba(255, 138, 61, 0.2), transparent 70%),
-      linear-gradient(170deg, #2a0f1c 0%, #3b1620 55%, #1b1020 100%);
+    background: #ffebee;
   }
   .alert-panel {
     border-radius: 26px; padding: clamp(1.2rem, 2.6vw, 2rem);
-    background: linear-gradient(145deg, rgba(255, 77, 94, 0.2), rgba(255, 138, 61, 0.12));
-    border: 2px solid rgba(255, 98, 80, 0.6);
+    background: var(--color-white);
+    border: 2px solid #d32f2f;
   }
-  .alert-panel.glow { animation: alertGlow 1.6s ease-in-out infinite; }
-  @keyframes alertGlow {
-    0%, 100% { box-shadow: 0 0 20px rgba(255, 77, 94, 0.35), inset 0 0 20px rgba(255, 77, 94, 0.08); }
-    50% { box-shadow: 0 0 70px rgba(255, 98, 80, 0.75), inset 0 0 40px rgba(255, 77, 94, 0.18); }
-  }
-  .alert-top { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.2rem; color: #ffd0b8; letter-spacing: 0.1em; font-size: 0.95rem; }
+  .alert-panel.glow { box-shadow: var(--shadow-sm); }
+  .alert-top { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.2rem; color: #d32f2f; letter-spacing: 0.1em; font-size: 0.95rem; }
   .risk-list { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-  .risk-list li { display: flex; gap: 0.9rem; padding: 1.1rem; border-radius: 18px; background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 138, 61, 0.35); }
-  .risk-ico { flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 900; color: #2a0f1c; background: linear-gradient(145deg, var(--orange), var(--red)); }
-  .risk-list h3 { font-size: 1.05rem; color: #fff; margin-bottom: 0.35rem; }
-  .risk-list p { font-size: 0.95rem; color: #ffd9d1; line-height: 1.55; }
-  .risk-list strong { color: #fff; }
+  .risk-list li { display: flex; gap: 0.9rem; padding: 1.1rem; border-radius: 18px; background: var(--color-white); border: 1px solid #ffcdd2; }
+  .risk-ico { flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 900; color: var(--color-white); background: #d32f2f; }
+  .risk-list h3 { font-size: 1.05rem; color: var(--color-text); margin-bottom: 0.35rem; }
+  .risk-list p { font-size: 0.95rem; color: var(--color-text-muted); line-height: 1.55; }
+  .risk-list strong { color: var(--color-text); }
 
   /* ===== Slide 10 ===== */
   .slide.final {
-    background:
-      radial-gradient(ellipse 60% 60% at 50% 40%, rgba(31, 191, 107, 0.25), transparent 70%),
-      radial-gradient(ellipse 40% 40% at 80% 90%, rgba(245, 185, 66, 0.16), transparent 70%),
-      linear-gradient(170deg, var(--navy-3), var(--navy-2));
+    background: var(--color-bg);
   }
   .final-card {
     position: relative; padding: clamp(1.6rem, 4vw, 3rem); border-radius: 30px; text-align: center;
-    background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.18);
-    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); overflow: hidden;
-    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.4), 0 0 80px rgba(31, 191, 107, 0.18);
+    background: var(--color-white); border: 1px solid var(--color-border);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
   }
-  .final-card::before {
-    content: ''; position: absolute; inset: -50%;
-    background: conic-gradient(from 0deg, transparent 0 70%, rgba(245, 185, 66, 0.35) 80%, transparent 90%);
-    animation: spin 9s linear infinite; z-index: 0;
-  }
-  .final-card::after { content: ''; position: absolute; inset: 2px; border-radius: 28px; background: linear-gradient(170deg, #0f2a4d, #0b1f3a); z-index: 0; }
+  .final-card::before, .final-card::after { display: none; }
   .final-card > * { position: relative; z-index: 1; }
-  .final-card h2 { font-size: clamp(1.6rem, 3.4vw, 2.7rem); line-height: 1.15; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1.8rem; color: #fff; }
+  .final-card h2 { font-size: clamp(1.6rem, 3.4vw, 2.7rem); line-height: 1.15; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1.8rem; color: var(--color-primary-dark); }
   .final-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; text-align: left; }
-  .final-block { padding: 1.1rem; border-radius: 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); }
-  .final-block h3 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold); margin-bottom: 0.4rem; }
+  .final-block { padding: 1.1rem; border-radius: 16px; background: rgba(38, 50, 56, 0.02); border: 1px solid var(--color-border); }
+  .final-block h3 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-primary); margin-bottom: 0.4rem; }
   .final-block h3.mt { margin-top: 0.9rem; }
-  .final-block p { font-size: 0.95rem; color: var(--ink); line-height: 1.5; }
+  .final-block p { font-size: 0.95rem; color: var(--color-text); line-height: 1.5; }
   .final-actions { margin-top: 2rem; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
-  .btn-gold { background: linear-gradient(90deg, var(--gold), #ffd98a); color: var(--navy); box-shadow: 0 8px 26px rgba(245, 185, 66, 0.45); animation: goldGlow 2.4s ease-in-out infinite; }
-  .btn-gold:hover { background: linear-gradient(90deg, #ffd98a, var(--gold)); }
-  @keyframes goldGlow { 50% { box-shadow: 0 8px 42px rgba(245, 185, 66, 0.85); } }
-  .btn-ghost { background: transparent; color: var(--ink); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: none; }
-  .btn-ghost:hover { background: rgba(255, 255, 255, 0.1); box-shadow: none; }
+  .btn-gold { background: var(--color-primary); color: var(--color-white); box-shadow: var(--shadow-sm); }
+  .btn-gold:hover { background: var(--color-primary-dark); }
+  .btn-ghost { background: transparent; color: var(--color-text); border: 1px solid var(--color-border); box-shadow: none; }
+  .btn-ghost:hover { background: rgba(38, 50, 56, 0.05); box-shadow: none; }
 
   /* ===== Indicador lateral ===== */
   .slide-nav {
     position: fixed; right: clamp(0.6rem, 1.6vw, 1.6rem); top: 50%; transform: translateY(-50%) translateX(30px);
     z-index: 1100; display: flex; flex-direction: column; align-items: center; gap: 0.8rem;
     padding: 0.9rem 0.55rem; border-radius: 999px; opacity: 0; pointer-events: none;
-    background: rgba(8, 22, 43, 0.6); border: 1px solid rgba(255, 255, 255, 0.16);
-    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    background: var(--color-white); border: 1px solid var(--color-border);
     transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .slide-nav.show { opacity: 1; pointer-events: auto; transform: translateY(-50%); }
-  .slide-counter { font-size: 0.7rem; color: rgba(255, 255, 255, 0.6); writing-mode: horizontal-tb; text-align: center; line-height: 1.1; font-weight: 600; }
-  .slide-counter strong { display: block; color: #fff; font-size: 0.95rem; }
+  .slide-counter { font-size: 0.7rem; color: var(--color-text-muted); writing-mode: horizontal-tb; text-align: center; line-height: 1.1; font-weight: 600; }
+  .slide-counter strong { display: block; color: var(--color-text); font-size: 0.95rem; }
   .slide-nav ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
-  .dot { width: 9px; height: 9px; padding: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.3); box-shadow: none; transition: all 0.3s; }
-  .dot:hover { background: rgba(255, 255, 255, 0.7); transform: scale(1.3); box-shadow: none; }
-  .dot.on { background: var(--gold); height: 22px; border-radius: 8px; box-shadow: 0 0 12px rgba(245, 185, 66, 0.8); }
+  .dot { width: 9px; height: 9px; padding: 0; border-radius: 50%; background: rgba(38, 50, 56, 0.15); box-shadow: none; transition: all 0.3s; }
+  .dot:hover { background: rgba(38, 50, 56, 0.3); transform: scale(1.3); box-shadow: none; }
+  .dot.on { background: var(--color-primary); height: 22px; border-radius: 8px; box-shadow: none; }
 
   /* ===== Responsivo ===== */
   @media (max-width: 1020px) {
