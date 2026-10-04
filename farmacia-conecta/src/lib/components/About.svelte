@@ -155,37 +155,6 @@
   <!-- Viewport fixo preenchendo 100% da tela do monitor de ponta a ponta -->
   <div class="sticky-viewport">
 
-    <!-- Canto Superior Esquerdo: Faculdade (marcação em vermelho) -->
-    <div class="corner-element top-left">
-      <span class="corner-text institution-name">Centro Universitário UNIGRANDE</span>
-    </div>
-
-    <!-- Canto Superior Direito: Curso (marcação em vermelho) -->
-    <div class="corner-element top-right">
-      <span class="corner-text course-name">Curso de Bacharelado em Farmácia</span>
-    </div>
-
-    <!-- Canto Inferior Esquerdo: Disciplina (marcação em vermelho) -->
-    <div class="corner-element bottom-left">
-      <span class="corner-subtext">+ Disciplina:</span>
-      <span class="corner-text discipline-name">Fundamentos da Prática Farmacêutica (Prof.ª Bianca Lira)</span>
-    </div>
-
-    <!-- Canto Inferior Direito: Buriticupu - MA (marcação em vermelho) -->
-    <div class="corner-element bottom-right">
-      <span class="corner-text location-name">Buriticupu - MA</span>
-    </div>
-
-    <!-- Área Direita: Nomes dos Integrantes (marcação em vermelho na etapa 3) -->
-    <div class="right-integrantes-box" class:is-visible={currentScrollRatio >= 0.65}>
-      <ul class="integrantes-list">
-        <li class="integrante-item" style="transition-delay: 0.05s;">Yara Lima da Silva</li>
-        <li class="integrante-item" style="transition-delay: 0.12s;">Ezequiel Olanda de Oliveira</li>
-        <li class="integrante-item" style="transition-delay: 0.19s;">Thamyres dos Santos de Souza</li>
-        <li class="integrante-item" style="transition-delay: 0.26s;">Antonio Erick Conceição da Silva</li>
-      </ul>
-    </div>
-
     <!-- Palco Principal: Animação original do JSON em tela cheia verde -->
     <div class="stage-container">
       {#if isLoading}
@@ -310,127 +279,6 @@
     z-index: 1001; /* Fica acima da navbar durante a apresentação */
   }
 
-  /* Elementos ancorados aos 4 cantos da tela (marcações em vermelho) */
-  .corner-element {
-    position: absolute;
-    z-index: 25;
-    pointer-events: none;
-    user-select: none;
-  }
-
-  .corner-element.top-left {
-    top: 1.75rem;
-    left: 2rem;
-  }
-
-  .corner-element.top-right {
-    top: 1.75rem;
-    right: 2rem;
-    text-align: right;
-  }
-
-  .corner-element.bottom-left {
-    bottom: 1.75rem;
-    left: 2rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-  }
-
-  .corner-element.bottom-right {
-    bottom: 1.75rem;
-    right: 2rem;
-    text-align: right;
-  }
-
-  .corner-text {
-    font-size: 0.74rem;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.78);
-    letter-spacing: 0.025em;
-    line-height: 1.35;
-  }
-
-  .corner-subtext {
-    font-size: 0.65rem;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.65);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
-
-  /* Bloco de Integrantes na Área Direita (marcação vermelha) */
-  .right-integrantes-box {
-    position: absolute;
-    right: 3rem;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 25;
-    pointer-events: none;
-    text-align: right;
-    opacity: 0;
-    transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  .right-integrantes-box.is-visible {
-    opacity: 1;
-    transform: translateY(-50%);
-  }
-
-  .integrantes-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-  }
-
-  .integrante-item {
-    font-size: 0.78rem;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.85);
-    letter-spacing: 0.015em;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-    opacity: 0;
-    transform: translateX(14px);
-    transition: opacity 0.4s ease, transform 0.4s ease;
-  }
-
-  .right-integrantes-box.is-visible .integrante-item {
-    opacity: 1;
-    transform: translateX(0);
-  }
-
-  @media (max-width: 900px) {
-    .corner-element.top-left {
-      top: 1rem;
-      left: 1rem;
-    }
-    .corner-element.top-right {
-      top: 1rem;
-      right: 1rem;
-    }
-    .corner-element.bottom-left {
-      bottom: 1rem;
-      left: 1rem;
-    }
-    .corner-element.bottom-right {
-      bottom: 1rem;
-      right: 1rem;
-    }
-    .right-integrantes-box {
-      right: 1rem;
-      top: 72%;
-    }
-    .corner-text {
-      font-size: 0.68rem;
-    }
-    .integrante-item {
-      font-size: 0.72rem;
-    }
-  }
-
   /* Palco Principal */
   .stage-container {
     width: 100%;
@@ -439,7 +287,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 3rem 3rem;
+    padding: 0;
     box-sizing: border-box;
     overflow: hidden;
   }
