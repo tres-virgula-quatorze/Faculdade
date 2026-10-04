@@ -2,6 +2,50 @@
   let { activePhase = 0, currentRatio = 0, scrollToPhase } = $props();
 
   const TOTAL = 10;
+  
+  function getT(phaseIndex) {
+    const start = phaseIndex / 10;
+    const end = (phaseIndex + 1) / 10;
+    const center = (start + end) / 2;
+    return (currentRatio - center) / 0.05; 
+  }
+
+  function getOp(t, delay = 0) {
+    const adjustedT = t > 0 ? t - delay * 2 : t + delay * 2;
+    const absT = Math.abs(adjustedT);
+    if (absT >= 1) return 0;
+    if (absT <= 0.4) return 1;
+    return (1 - absT) / 0.6;
+  }
+
+  function getTy(t, delay = 0) {
+    const adjustedT = t > 0 ? t - delay * 2 : t + delay * 2;
+    if (adjustedT < -0.4) return Math.pow(Math.abs(adjustedT + 0.4), 1.5) * 150;
+    if (adjustedT > 0.4) return -Math.pow(Math.abs(adjustedT - 0.4), 1.5) * 150;
+    return 0;
+  }
+
+  function getTxLeft(t, delay = 0) {
+    const adjustedT = t > 0 ? t - delay * 2 : t + delay * 2;
+    if (adjustedT < -0.4) return -Math.pow(Math.abs(adjustedT + 0.4), 1.5) * 200;
+    if (adjustedT > 0.4) return Math.pow(Math.abs(adjustedT - 0.4), 1.5) * 200;
+    return 0;
+  }
+
+  function getTxRight(t, delay = 0) {
+    const adjustedT = t > 0 ? t - delay * 2 : t + delay * 2;
+    if (adjustedT < -0.4) return Math.pow(Math.abs(adjustedT + 0.4), 1.5) * 200;
+    if (adjustedT > 0.4) return -Math.pow(Math.abs(adjustedT - 0.4), 1.5) * 200;
+    return 0;
+  }
+
+  function getScale(t, delay = 0) {
+    const adjustedT = t > 0 ? t - delay * 2 : t + delay * 2;
+    if (adjustedT < -0.4) return 1 - Math.abs(adjustedT + 0.4) * 0.3;
+    if (adjustedT > 0.4) return 1 - Math.abs(adjustedT - 0.4) * 0.3;
+    return 1;
+  }
+
   const slideIds = ['sobre', ...Array.from({ length: 9 }, (_, i) => `slide-${i + 2}`)];
 
   let compareMode = $state('side');
@@ -94,16 +138,18 @@
 
 <div id="slides-wrap" class="slides-wrap">
   <!-- SLIDE 2 -->
-  <section id="slide-2" class="slide" class:vis={activePhase === 1}>
+  {#if true}
+  {@const t = getT(1)}
+<section id="slide-2" class="slide" style="opacity: {getOp(t)}; pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="slide-inner">
-      <header class="slide-head rv">
+      <header class="slide-head" style="opacity: {getOp(t, 0)}; transform: translateY({getTy(t, 0)}px);">
         <span class="eyebrow">Slide 02 · Conceito</span>
         <h2>O que Define a Telefarmácia no Brasil?</h2>
         <p>Exercício Clínico vs. Mero Comércio Eletrônico</p>
       </header>
 
       <div class="grid-2">
-        <article class="card card-ok rv rv-l" style="--d:.15s">
+        <article class="card card-ok" style="opacity: {getOp(t, 0.15)}; transform: translateX({getTxLeft(t, 0.15)}px);" >
           <div class="card-tag ok">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
             Definição Legal
@@ -119,7 +165,7 @@
           </div>
         </article>
 
-        <article class="card card-no rv rv-r" style="--d:.3s">
+        <article class="card card-no" style="opacity: {getOp(t, 0.3)}; transform: translateX({getTxRight(t, 0.3)}px);" >
           <svg class="ban" viewBox="0 0 24 24" width="120" height="120" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="m4.9 4.9 14.2 14.2" /></svg>
           <div class="card-tag no">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
@@ -133,11 +179,14 @@
       </div>
     </div>
   </section>
+{/if}
 
   <!-- SLIDE 3 -->
-  <section id="slide-3" class="slide alt" class:vis={activePhase === 2}>
+  {#if true}
+  {@const t = getT(2)}
+<section id="slide-3" class="slide alt" style="opacity: {getOp(t)}; pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="slide-inner">
-      <header class="slide-head rv">
+      <header class="slide-head" style="opacity: {getOp(t, 0)}; transform: translateY({getTy(t, 0)}px);">
         <span class="eyebrow">Slide 03 · Atendimento remoto</span>
         <h2>Modalidades da Telefarmácia</h2>
         <p>Nota Técnica CFF 2022 &amp; Resolução 727/2022</p>
@@ -145,7 +194,7 @@
 
       <div class="grid-4">
         {#each modalities as m, i}
-          <article class="card glass hover-lift rv rv-up" style="--d:{0.15 + i * 0.14}s">
+          <article class="card glass hover-lift" style="opacity: {getOp(t, 0)}; transform: translateY({getTy(t, 0)}px);" >
             <div class="icon-bubble">
               {#if m.icon === 'video'}
                 <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z" /><rect x="2" y="6" width="14" height="12" rx="2" /></svg>
@@ -165,25 +214,28 @@
       </div>
     </div>
   </section>
+{/if}
 
   <!-- SLIDE 4 -->
-  <section id="slide-4" class="slide" class:vis={activePhase === 3}>
+  {#if true}
+  {@const t = getT(3)}
+<section id="slide-4" class="slide" style="opacity: {getOp(t)}; pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="slide-inner">
-      <header class="slide-head rv">
+      <header class="slide-head" style="opacity: {getOp(t, 0)}; transform: translateY({getTy(t, 0)}px);">
         <span class="eyebrow">Slide 04 · Arcabouço legal</span>
         <h2>Legislação e Limites da Atuação Digital</h2>
       </header>
 
       <div class="mosaic">
-        <article class="card glass badge-card rv rv-l" style="--d:.15s">
+        <article class="card glass badge-card" style="opacity: {getOp(t, 0.15)}; transform: translateX({getTxLeft(t, 0.15)}px);" >
           <span class="law">Lei Federal nº 14.510/2022</span>
           <p>Disciplina a Telessaúde no Brasil em âmbito nacional e no SUS.</p>
         </article>
-        <article class="card glass badge-card rv rv-r" style="--d:.3s">
+        <article class="card glass badge-card" style="opacity: {getOp(t, 0.3)}; transform: translateX({getTxRight(t, 0.3)}px);" >
           <span class="law">Resolução CFF nº 10/2024</span>
           <p>Regulamenta o uso de novas tecnologias, Saúde Digital e Inteligência Artificial na prática farmacêutica.</p>
         </article>
-        <article class="ethic-banner pulse-red rv rv-zoom" class:pulse={activePhase === 3} style="--d:.45s">
+        <article class="ethic-banner pulse-red" style="opacity: {getOp(t, 0.45)}; transform: scale({getScale(t, 0.45)}) translateY({getTy(t, 0.45)}px);" >
           <div class="ethic-label">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4M12 17h.01" /></svg>
             Resolução CFF nº 727/2022 · Art. 3º
@@ -194,17 +246,20 @@
       </div>
     </div>
   </section>
+{/if}
 
   <!-- SLIDE 5 -->
-  <section id="slide-5" class="slide alt" class:vis={activePhase === 4}>
+  {#if true}
+  {@const t = getT(4)}
+<section id="slide-5" class="slide alt" style="opacity: {getOp(t)}; pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="slide-inner">
-      <header class="slide-head rv">
+      <header class="slide-head" style="opacity: {getOp(t, 0)}; transform: translateY({getTy(t, 0)}px);">
         <span class="eyebrow">Slide 05 · Segurança cibernética</span>
         <h2>Privacidade e Registro Clínico Obrigatório</h2>
       </header>
 
       <div class="security-panel">
-        <div class="vault rv rv-zoom" style="--d:.1s" aria-hidden="true">
+        <div class="vault" style="opacity: {getOp(t, 0.1)}; transform: scale({getScale(t, 0.1)}) translateY({getTy(t, 0.1)}px);" aria-hidden="true">
           <div class="vault-body">
             <div class="vault-ring"></div>
             <svg class="doc" viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6M9 13h6M9 17h4" /></svg>
@@ -215,7 +270,7 @@
         </div>
 
         <div class="sec-list">
-          <article class="card glass sec-item rv rv-r" style="--d:.2s">
+          <article class="card glass sec-item" style="opacity: {getOp(t, 0.2)}; transform: translateX({getTxRight(t, 0.2)}px);" >
             <div class="sec-icon">
               <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" /></svg>
             </div>
@@ -224,7 +279,7 @@
               <p>Dados de saúde do paciente são classificados legalmente como <strong>dados pessoais sensíveis</strong>.</p>
             </div>
           </article>
-          <article class="card glass sec-item rv rv-r" style="--d:.35s">
+          <article class="card glass sec-item" style="opacity: {getOp(t, 0.35)}; transform: translateX({getTxRight(t, 0.35)}px);" >
             <div class="sec-icon">
               <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
             </div>
@@ -233,7 +288,7 @@
               <p>Obrigatoriedade de registrar todos os atendimentos prestados em prontuário seguro, garantindo sigilo profissional.</p>
             </div>
           </article>
-          <article class="card glass sec-item rv rv-r" style="--d:.5s">
+          <article class="card glass sec-item" style="opacity: {getOp(t, 0.5)}; transform: translateX({getTxRight(t, 0.5)}px);" >
             <div class="sec-icon">
               <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6" /><path d="m8.5 14-1.5 8 5-3 5 3-1.5-8" /></svg>
             </div>
@@ -246,17 +301,20 @@
       </div>
     </div>
   </section>
+{/if}
 
   <!-- SLIDE 6 -->
-  <section id="slide-6" class="slide" class:vis={activePhase === 5}>
+  {#if true}
+  {@const t = getT(5)}
+<section id="slide-6" class="slide" style="opacity: {getOp(t)}; pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="slide-inner">
-      <header class="slide-head rv">
+      <header class="slide-head" style="opacity: {getOp(t, 0)}; transform: translateY({getTy(t, 0)}px);">
         <span class="eyebrow">Slide 06 · O protótipo</span>
         <h2>Fluxo de Atendimento no Nosso Protótipo Digital</h2>
         <p>A jornada do paciente no nosso site</p>
       </header>
 
-      <ol class="stepper rv" style="--d:.1s; --p:{stepProgress}">
+      <ol class="stepper" style="opacity: {getOp(t, 0.1)}; transform: translateY({getTy(t, 0.1)}px);" >
         <div class="track"><div class="track-fill" style="--f:{Math.min(1, stepProgress * 1.25)}"></div></div>
         {#each steps as s, i}
           <li class="step" class:lit={stepProgress * 1.25 >= i / 3 - 0.001}>
@@ -270,18 +328,21 @@
       </ol>
     </div>
   </section>
+{/if}
 
   <!-- SLIDE 7 -->
-  <section id="slide-7" class="slide alt" class:vis={activePhase === 6}>
+  {#if true}
+  {@const t = getT(6)}
+<section id="slide-7" class="slide alt" style="opacity: {getOp(t)}; pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="slide-inner">
-      <header class="slide-head rv">
+      <header class="slide-head" style="opacity: {getOp(t, 0)}; transform: translateY({getTy(t, 0)}px);">
         <span class="eyebrow">Slide 07 · Prática clínica I</span>
         <h2>Cuidado Clínico na Teleconsulta</h2>
         <p>Foco em Pacientes Hipertensos, Diabéticos e Polimedicados</p>
       </header>
 
       <div class="grid-clinical">
-        <div class="video-mock rv rv-focus" style="--d:.15s" aria-hidden="true">
+        <div class="video-mock" style="opacity: {getOp(t, 0.15)}; transform: translateY({getTy(t, 0.15)}px);" aria-hidden="true">
           <div class="vm-bar">
             <span class="rec"><i></i> AO VIVO</span>
             <span>Teleconsulta Farmacêutica</span>
@@ -307,7 +368,7 @@
 
         <ul class="checklist">
           {#each checklist as c, i}
-            <li class="rv rv-r" style="--d:{0.3 + i * 0.15}s">
+            <li class="" style="opacity: {getOp(t, 0)}; transform: translateX({getTxRight(t, 0)}px);" >
               <button type="button" class="check-item" class:done={checks[i]} onclick={() => (checks[i] = !checks[i])} aria-pressed={checks[i]}>
                 <span class="box">
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
@@ -323,36 +384,39 @@
       </div>
     </div>
   </section>
+{/if}
 
   <!-- SLIDE 8 -->
-  <section id="slide-8" class="slide" class:vis={activePhase === 7}>
+  {#if true}
+  {@const t = getT(7)}
+<section id="slide-8" class="slide" style="opacity: {getOp(t)}; pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="slide-inner">
-      <header class="slide-head rv">
+      <header class="slide-head" style="opacity: {getOp(t, 0)}; transform: translateY({getTy(t, 0)}px);">
         <span class="eyebrow">Slide 08 · Prática clínica II</span>
         <h2>Diferenciação Regulatória e Prescrição</h2>
         <p>Suplementos Alimentares vs. Medicamentos</p>
       </header>
 
-      <div class="toggle rv" style="--d:.1s" role="group" aria-label="Alternar comparação">
+      <div class="toggle" style="opacity: {getOp(t, 0.1)}; transform: translateY({getTy(t, 0.1)}px);" role="group" aria-label="Alternar comparação">
         <button type="button" class:on={compareMode === 'side'} onclick={() => (compareMode = 'side')}>Lado a lado</button>
         <button type="button" class:on={compareMode === 'sup'} onclick={() => (compareMode = 'sup')}>Suplemento</button>
         <button type="button" class:on={compareMode === 'med'} onclick={() => (compareMode = 'med')}>Medicamento</button>
       </div>
 
       <div class="compare" data-mode={compareMode}>
-        <article class="card cmp cmp-sup rv rv-slide-l" style="--d:.2s">
+        <article class="card cmp cmp-sup -l" style="opacity: {getOp(t, 0.2)}; transform: translateY({getTy(t, 0.2)}px);" >
           <span class="chip chip-gold">Anvisa</span>
           <h3>Suplementos Alimentares</h3>
           <p>Não são medicamentos; destinam-se a suprir nutrientes em pessoas saudáveis e <strong>não tratam doenças</strong>.</p>
         </article>
-        <article class="card cmp cmp-med rv rv-slide-r" style="--d:.2s">
+        <article class="card cmp cmp-med -r" style="opacity: {getOp(t, 0.2)}; transform: translateY({getTy(t, 0.2)}px);" >
           <span class="chip chip-green">Res. CFF nº 586/2013</span>
           <h3>Prescrição Farmacêutica</h3>
           <p>Autonomia restrita à indicação de <strong>Medicamentos Isentos de Prescrição (MIPs)</strong> e fitoterápicos.</p>
         </article>
       </div>
 
-      <div class="root-cause card glass rv rv-up" style="--d:.45s">
+      <div class="root-cause card glass" style="opacity: {getOp(t, 0.45)}; transform: translateY({getTy(t, 0.45)}px);" >
         <div class="icon-bubble sm">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
         </div>
@@ -360,37 +424,40 @@
       </div>
     </div>
   </section>
+{/if}
 
   <!-- SLIDE 9 -->
-  <section id="slide-9" class="slide danger" class:vis={activePhase === 8}>
+  {#if true}
+  {@const t = getT(8)}
+<section id="slide-9" class="slide danger" style="opacity: {getOp(t)}; pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="slide-inner">
-      <header class="slide-head rv">
+      <header class="slide-head" style="opacity: {getOp(t, 0)}; transform: translateY({getTy(t, 0)}px);">
         <span class="eyebrow eyebrow-red">Slide 09 · Triagem digital</span>
         <h2>Limites Clínicos e Sinais de Alarme (Red Flags)</h2>
         <p>Triagem Digital e Limites do Atendimento</p>
       </header>
 
-      <div class="alert-panel rv rv-zoom" class:glow={activePhase === 8} style="--d:.15s">
+      <div class="alert-panel" style="opacity: {getOp(t, 0.15)}; transform: scale({getScale(t, 0.15)}) translateY({getTy(t, 0.15)}px);" >
         <div class="alert-top">
           <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4M12 17h.01" /></svg>
           <strong>ALERTA CRÍTICO · EMERGÊNCIA</strong>
         </div>
         <ul class="risk-list">
-          <li class="rv rv-up" style="--d:.3s">
+          <li class="" style="opacity: {getOp(t, 0.3)}; transform: translateY({getTy(t, 0.3)}px);" >
             <span class="risk-ico">!</span>
             <div>
               <h3>Sintomas de Emergência</h3>
               <p>Dor no peito, falta de ar súbita, febre alta persistente ou sinais de AVC exigem <strong>Pronto-Atendimento Presencial Imediato</strong>.</p>
             </div>
           </li>
-          <li class="rv rv-up" style="--d:.45s">
+          <li class="" style="opacity: {getOp(t, 0.45)}; transform: translateY({getTy(t, 0.45)}px);" >
             <span class="risk-ico">!</span>
             <div>
               <h3>Impossibilidade do Exame Físico</h3>
               <p>O canal remoto não substitui a palpação, ausculta ou inspeção presencial.</p>
             </div>
           </li>
-          <li class="rv rv-up" style="--d:.6s">
+          <li class="" style="opacity: {getOp(t, 0.6)}; transform: translateY({getTy(t, 0.6)}px);" >
             <span class="risk-ico">!</span>
             <div>
               <h3>Conduta Ética</h3>
@@ -401,11 +468,14 @@
       </div>
     </div>
   </section>
+{/if}
 
   <!-- SLIDE 10 -->
-  <section id="slide-10" class="slide final" class:vis={activePhase === 9}>
+  {#if true}
+  {@const t = getT(9)}
+<section id="slide-10" class="slide final" style="opacity: {getOp(t)}; pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="slide-inner">
-      <article class="final-card rv rv-zoom" style="--d:.1s">
+      <article class="final-card" style="opacity: {getOp(t, 0.1)}; transform: scale({getScale(t, 0.1)}) translateY({getTy(t, 0.1)}px);" >
         <span class="eyebrow">Slide 10 · Conclusão e encerramento</span>
         <h2>Telefarmácia: Tecnologia a Serviço do Cuidado Humano</h2>
 
@@ -437,6 +507,7 @@
       </article>
     </div>
   </section>
+{/if}
 </div>
 
 <style>
@@ -463,7 +534,7 @@
     background: transparent;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.6s ease, visibility 0.6s ease;
+    
     pointer-events: none;
     z-index: 1;
     overflow: hidden;
@@ -511,34 +582,6 @@
     color: #d32f2f;
     background: rgba(211, 47, 47, 0.1);
     border-color: rgba(211, 47, 47, 0.2);
-  }
-
-  /* ===== Reveal on scroll ===== */
-  .rv {
-    opacity: 0;
-    transform: translateY(20px);
-    transition:
-      opacity 1s cubic-bezier(0.16, 1, 0.3, 1),
-      transform 1s cubic-bezier(0.16, 1, 0.3, 1);
-    transition-delay: var(--d, 0s);
-    will-change: transform, opacity;
-  }
-  .rv-l { transform: translateX(-40px); }
-  .rv-r { transform: translateX(40px); }
-  .rv-up { transform: translateY(40px); }
-  .rv-zoom { transform: scale(0.96) translateY(10px); }
-  .rv-focus { transform: scale(0.95); }
-  .rv-slide-l { transform: translateX(-80px); }
-  .rv-slide-r { transform: translateX(80px); }
-  .vis .rv {
-    opacity: 1;
-    transform: none;
-  }
-  .slide.vis {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-    z-index: 2;
   }
 
   /* ===== Cards ===== */
