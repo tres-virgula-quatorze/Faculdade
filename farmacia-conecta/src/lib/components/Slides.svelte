@@ -139,26 +139,7 @@
   }
 </script>
 
-<!-- Indicador lateral de slide ativo -->
-<nav class="slide-nav show" aria-label="Navegação entre slides">
-  <div class="slide-counter">
-    <strong>{pad(activePhase + 1)}</strong><span>/{TOTAL}</span>
-  </div>
-  <ul>
-    {#each slideIds as _, i}
-      <li>
-        <button
-          type="button"
-          class="dot"
-          class:on={i === activePhase}
-          aria-label="Ir para o slide {i + 1}"
-          aria-current={i === activePhase ? 'true' : undefined}
-          onclick={() => goTo(i)}
-        ></button>
-      </li>
-    {/each}
-  </ul>
-</nav>
+
 
 <div id="slides-wrap" class="slides-wrap">
             <!-- SLIDE 2 -->
