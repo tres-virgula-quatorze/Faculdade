@@ -344,25 +344,25 @@
   }
 
   .corner-text {
-    font-size: 0.95rem;
+    font-size: 0.88rem;
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.92);
-    letter-spacing: 0.015em;
+    color: rgba(255, 255, 255, 0.9);
+    letter-spacing: 0.02em;
     line-height: 1.4;
   }
 
   .corner-subtext {
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.8);
-    letter-spacing: 0.03em;
+    color: rgba(255, 255, 255, 0.75);
+    letter-spacing: 0.04em;
   }
 
   /* Bloco de Integrantes na Área Direita (marcação vermelha) */
   .right-integrantes-box {
     position: absolute;
     right: 3.5rem;
-    top: 55%;
+    top: 50%;
     transform: translateY(-50%);
     z-index: 25;
     pointer-events: none;
@@ -382,15 +382,15 @@
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.55rem;
+    gap: 0.4rem;
   }
 
   .integrante-item {
-    font-size: 1.05rem;
+    font-size: 0.92rem;
     font-weight: 500;
-    color: #ffffff;
-    letter-spacing: 0.01em;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    color: rgba(255, 255, 255, 0.95);
+    letter-spacing: 0.015em;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
     opacity: 0;
     transform: translateX(18px);
     transition: opacity 0.45s ease, transform 0.45s ease;
@@ -419,14 +419,14 @@
       right: 1.2rem;
     }
     .right-integrantes-box {
-      right: 1.5rem;
+      right: 1.2rem;
       top: 72%;
     }
     .corner-text {
-      font-size: 0.82rem;
+      font-size: 0.78rem;
     }
     .integrante-item {
-      font-size: 0.9rem;
+      font-size: 0.82rem;
     }
   }
 
@@ -438,7 +438,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0;
+    padding: 3.5rem 3rem;
     box-sizing: border-box;
     overflow: hidden;
   }
