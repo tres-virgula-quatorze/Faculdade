@@ -441,23 +441,13 @@
 
 <style>
   .slides-wrap {
-    --navy: #0b1f3a;
-    --navy-2: #12305a;
-    --navy-3: #0a1830;
-    --green: #1fbf6b;
-    --green-deep: #0d8d4b;
-    --gold: #f5b942;
-    --orange: #ff8a3d;
-    --red: #ff4d5e;
-    --ink: #eaf3ff;
-    --muted: #a9bad3;
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
     z-index: 10;
     pointer-events: none;
-    color: var(--ink);
+    color: var(--color-white);
   }
 
   /* ===== Slide base ===== */
@@ -470,10 +460,7 @@
     align-items: center;
     justify-content: center;
     padding: clamp(4.5rem, 9vh, 7rem) clamp(1.25rem, 6vw, 6rem);
-    background:
-      radial-gradient(ellipse 60% 50% at 85% 0%, rgba(31, 191, 107, 0.16), transparent 70%),
-      radial-gradient(ellipse 50% 50% at 0% 100%, rgba(245, 185, 66, 0.08), transparent 70%),
-      linear-gradient(160deg, var(--navy) 0%, var(--navy-2) 100%);
+    background: transparent;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.6s ease, visibility 0.6s ease;
@@ -482,19 +469,7 @@
     overflow: hidden;
   }
   .slide.alt {
-    background:
-      radial-gradient(ellipse 55% 55% at 10% 0%, rgba(31, 191, 107, 0.18), transparent 70%),
-      radial-gradient(ellipse 50% 50% at 100% 100%, rgba(245, 185, 66, 0.1), transparent 70%),
-      linear-gradient(200deg, var(--navy-3) 0%, #0f2a4d 100%);
-  }
-  .slide::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-    background-size: 28px 28px;
-    mask-image: radial-gradient(ellipse at center, #000 20%, transparent 75%);
-    pointer-events: none;
+    background: transparent;
   }
   .slide-inner {
     position: relative;
@@ -511,11 +486,11 @@
     font-weight: 800;
     letter-spacing: -0.02em;
     padding-bottom: 0.14em;
-    color: var(--color-primary-dark);
+    color: var(--color-white);
   }
   .slide-head p {
     margin-top: 0.55rem;
-    color: var(--color-text-muted);
+    color: rgba(255, 255, 255, 0.9);
     font-size: clamp(1rem, 1.5vw, 1.2rem);
     font-weight: 500;
   }
@@ -765,7 +740,7 @@
 
   /* ===== Slide 9 ===== */
   .slide.danger {
-    background: #ffebee;
+    background: transparent;
   }
   .alert-panel {
     border-radius: 26px; padding: clamp(1.2rem, 2.6vw, 2rem);
@@ -783,7 +758,7 @@
 
   /* ===== Slide 10 ===== */
   .slide.final {
-    background: var(--color-bg);
+    background: transparent;
   }
   .final-card {
     position: relative; padding: clamp(1.6rem, 4vw, 3rem); border-radius: 30px; text-align: center;
