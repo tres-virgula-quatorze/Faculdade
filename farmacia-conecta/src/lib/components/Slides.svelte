@@ -247,16 +247,7 @@
     </div>
   </section>
   {/if}
-            </div>
-            <span class="num">0{i + 1}</span>
-            <h3>{m.title}</h3>
-            <p>{m.text}</p>
-          </article>
-        {/each}
-      </div>
-    </div>
-  </section>
-{/if}
+
 
     <!-- SLIDE 4 -->
   {#if true}
