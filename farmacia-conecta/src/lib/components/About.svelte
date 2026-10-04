@@ -10,27 +10,6 @@
   // Progresso do scroll com interpolação suave (lerp)
   let targetScrollRatio = $state(0);
   let currentScrollRatio = $state(0);
-  let activeSceneIndex = $state(0);
-  let progressPercent = $state(0);
-
-  const sceneSteps = [
-    { num: "01", label: "Título", ratio: 0.18 },
-    { num: "02", label: "Seminário & Logo", ratio: 0.52 },
-    { num: "03", label: "Integrantes", ratio: 0.90 }
-  ];
-
-  function jumpToScene(ratio) {
-    if (!scrollTrackRef) return;
-    const rect = scrollTrackRef.getBoundingClientRect();
-    const scrollTop = window.scrollY || window.pageYOffset;
-    const trackTop = rect.top + scrollTop;
-    const maxScroll = rect.height - window.innerHeight;
-    const targetScroll = trackTop + (maxScroll * ratio);
-    window.scrollTo({
-      top: targetScroll,
-      behavior: 'smooth'
-    });
-  }
 
   // Mapeamento por patamares:
   // 1. Título aparece (0 a 75) e repousa
@@ -135,15 +114,6 @@
 
       const scrolled = -rect.top;
       targetScrollRatio = Math.max(0, Math.min(1, scrolled / maxScroll));
-      progressPercent = Math.round(targetScrollRatio * 100);
-
-      if (targetScrollRatio < 0.35) {
-        activeSceneIndex = 0;
-      } else if (targetScrollRatio < 0.70) {
-        activeSceneIndex = 1;
-      } else {
-        activeSceneIndex = 2;
-      }
     };
 
     const tick = () => {
@@ -184,34 +154,6 @@
   
   <!-- Viewport fixo preenchendo 100% da tela do monitor de ponta a ponta -->
   <div class="sticky-viewport">
-    
-    <!-- HUD Superior Discreto com atalhos de cena -->
-    <div class="hud-top">
-      <div class="hud-badge">
-        <span class="badge-dot"></span>
-        <span class="badge-title">Seminário Acadêmico</span>
-        <span class="badge-sub">• Role a página para avançar</span>
-      </div>
-
-      <div class="scene-nav-pills">
-        {#each sceneSteps as step, idx}
-          <button 
-            type="button"
-            class="scene-nav-btn" 
-            class:active={activeSceneIndex === idx}
-            onclick={() => jumpToScene(step.ratio)}
-            aria-label="Ir para {step.label}"
-          >
-            <span class="pill-num">{step.num}</span>
-            <span class="pill-text">{step.label}</span>
-          </button>
-        {/each}
-      </div>
-
-      <div class="hud-progress">
-        <span>{progressPercent}%</span>
-      </div>
-    </div>
 
     <!-- Palco Principal: Animação original do JSON em tela cheia verde -->
     <div class="stage-container">
@@ -337,117 +279,6 @@
     z-index: 1001; /* Fica acima da navbar durante a apresentação */
   }
 
-  /* HUD Superior Discreto */
-  .hud-top {
-    position: absolute;
-    top: 1.25rem;
-    left: 2rem;
-    right: 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-    z-index: 30;
-    pointer-events: auto;
-  }
-
-  .hud-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.6rem;
-    background: rgba(0, 0, 0, 0.25);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    padding: 0.45rem 1.1rem;
-    border-radius: var(--radius-full);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    pointer-events: none;
-  }
-
-  .badge-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #ffffff;
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35);
-    animation: pulse 2s infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.2); opacity: 0.7; }
-  }
-
-  .badge-title {
-    font-size: 0.86rem;
-    font-weight: 700;
-    color: #ffffff;
-  }
-
-  .badge-sub {
-    font-size: 0.8rem;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.85);
-  }
-
-  /* Navegação rápida por etapas */
-  .scene-nav-pills {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    padding: 0.35rem 0.5rem;
-    border-radius: var(--radius-full);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-  }
-
-  .scene-nav-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    background: transparent;
-    border: none;
-    padding: 0.35rem 0.85rem;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.75);
-    border-radius: var(--radius-full);
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .scene-nav-btn:hover {
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.15);
-  }
-
-  .scene-nav-btn.active {
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.25);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  }
-
-  .pill-num {
-    font-weight: 800;
-    font-size: 0.76rem;
-    opacity: 0.9;
-  }
-
-  .hud-progress {
-    background: rgba(0, 0, 0, 0.25);
-    backdrop-filter: blur(12px);
-    color: #ffffff;
-    font-size: 0.88rem;
-    font-weight: 800;
-    padding: 0.45rem 0.95rem;
-    border-radius: var(--radius-full);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    font-variant-numeric: tabular-nums;
-    pointer-events: none;
-  }
-
   /* Palco Principal */
   .stage-container {
     width: 100%;
@@ -456,7 +287,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 3.5rem 2rem 2rem;
+    padding: 0;
     box-sizing: border-box;
     overflow: hidden;
   }
@@ -658,20 +489,7 @@
     line-height: 1.6;
   }
 
-  @media (max-width: 900px) {
-    .scene-nav-pills {
-      display: none;
-    }
 
-    .hud-top {
-      left: 1rem;
-      right: 1rem;
-    }
-
-    .badge-sub {
-      display: none;
-    }
-  }
 
   @media (max-width: 820px) {
     .about-highlights {
