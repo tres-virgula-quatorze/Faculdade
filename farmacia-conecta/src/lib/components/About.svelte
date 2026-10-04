@@ -1,5 +1,6 @@
 <script>
   import { onMount } from 'svelte';
+  import Slides from './Slides.svelte';
 
   let scrollTrackRef = $state(null);
   let lottieContainer = $state(null);
@@ -331,59 +332,8 @@
   </div>
 </section>
 
-<!-- Continuação natural do site após a apresentação em tela cheia -->
-<section class="about-details-section">
-  <div class="container">
-    <div class="section-header">
-      <span class="section-badge">Farmácia Conecta</span>
-      <h2 class="section-title">Pilares do Nosso Cuidado</h2>
-      <p class="section-subtitle">
-        Conheça os fundamentos que norteiam a nossa prática acadêmica e compromisso comunitário em Buriticupu - MA.
-      </p>
-    </div>
-
-    <div class="about-highlights">
-      <div class="highlight-card">
-        <div class="highlight-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
-            <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
-          </svg>
-        </div>
-        <h4 class="highlight-title">Ensino & Prática Farmacêutica</h4>
-        <p class="highlight-desc">
-          Desenvolvido no âmbito do Bacharelado em Farmácia (Unigrande), unindo teoria acadêmica e atendimento clínico qualificado.
-        </p>
-      </div>
-
-      <div class="highlight-card">
-        <div class="highlight-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
-          </svg>
-        </div>
-        <h4 class="highlight-title">Cuidado Centrado na Pessoa</h4>
-        <p class="highlight-desc">
-          Consultas humanizadas, revisão clínica de receitas, análise de interações e acompanhamento terapêutico dedicado.
-        </p>
-      </div>
-
-      <div class="highlight-card">
-        <div class="highlight-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="2" y1="12" x2="22" y2="12"></line>
-            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-          </svg>
-        </div>
-        <h4 class="highlight-title">Comunidade de Buriticupu</h4>
-        <p class="highlight-desc">
-          Orientação acessível para a população local, promovendo a segurança, o uso racional de medicamentos e o bem-estar diário.
-        </p>
-      </div>
-    </div>
-  </div>
-</section>
+<!-- Slides 2 a 10 da apresentação -->
+<Slides />
 
 <style>
   /* Trilha de rolagem estendida */
