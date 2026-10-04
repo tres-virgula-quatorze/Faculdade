@@ -183,7 +183,7 @@
           <span class="law">Resolução CFF nº 10/2024</span>
           <p>Regulamenta o uso de novas tecnologias, Saúde Digital e Inteligência Artificial na prática farmacêutica.</p>
         </article>
-        <article class="ethic-banner pulse-red rv rv-zoom" class:pulse={activeIndex === 3} style="--d:.45s">
+        <article class="ethic-banner pulse-red rv rv-zoom" class:pulse={activePhase === 3} style="--d:.45s">
           <div class="ethic-label">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4M12 17h.01" /></svg>
             Resolução CFF nº 727/2022 · Art. 3º
@@ -370,7 +370,7 @@
         <p>Triagem Digital e Limites do Atendimento</p>
       </header>
 
-      <div class="alert-panel rv rv-zoom" class:glow={activeIndex === 8} style="--d:.15s">
+      <div class="alert-panel rv rv-zoom" class:glow={activePhase === 8} style="--d:.15s">
         <div class="alert-top">
           <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4M12 17h.01" /></svg>
           <strong>ALERTA CRÍTICO · EMERGÊNCIA</strong>
