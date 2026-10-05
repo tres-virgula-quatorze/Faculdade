@@ -383,15 +383,20 @@
       </div>
 
       <div 
-        bind:this={lottieContainer}  
-        class="lottie-fullscreen"
-        class:is-ready={!isLoading && !hasError}
+        class="lottie-wrapper"
         style="
+          position: absolute; top: 0; left: 0; width: 100%; height: 100%;
           opacity: {exitG >= 1 ? 0 : 1};
           --exit-g: {exitG};
           pointer-events: {activePhase === 0 ? 'auto' : 'none'};
         "
-      ></div>
+      >
+        <div 
+          bind:this={lottieContainer}  
+          class="lottie-fullscreen"
+          class:is-ready={!isLoading && !hasError}
+        ></div>
+      </div>
       
       <!-- Slides 2-10 rendered absolutely over the stage -->
       <Slides {activePhase} currentRatio={currentScrollRatio} {scrollToPhase} />
@@ -719,26 +724,26 @@
   }
 
 
-  .lottie-fullscreen :global(.corner-element) {
+  .lottie-wrapper :global(.corner-element) {
     translate: calc(var(--exit-g) * -100px) calc(var(--exit-g) * -100px);
     opacity: calc(1 - var(--exit-g)) !important;
   }
-  .lottie-fullscreen :global(.lottie-integrantes) {
+  .lottie-wrapper :global(.lottie-integrantes) {
     translate: calc(var(--exit-g) * 200px) 0;
     rotate: calc(var(--exit-g) * 15deg);
     opacity: calc(1 - var(--exit-g)) !important;
   }
-  .lottie-fullscreen :global(.lottie-title) {
+  .lottie-wrapper :global(.lottie-title) {
     translate: 0 calc(var(--exit-g) * -150px);
     scale: calc(1 - var(--exit-g) * 0.3);
     opacity: calc(1 - var(--exit-g)) !important;
   }
-  .lottie-fullscreen :global(.lottie-seminario) {
+  .lottie-wrapper :global(.lottie-seminario) {
     translate: calc(var(--exit-g) * -80px) calc(var(--exit-g) * 150px);
     rotate: calc(var(--exit-g) * -20deg);
     opacity: calc(1 - var(--exit-g) * 1.5) !important;
   }
-  .lottie-fullscreen :global(.lottie-logo) {
+  .lottie-wrapper :global(.lottie-logo) {
     scale: calc(1 - var(--exit-g) * 0.8);
     opacity: calc(1 - var(--exit-g) * 1.5) !important;
   }
