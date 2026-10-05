@@ -1,5 +1,8 @@
 <script>
-  let { activePhase = 0, currentRatio = 0, scrollToPhase } = $props();
+  let props = $props();
+  let activePhase = $derived(props.activePhase || 0);
+  let currentRatio = $derived(props.currentRatio || 0);
+  let scrollToPhase = $derived(props.scrollToPhase);
 
   const TOTAL = 10;
   

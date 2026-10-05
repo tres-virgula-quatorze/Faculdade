@@ -346,7 +346,7 @@
 
       
       <!-- ENFEITES DO SLIDE 1 (Background Lúdico e Elegante) -->
-      <div class="abs center" style="width: 100vw; height: 100vh; pointer-events: none; z-index: 0; opacity: {activePhase === 0 ? 1 : 0}; transition: opacity 1s;">
+      <div style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: {activePhase === 0 ? 1 : 0}; transition: opacity 1s;">
         <!-- Glow 1 -->
         <div style="position: absolute; top: 10%; left: 20%; width: 40vw; height: 40vw; background: radial-gradient(circle, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0) 70%); border-radius: 50%; transform: translate(-50%, -50%);"></div>
         <!-- Glow 2 -->
