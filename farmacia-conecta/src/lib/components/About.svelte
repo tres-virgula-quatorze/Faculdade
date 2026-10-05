@@ -13,11 +13,143 @@
   let currentScrollRatio = $state(0);
   let activePhase = $derived(Math.min(9, Math.floor(currentScrollRatio * 10)));
   
-  let lottieExitProgress = $derived.by(() => {
-    if (currentScrollRatio <= 0.08) return 0;
-    if (currentScrollRatio >= 0.14) return 1;
-    return (currentScrollRatio - 0.08) / 0.06;
-  });
+  // ===== SAÍDA INDIVIDUAL DO SLIDE 1 =====
+  // Cada elemento do Lottie sai com sua própria trajetória (diferente da entrada).
+  const EXIT_START = 0.055;
+  const EXIT_END = 0.118;
+  let exitG = $derived(Math.max(0, Math.min(1, (currentScrollRatio - EXIT_START) / (EXIT_END - EXIT_START))));
+
+  let exitTargets = null;   // cache de elementos + matrizes em repouso
+  let exitApplied = false;
+  let lastExitG = -1;
+
+  const clamp01 = (x) => Math.max(0, Math.min(1, x));
+  const easeInCubic = (x) => x * x * x;
+  const easeInBack = (x) => { const c1 = 1.9, c3 = c1 + 1; return c3 * x * x * x - c1 * x * x; };
+  const easeInQuart = (x) => x * x * x * x;
+  const easeInOutCubic = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+
+  function toDOMMatrix(m) {
+    return m ? new DOMMatrix([m.a, m.b, m.c, m.d, m.e, m.f]) : new DOMMatrix();
+  }
+
+  // Plano de saída de cada tipo de elemento (W/H = tamanho do palco, cx/cy = centro do elemento)
+  function exitPlan(kind, idx, cx, cy, W, H) {
+    switch (kind) {
+      case 'corner': {
+        // Recolhe para o próprio canto, uma peça de cada vez
+        const vx = cx - W / 2, vy = cy - H / 2;
+        const len = Math.hypot(vx, vy) || 1;
+        return {
+          delay: idx * 0.035, dur: 0.36, ease: easeInBack,
+          dx: (vx / len) * 240, dy: (vy / len) * 200,
+          rot: (vx > 0 ? 1 : -1) * (idx % 2 ? 14 : 8), scale: 0.7, fade: 'late'
+        };
+      }
+      case 'integrantes':
+        // Toma impulso para a esquerda e dispara para a direita girando
+        return { delay: 0.14, dur: 0.46, ease: easeInBack, dx: W * 0.42, dy: -50, rot: 9, scale: 0.88, fade: 'late' };
+      case 'title':
+        // Sobe encolhendo e inclinando, como se fosse puxado para cima
+        return { delay: 0.26, dur: 0.48, ease: easeInBack, dx: 0, dy: -H * 0.42, rot: -5, scale: 0.72, fade: 'late' };
+      case 'seminario':
+        // Tomba e cai com "gravidade"
+        return { delay: 0.36, dur: 0.5, ease: easeInCubic, dx: -70, dy: H * 0.55, rot: -22, scale: 0.95, fade: 'end' };
+      case 'logo':
+        // Gira e implode no próprio centro
+        return { delay: 0.44, dur: 0.5, ease: easeInOutCubic, dx: (W / 2 - cx) * 0.35, dy: -20, rot: 200, scale: 0.05, fade: 'end' };
+      default:
+        return { delay: 0, dur: 0.4, ease: easeInQuart, dx: 0, dy: 0, rot: 0, scale: 1, fade: 'late' };
+    }
+  }
+
+  function captureExitTargets() {
+    if (!lottieContainer) return null;
+    const svg = lottieContainer.querySelector('svg');
+    if (!svg) return null;
+    const sr = svg.getBoundingClientRect();
+    if (!sr.width || !sr.height) return null;
+    const vb = svg.viewBox && svg.viewBox.baseVal;
+    const kx = vb && vb.width ? vb.width / sr.width : 1;
+    const ky = vb && vb.height ? vb.height / sr.height : 1;
+    const W = vb && vb.width ? vb.width : sr.width;
+    const H = vb && vb.height ? vb.height : sr.height;
+
+    const groups = [
+      ['.corner-element', 'corner'],
+      ['.lottie-integrantes', 'integrantes'],
+      ['.lottie-title', 'title'],
+      ['.lottie-seminario', 'seminario'],
+      ['.lottie-logo', 'logo']
+    ];
+
+    const list = [];
+    for (const [sel, kind] of groups) {
+      const els = lottieContainer.querySelectorAll(sel);
+      els.forEach((el, idx) => {
+        const parent = el.parentNode;
+        if (!parent || typeof parent.getCTM !== 'function') return;
+        const pc = parent.getCTM();
+        if (!pc) return;
+        const r = el.getBoundingClientRect();
+        if (!r.width && !r.height) return;
+        const P = toDOMMatrix(pc);
+        const base = el.transform && el.transform.baseVal && el.transform.baseVal.consolidate();
+        const M = toDOMMatrix(base ? base.matrix : null);
+        const cx = (r.left + r.width / 2 - sr.left) * kx;
+        const cy = (r.top + r.height / 2 - sr.top) * ky;
+        list.push({ el, P, Pinv: P.inverse(), M, cx, cy, plan: exitPlan(kind, idx, cx, cy, W, H) });
+      });
+    }
+    return list;
+  }
+
+  function clearExitStyles() {
+    if (!exitTargets) return;
+    for (const t of exitTargets) {
+      t.el.style.transform = '';
+      t.el.style.transformOrigin = '';
+      t.el.style.transformBox = '';
+      t.el.style.opacity = '';
+    }
+    exitApplied = false;
+  }
+
+  function applyExit(g) {
+    if (g === lastExitG) return;
+    lastExitG = g;
+
+    if (g <= 0) {
+      if (exitApplied) clearExitStyles();
+      return;
+    }
+
+    if (!exitTargets) {
+      exitTargets = captureExitTargets();
+      if (!exitTargets) return;
+    }
+
+    for (const t of exitTargets) {
+      const p = t.plan;
+      const q = clamp01((g - p.delay) / p.dur);
+      const e = p.ease(q);
+      const s = 1 + (p.scale - 1) * clamp01(e);
+      // Transformação desejada no espaço do palco: gira/escala em torno do centro do elemento
+      const D = new DOMMatrix()
+        .translate(t.cx + p.dx * e, t.cy + p.dy * e)
+        .rotate(p.rot * e)
+        .scale(Math.max(0.001, s))
+        .translate(-t.cx, -t.cy);
+      // Converte para o espaço local do elemento preservando a matriz original do Lottie
+      const L = t.Pinv.multiply(D).multiply(t.P).multiply(t.M);
+      const op = p.fade === 'end' ? 1 - clamp01((q - 0.55) / 0.45) : 1 - clamp01((q - 0.3) / 0.7);
+      t.el.style.transformBox = 'view-box';
+      t.el.style.transformOrigin = '0 0';
+      t.el.style.transform = `matrix(${L.a},${L.b},${L.c},${L.d},${L.e},${L.f})`;
+      t.el.style.opacity = String(op);
+    }
+    exitApplied = true;
+  }
   
   let transitionProgress = $derived.by(() => {
     if (currentScrollRatio <= 0.32 || currentScrollRatio >= 0.52) return 0;
@@ -79,7 +211,7 @@
     // Classify elements for CSS scroll animations
     if (layers[842]) layers[842].cl = "lottie-title";
     if (layers[756]) layers[756].cl = "lottie-seminario";
-    if (layers[4]) layers[4].cl = "lottie-seminario";
+    if (layers[4]) layers[4].cl = "lottie-logo";
     if (layers[13]) layers[13].cl = "lottie-integrantes";
 
     [434, 595, 590, 567, 562, 545, 304, 435, 668].forEach(ind => {
@@ -191,6 +323,9 @@
         anim.destroy();
         anim = null;
       }
+      exitTargets = null;
+      exitApplied = false;
+      lastExitG = -1;
 
       const lottie = lottieModuleRef.default || lottieModuleRef;
 
@@ -213,6 +348,8 @@
           if (anim) {
             const frame = mapScrollToFrame(currentScrollRatio || targetScrollRatio);
             anim.goToAndStop(frame, true);
+            lastExitG = -1;
+            applyExit(Math.max(0, Math.min(1, (currentScrollRatio - EXIT_START) / (EXIT_END - EXIT_START))));
           }
         }
       };
@@ -290,6 +427,10 @@
         currentScrollRatio = targetScrollRatio;
       }
 
+      if (anim && !isLoading) {
+        applyExit(Math.max(0, Math.min(1, (currentScrollRatio - EXIT_START) / (EXIT_END - EXIT_START))));
+      }
+
       rafId = requestAnimationFrame(tick);
     };
 
@@ -334,22 +475,49 @@
       {/if}
 
       
-      <!-- ENFEITES DO SLIDE 1 (Background Lúdico e Elegante) -->
-      <div style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: {activePhase === 0 ? 1 : 0}; transition: opacity 1s;">
-        <!-- Glow 1 -->
-        <div style="position: absolute; top: 10%; left: 20%; width: 40vw; height: 40vw; background: radial-gradient(circle, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0) 70%); border-radius: 50%; transform: translate(-50%, -50%);"></div>
-        <!-- Glow 2 -->
-        <div style="position: absolute; bottom: 0%; right: 10%; width: 50vw; height: 50vw; background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 70%); border-radius: 50%; transform: translate(30%, 30%);"></div>
-        
-        <!-- Elementos Vetoriais Finos -->
-        <svg style="position: absolute; top: 15%; right: 15%; opacity: 0.15;" width="120" height="120" viewBox="0 0 100 100" fill="none" stroke="white" stroke-width="1">
-          <circle cx="50" cy="50" r="40" stroke-dasharray="4 6" />
-          <circle cx="50" cy="50" r="20" />
+      <!-- ENFEITES DO SLIDE 1 (flat, lúdicos) — cada um com entrada, flutuação e saída própria -->
+      <div class="s1-ornaments" style="visibility: {exitG >= 1 ? 'hidden' : 'visible'};">
+        <div class="orn glow glow-1" style="transform: translate(-50%, -50%) scale({1 + exitG * 0.9}); opacity: {1 - exitG};"></div>
+        <div class="orn glow glow-2" style="transform: translate(30%, 30%) scale({1 - exitG * 0.6}); opacity: {1 - exitG};"></div>
+
+        <!-- Anel tracejado: gira e foge pelo canto superior -->
+        <div class="orn orn-ring" style="transform: translate({exitG * 140}px, {-exitG * 180}px) rotate({exitG * 240}deg) scale({1 - exitG * 0.7}); opacity: {1 - clamp01(exitG * 1.3)};">
+          <svg class="float-a" width="120" height="120" viewBox="0 0 100 100" fill="none" stroke="white" stroke-width="1">
+            <circle cx="50" cy="50" r="40" stroke-dasharray="4 6" />
+            <circle cx="50" cy="50" r="20" />
+            <circle cx="90" cy="50" r="3" fill="white" />
+          </svg>
+        </div>
+
+        <!-- Losango duplo: rola para fora pela esquerda -->
+        <div class="orn orn-diamond" style="transform: translate({-exitG * 220}px, {exitG * 140}px) rotate({-exitG * 135}deg); opacity: {1 - clamp01(exitG * 1.5)};">
+          <svg class="float-b" width="150" height="150" viewBox="0 0 100 100" fill="none" stroke="white" stroke-width="1">
+            <rect x="20" y="20" width="60" height="60" transform="rotate(45 50 50)" />
+            <rect x="35" y="35" width="30" height="30" transform="rotate(45 50 50)" />
+          </svg>
+        </div>
+
+        <!-- Cruz (farmácia): encolhe girando -->
+        <div class="orn orn-plus" style="transform: rotate({exitG * 180}deg) scale({1 - clamp01(exitG * 1.2)});">
+          <svg class="float-c" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><path d="M12 4v16M4 12h16" /></svg>
+        </div>
+
+        <!-- Trio de pontos: espalha -->
+        <div class="orn orn-dots">
+          {#each [0, 1, 2] as i}
+            <span class="dot-pill" style="transform: translate({(i - 1) * exitG * 90}px, {-exitG * (60 + i * 40)}px) scale({1 - exitG}); animation-delay: {i * 0.25}s;"></span>
+          {/each}
+        </div>
+
+        <!-- Arco: desenrola (stroke) -->
+        <svg class="orn orn-arc" width="220" height="120" viewBox="0 0 220 120" fill="none" stroke="white" stroke-width="1.2" stroke-linecap="round">
+          <path d="M10 110 A100 100 0 0 1 210 110" pathLength="1" stroke-dasharray="1" stroke-dashoffset={exitG} />
         </svg>
-        <svg style="position: absolute; bottom: 25%; left: 10%; opacity: 0.1;" width="150" height="150" viewBox="0 0 100 100" fill="none" stroke="white" stroke-width="1">
-          <rect x="20" y="20" width="60" height="60" transform="rotate(45 50 50)" />
-          <rect x="35" y="35" width="30" height="30" transform="rotate(45 50 50)" />
-        </svg>
+
+        <!-- Cápsula flat -->
+        <div class="orn orn-capsule" style="transform: translate({exitG * 60}px, {exitG * 260}px) rotate({-35 + exitG * 70}deg); opacity: {1 - clamp01(exitG * 1.4)};">
+          <span class="float-d"></span>
+        </div>
       </div>
 
       <div 
@@ -357,15 +525,8 @@
         class="lottie-fullscreen"
         class:is-ready={!isLoading && !hasError}
         style="
-          opacity: {1 - lottieExitProgress}; 
-          transform: scale({1 + lottieExitProgress * 0.2}) translateY({lottieExitProgress * -100}px);
-          filter: blur({lottieExitProgress * 15}px);
+          visibility: {exitG >= 1 ? 'hidden' : 'visible'};
           pointer-events: {activePhase === 0 ? 'auto' : 'none'};
-          --seminario-op: {currentScrollRatio < 0.12 ? 1 : Math.max(0, 1 - (currentScrollRatio - 0.12) * 20)};
-          --seminario-ty: {currentScrollRatio < 0.12 ? 0 : -(currentScrollRatio - 0.12) * 1500}px;
-          --integrantes-op: {currentScrollRatio < 0.18 ? 1 : Math.max(0, 1 - (currentScrollRatio - 0.18) * 20)};
-          --integrantes-tx: {currentScrollRatio < 0.18 ? 0 : (currentScrollRatio - 0.18) * 1000}px;
-          --corner-opacity: {currentScrollRatio > 0.95 ? Math.max(0, 1 - (currentScrollRatio - 0.95) * 20) : 1};
         "
       ></div>
       
@@ -382,11 +543,6 @@
         <span>Role para baixo para animar</span>
       </div>
     {/if}
-
-    <!-- Barra de Progresso Fina na Extremidade Inferior -->
-    <div class="bottom-progress-bar">
-      <div class="bottom-progress-fill" style="width: {currentScrollRatio * 100}%;"></div>
-    </div>
 
   </div>
 </section>
@@ -437,6 +593,8 @@
   }
 
   .lottie-fullscreen {
+    position: relative;
+    z-index: 1;
     width: 100%;
     height: 100%;
     max-width: 100%;
@@ -505,22 +663,72 @@
     100% { transform: translateY(10px); opacity: 0; }
   }
 
-  /* Linha de Progresso na Base */
-  .bottom-progress-bar {
+  /* ===== Enfeites do Slide 1 ===== */
+  .s1-ornaments {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 4px;
-    background: rgba(0, 0, 0, 0.25);
-    z-index: 30;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .orn { position: absolute; will-change: transform, opacity; }
+  .glow { border-radius: 50%; }
+  .glow-1 {
+    top: 10%; left: 20%; width: 40vw; height: 40vw;
+    background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 70%);
+  }
+  .glow-2 {
+    bottom: 0; right: 10%; width: 50vw; height: 50vw;
+    background: radial-gradient(circle, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0) 70%);
+  }
+  .orn-ring { top: 14%; right: 14%; opacity: 1; }
+  .orn-ring svg { opacity: 0.18; }
+  .orn-diamond { bottom: 24%; left: 9%; }
+  .orn-diamond svg { opacity: 0.12; }
+  .orn-plus { top: 30%; left: 22%; }
+  .orn-plus svg { opacity: 0.22; }
+  .orn-dots { bottom: 16%; left: 42%; display: flex; gap: 14px; }
+  .dot-pill {
+    display: block; width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,0.28);
+    animation: dotBob 2.4s ease-in-out infinite;
+  }
+  .orn-arc { bottom: 7%; right: 24%; opacity: 0.14; }
+  .orn-capsule { top: 62%; right: 9%; }
+  .float-d {
+    display: block; width: 18px; height: 52px; border-radius: 999px;
+    border: 1.5px solid rgba(255,255,255,0.22);
+    background: linear-gradient(to bottom, rgba(255,255,255,0.14) 50%, transparent 50%);
+    animation: ornIn 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.6s both, floatD 7s ease-in-out 1.7s infinite;
+  }
+  .float-a { display: block; animation: ornIn 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both, floatA 14s linear 1.4s infinite; }
+  .float-b { display: block; animation: ornIn 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s both, floatB 9s ease-in-out 1.6s infinite; }
+  .float-c { display: block; animation: ornIn 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.8s both, floatC 6s ease-in-out 1.8s infinite; }
+
+  @keyframes ornIn {
+    from { transform: scale(0) rotate(-90deg); opacity: 0; }
+    to { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+  @keyframes floatA { to { transform: rotate(360deg); } }
+  @keyframes floatB {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-14px) rotate(8deg); }
+  }
+  @keyframes floatC {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(1.18) rotate(45deg); }
+  }
+  @keyframes floatD {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(12px) rotate(-10deg); }
+  }
+  @keyframes dotBob {
+    0%, 100% { translate: 0 0; }
+    50% { translate: 0 -8px; }
   }
 
-  .bottom-progress-fill {
-    height: 100%;
-    background: #ffffff;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.9);
-    transition: width 0.05s linear;
+  @media (prefers-reduced-motion: reduce) {
+    .float-a, .float-b, .float-c, .float-d, .dot-pill { animation: none; }
   }
 
   /* Loading e Erro */
@@ -647,16 +855,4 @@
     }
   }
 
-  .lottie-fullscreen :global(.lottie-title) {
-    opacity: var(--title-op) !important;
-  }
-  .lottie-fullscreen :global(.lottie-seminario) {
-    opacity: var(--seminario-op) !important;
-  }
-  .lottie-fullscreen :global(.lottie-integrantes) {
-    opacity: var(--integrantes-op) !important;
-  }
-  .lottie-fullscreen :global(.corner-element) {
-    opacity: var(--corner-opacity) !important;
-  }
 </style>
