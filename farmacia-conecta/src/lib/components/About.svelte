@@ -17,6 +17,7 @@
   // Cada elemento do Lottie sai com sua própria trajetória (diferente da entrada).
   const EXIT_START = 0.055;
   const EXIT_END = 0.118;
+  const clamp01 = (x) => Math.max(0, Math.min(1, x));
   let exitG = $derived(Math.max(0, Math.min(1, (currentScrollRatio - EXIT_START) / (EXIT_END - EXIT_START))));
 
   let transitionProgress = $derived.by(() => {
