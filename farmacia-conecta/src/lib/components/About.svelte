@@ -27,31 +27,23 @@
   }
 
   // Mapeamento por patamares:
-  // 1. Título aparece (0 a 75) e repousa
-  // 2. Nome Seminário, data e logo aparecem e deslizam até suas posições centrais (75 a 258) e repousam
-  // 3. Integrantes e dados finais aparecem (258 a 308.4) e repousam
+  // Lottie Animation Timeline (Slide 1)
+  // Baseado em currentScrollRatio (0 a 1)
   function mapScrollToFrame(s) {
-    if (s < 0.15) {
-      // Entrada do Título
-      const t = s / 0.15;
-      return t * 75;
-    } else if (s < 0.32) {
-      // Repouso do Título
-      return 75;
-    } else if (s < 0.52) {
-      // Entrada do Seminário, Data e deslizamento com a Logo
-      const t = (s - 0.32) / 0.20;
-      return 75 + t * (258 - 75);
-    } else if (s < 0.70) {
-      // Repouso do Seminário, Data e Logo juntos
-      return 258;
-    } else if (s < 0.88) {
-      // Entrada dos Integrantes e dados finais
-      const t = (s - 0.70) / 0.18;
-      return 258 + t * (308.4 - 258);
-    } else {
-      // Repouso final completo
+    if (s < 0.05) {
+      // 0% a 5%: Entrada (frames 0 a 308.4)
+      const t = s / 0.05;
+      return t * 308.4;
+    } else if (s < 0.08) {
+      // 5% a 8%: Repouso (frame 308.4)
       return 308.4;
+    } else if (s < 0.13) {
+      // 8% a 13%: Saída (frames 308.4 a 0)
+      const t = (s - 0.08) / 0.05;
+      return 308.4 - (t * 308.4);
+    } else {
+      // Depois disso: Lottie no frame 0 (vazio)
+      return 0;
     }
   }
 
@@ -292,9 +284,7 @@
       if (Math.abs(diff) > 0.0001) {
         currentScrollRatio += diff * 0.16;
         if (anim && !isLoading) {
-          // Lottie is active from 0 to 0.1 (phase 0)
-          const lottieRatio = Math.min(1, Math.max(0, currentScrollRatio * 10));
-          const frame = mapScrollToFrame(lottieRatio);
+          const frame = mapScrollToFrame(currentScrollRatio);
           anim.goToAndStop(frame, true);
         }
       } else {
