@@ -38,12 +38,13 @@
   // Baseado em currentScrollRatio (0 a 1)
   function mapScrollToFrame(s) {
     if (s < 0.05) {
-      // 0% a 5%: Entrada (frames 0 a 308.4)
       const t = s / 0.05;
       return t * 308.4;
+    } else if (s <= 0.15) {
+      const t = (s - 0.05) / 0.10;
+      return 308.4 + (t * 111.6);
     } else {
-      // Repouso e Saída Visual via CSS
-      return 308.4;
+      return 420;
     }
   }
 
@@ -165,6 +166,91 @@
     const intHeight = 244 * scale;
     const intY = targetH - marginBot - intHeight - (20 * (scale / 0.38));
     if (layers[13]) layers[13].ks.p = { a: 0, k: [targetW - marginX - intWidth, intY] };
+
+    // Inject Exit Animation Keyframes
+    const addExit2D = (ind, delay, dx, dy, rot, scaleMult, fadeLate) => {
+      if (!layers[ind]) return;
+      const tStart = 308.4 + delay;
+      const tEnd = 400;
+      
+      const easeI2D = { x: [0.5, 0.5], y: [1, 1] };
+      const easeO2D = { x: [0.5, 0.5], y: [0, 0] };
+      const easeI1D = { x: [0.5], y: [1] };
+      const easeO1D = { x: [0.5], y: [0] };
+
+      // Position
+      if (layers[ind].ks.p.a === 0) {
+        const startPos = layers[ind].ks.p.k;
+        layers[ind].ks.p = {
+          a: 1,
+          k: [
+            { t: 0, s: startPos, h: 1 },
+            { t: tStart, s: startPos, i: easeI2D, o: easeO2D },
+            { t: tEnd, s: [startPos[0] + dx, startPos[1] + dy], h: 1 }
+          ]
+        };
+      } else {
+        const pData = layers[ind].ks.p;
+        const lastKf = pData.k[pData.k.length - 1];
+        const startPos = lastKf.s;
+        delete lastKf.h;
+        lastKf.i = easeI2D;
+        lastKf.o = easeO2D;
+        pData.k.push({ t: tStart, s: startPos, i: easeI2D, o: easeO2D });
+        pData.k.push({ t: tEnd, s: [startPos[0] + dx, startPos[1] + dy], h: 1 });
+      }
+
+      // Scale
+      if (layers[ind].ks.s && layers[ind].ks.s.a === 0) {
+        const startScale = layers[ind].ks.s.k;
+        layers[ind].ks.s = {
+          a: 1,
+          k: [
+            { t: 0, s: startScale, h: 1 },
+            { t: tStart, s: startScale, i: easeI2D, o: easeO2D },
+            { t: tEnd, s: [startScale[0] * scaleMult, startScale[1] * scaleMult], h: 1 }
+          ]
+        };
+      }
+
+      // Rotation
+      if (!layers[ind].ks.r) layers[ind].ks.r = { a: 0, k: 0 };
+      if (layers[ind].ks.r.a === 0) {
+        layers[ind].ks.r = {
+          a: 1,
+          k: [
+            { t: 0, s: [0], h: 1 },
+            { t: tStart, s: [0], i: easeI1D, o: easeO1D },
+            { t: tEnd, s: [rot], h: 1 }
+          ]
+        };
+      }
+
+      // Opacity
+      if (!layers[ind].ks.o) layers[ind].ks.o = { a: 0, k: 100 };
+      if (layers[ind].ks.o.a === 0) {
+        const fadeStart = fadeLate ? tStart + 30 : tStart;
+        layers[ind].ks.o = {
+          a: 1,
+          k: [
+            { t: 0, s: [100], h: 1 },
+            { t: fadeStart, s: [100], i: easeI1D, o: easeO1D },
+            { t: tEnd, s: [0], h: 1 }
+          ]
+        };
+      }
+    };
+
+    [434, 595, 590, 567, 562, 545, 304, 435, 668].forEach((ind, i) => {
+       const dx = (i % 2 === 0 ? -150 : 150) * scale;
+       const dy = (i < 3 ? -150 : 150) * scale;
+       addExit2D(ind, i * 2, dx, dy, (i % 2 ? 15 : -15), 0.7, true);
+    });
+
+    addExit2D(13, 10, targetW * 0.2, -50, 10, 0.8, true);
+    addExit2D(842, 20, 0, -targetH * 0.3, -5, 0.7, true);
+    addExit2D(756, 30, -100 * scale, targetH * 0.4, -20, 0.9, false);
+    addExit2D(4, 40, targetW * 0.1, -20, 180, 0.1, false);
 
     return data;
   }
@@ -724,27 +810,9 @@
   }
 
 
-  .lottie-wrapper :global(.corner-element) {
-    translate: calc(var(--exit-g) * -100px) calc(var(--exit-g) * -100px);
-    opacity: calc(1 - var(--exit-g)) !important;
-  }
-  .lottie-wrapper :global(.lottie-integrantes) {
-    translate: calc(var(--exit-g) * 200px) 0;
-    rotate: calc(var(--exit-g) * 15deg);
-    opacity: calc(1 - var(--exit-g)) !important;
-  }
-  .lottie-wrapper :global(.lottie-title) {
-    translate: 0 calc(var(--exit-g) * -150px);
-    scale: calc(1 - var(--exit-g) * 0.3);
-    opacity: calc(1 - var(--exit-g)) !important;
-  }
-  .lottie-wrapper :global(.lottie-seminario) {
-    translate: calc(var(--exit-g) * -80px) calc(var(--exit-g) * 150px);
-    rotate: calc(var(--exit-g) * -20deg);
-    opacity: calc(1 - var(--exit-g) * 1.5) !important;
-  }
-  .lottie-wrapper :global(.lottie-logo) {
-    scale: calc(1 - var(--exit-g) * 0.8);
-    opacity: calc(1 - var(--exit-g) * 1.5) !important;
-  }
+
+
+
+
+
 </style>
