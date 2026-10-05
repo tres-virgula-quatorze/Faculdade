@@ -13,6 +13,12 @@
   let currentScrollRatio = $state(0);
   let activePhase = $derived(Math.min(9, Math.floor(currentScrollRatio * 10)));
   
+  let lottieExitProgress = $derived.by(() => {
+    if (currentScrollRatio <= 0.08) return 0;
+    if (currentScrollRatio >= 0.14) return 1;
+    return (currentScrollRatio - 0.08) / 0.06;
+  });
+  
   let transitionProgress = $derived.by(() => {
     if (currentScrollRatio <= 0.32 || currentScrollRatio >= 0.52) return 0;
     return Math.sin(((currentScrollRatio - 0.32) / 0.20) * Math.PI);
@@ -34,16 +40,9 @@
       // 0% a 5%: Entrada (frames 0 a 308.4)
       const t = s / 0.05;
       return t * 308.4;
-    } else if (s < 0.08) {
-      // 5% a 8%: Repouso (frame 308.4)
-      return 308.4;
-    } else if (s < 0.13) {
-      // 8% a 13%: Saída (frames 308.4 a 0)
-      const t = (s - 0.08) / 0.05;
-      return 308.4 - (t * 308.4);
     } else {
-      // Depois disso: Lottie no frame 0 (vazio)
-      return 0;
+      // Repouso e Saída Visual via CSS
+      return 308.4;
     }
   }
 
@@ -358,9 +357,10 @@
         class="lottie-fullscreen"
         class:is-ready={!isLoading && !hasError}
         style="
-          opacity: 1; pointer-events: {activePhase === 0 ? 'auto' : 'none'};
-          --title-op: {currentScrollRatio < 0.05 ? 1 : Math.max(0, 1 - (currentScrollRatio - 0.05) * 20)};
-          --title-ty: {currentScrollRatio < 0.05 ? 0 : -(currentScrollRatio - 0.05) * 1500}px;
+          opacity: {1 - lottieExitProgress}; 
+          transform: scale({1 + lottieExitProgress * 0.2}) translateY({lottieExitProgress * -100}px);
+          filter: blur({lottieExitProgress * 15}px);
+          pointer-events: {activePhase === 0 ? 'auto' : 'none'};
           --seminario-op: {currentScrollRatio < 0.12 ? 1 : Math.max(0, 1 - (currentScrollRatio - 0.12) * 20)};
           --seminario-ty: {currentScrollRatio < 0.12 ? 0 : -(currentScrollRatio - 0.12) * 1500}px;
           --integrantes-op: {currentScrollRatio < 0.18 ? 1 : Math.max(0, 1 - (currentScrollRatio - 0.18) * 20)};
