@@ -14,11 +14,15 @@
   let activePhase = $derived(Math.min(9, Math.floor(currentScrollRatio * 10)));
   
   // ===== SAÍDA INDIVIDUAL DO SLIDE 1 =====
-  // Cada elemento do Lottie sai com sua própria trajetória (diferente da entrada).
-  const EXIT_START = 0.055;
-  const EXIT_END = 0.118;
+  // Cada grupo sai para sua própria direção de forma coordenada, terminando antes do Slide 2.
+  const EXIT_START = 0.05;
+  const EXIT_END = 0.096;
   const clamp01 = (x) => Math.max(0, Math.min(1, x));
   let exitG = $derived(Math.max(0, Math.min(1, (currentScrollRatio - EXIT_START) / (EXIT_END - EXIT_START))));
+  
+  let liqProgress = $derived(clamp01((currentScrollRatio - 0.03) / 0.06));
+  let waveHeight = $derived(Math.sin(liqProgress * Math.PI) * 45);
+  let waveY = $derived(100 - liqProgress * 100);
 
   let transitionProgress = $derived.by(() => {
     if (currentScrollRatio <= 0.32 || currentScrollRatio >= 0.52) return 0;
@@ -33,82 +37,99 @@
     window.scrollTo({ top: targetY, behavior: 'smooth' });
   }
 
-  // Mapeamento por patamares:
-  // Lottie Animation Timeline (Slide 1)
-  // Baseado em currentScrollRatio (0 a 1)
+  // Mapeamento linear do scroll para a timeline do Lottie (Slide 1):
+  // 0.00 a 0.04: Entrada suave completa de todos os elementos (frame 0 a 270) copiada do Lottie
+  // 0.04 a 0.05: Pausa / leitura com slide 1 totalmente montado e estático (frame 270)
+  // 0.05 a 0.096: Saída individual, sincronizada e elegante de cada grupo (frame 270 a 360)
+  // >= 0.096: Slide 1 100% invisível (opacidade 0), pronto para o Slide 2 entrar no ratio 0.10
   function mapScrollToFrame(s) {
-    if (s < 0.05) {
-      const t = s / 0.05;
-      return t * 308.4;
-    } else if (s <= 0.15) {
-      const t = (s - 0.05) / 0.10;
-      return 308.4 + (t * 111.6);
+    if (s < 0.04) {
+      const t = s / 0.04;
+      return t * 270;
+    } else if (s <= 0.05) {
+      return 270;
+    } else if (s <= 0.096) {
+      const t = (s - 0.05) / (0.096 - 0.05);
+      return 270 + (t * (360 - 270));
     } else {
-      return 420;
+      return 400;
     }
   }
+
+  let currentFrame = $derived(mapScrollToFrame(currentScrollRatio));
+
+  import LiquidCanvas from './LiquidCanvas.svelte';
 
   function adaptAnimationData(orig, targetW, targetH) {
     const data = JSON.parse(JSON.stringify(orig));
     data.w = targetW;
     data.h = targetH;
+    data.op = 450;
+
+    // Garante que todas as camadas de precomposição em assets também fiquem ativas até o frame 450!
+    if (data.assets) {
+      data.assets.forEach((asset) => {
+        if (asset.layers) {
+          asset.layers.forEach((l) => {
+            l.op = 450;
+          });
+        }
+      });
+    }
 
     const layers = {};
-    data.layers.forEach((l) => (layers[l.ind] = l));
+    data.layers.forEach((l) => {
+      layers[l.ind] = l;
+      l.op = 450;
+    });
 
     // Base scale is 0.38 for 1920x880 (compact & elegant layout).
     const scaleH = targetH / 880;
     const scaleW = targetW / 1920;
     let scale = 0.38 * Math.min(scaleW, scaleH);
     scale = Math.max(0.24, Math.min(0.38, scale));
-
     const scaleVec = [scale * 100, scale * 100];
 
-    const marginX = 20;
-    const marginY = 30;
+    const marginX = 40;
+    const marginY = 35;
     const marginBot = 45;
 
     // Apply scale to layers
     [842, 756, 4, 13, 434, 435, 304, 668].forEach((ind) => {
       if (layers[ind] && layers[ind].ks && layers[ind].ks.s) {
-        // Keep original animation if present, just multiply scale
         if (layers[ind].ks.s.a === 0) {
           layers[ind].ks.s = { a: 0, k: scaleVec };
         }
       }
     });
 
-    // Classify elements for CSS scroll animations
-    if (layers[842]) layers[842].cl = "lottie-title";
-    if (layers[756]) layers[756].cl = "lottie-seminario";
-    if (layers[4]) layers[4].cl = "lottie-logo";
-    if (layers[13]) layers[13].cl = "lottie-integrantes";
-
-    [434, 595, 590, 567, 562, 545, 304, 435, 668].forEach(ind => {
-      if (layers[ind]) {
-        layers[ind].cl = "corner-element";
-      }
-    });
-
-    // Helper to override position without destroying keyframes if we just want static pos
+    // Helper to set static position without breaking keyframes
     const setPos = (ind, x, y) => {
       if (!layers[ind]) return;
+      if (!layers[ind].ks) layers[ind].ks = {};
       layers[ind].ks.p = { a: 0, k: [x, y] };
     };
 
-    // 1. Top-Left: College (434)
+    // 1. Cabeçalho Superior: Centro Universitário UNIGRANDE (esquerda) e Curso de Bacharelado em Farmácia (direita)
+    // 434 é o container de todo o cabeçalho superior
     setPos(434, marginX, marginY);
 
-    // 2. Top-Right: Course (543 / 544 / 595, etc.)
-    const xEndIn544 = (targetW - marginX) / scale;
-    const shiftCourse = xEndIn544 - 1305.66;
-    setPos(595, 656.388 + shiftCourse, 0);
-    setPos(590, 770.112 + shiftCourse, 0);
-    setPos(567, 825.696 + shiftCourse, 0);
-    setPos(562, 1063.44 + shiftCourse, 0);
-    setPos(545, 1132.812 + shiftCourse, 0);
+    if (layers[543]) {
+      layers[543].parent = 434;
+      setPos(543, 0, 0);
+    }
 
-    // 3. Bottom-Left: Disciplina (435, 304)
+    // Alinha o texto do curso ("Curso de Bacharelado em Farmácia") exatamente na margem direita
+    const courseTargetRight = (targetW - marginX - marginX) / scale;
+    const shiftCourse = courseTargetRight - 4843;
+    [595, 590, 567, 562, 545].forEach(ind => {
+      if (layers[ind] && layers[ind].ks && layers[ind].ks.p && layers[ind].ks.p.a === 0) {
+        const origX = orig.layers.find(x => x.ind === ind)?.ks?.p?.k?.[0] || layers[ind].ks.p.k[0];
+        layers[ind].ks.p = { a: 0, k: [origX + shiftCourse, 0] };
+      }
+    });
+
+    // 3. Bottom-Left: Disciplina & Professor (304, 435)
     const lineSpacing = 32 * (scale / 0.38);
     setPos(304, marginX, targetH - marginBot);
     setPos(435, marginX, targetH - marginBot - lineSpacing);
@@ -117,10 +138,17 @@
     const buriWidth = 219.056 * scale;
     setPos(668, targetW - marginX - buriWidth, targetH - marginBot);
 
-    // 5. Title (842) - Centered at targetW / 2
-    const titleX = targetW / 2 - 691.545 * scale;
-    const titleY = Math.max(marginY + 20, targetH * 0.18);
-    setPos(842, titleX, titleY);
+    // 5. Hide old Lottie title glyph layers completely (rendered in prominent HTML capslock)
+    const titleLayers = [842, 843, 883, 909, 943, 977, 978, 1012, 1034, 1082, 1083, 1119, 1155, 1177, 1221];
+    titleLayers.forEach(ind => {
+      if (layers[ind]) {
+        layers[ind].hd = true;
+        if (layers[ind].ks) {
+          if (layers[ind].ks.o) layers[ind].ks.o = { a: 0, k: 0 };
+          if (layers[ind].ks.s) layers[ind].ks.s = { a: 0, k: [0, 0] };
+        }
+      }
+    });
 
     // 6. Seminário (756) & Logo (4) - Centered group at targetW / 2
     const semW = 485 * scale;
@@ -134,8 +162,9 @@
     const logoDelta = 100 * scale;
     const logoStartX = logoEndX - logoDelta;
 
-    const midY = Math.max(titleY + 110 * scale, targetH * 0.52);
-    const logoYOffset = 50 * (scale / 0.38);
+    // Baixa a posição da logo, data e seminário conforme solicitado
+    const midY = Math.round(targetH * 0.49);
+    const logoYOffset = 46 * (scale / 0.38);
 
     if (layers[756]) {
       layers[756].ks.p = {
@@ -144,7 +173,7 @@
           { t: 0, s: [semAloneX, midY], i: { x: [1, 1], y: [1, 1] }, o: { x: [0, 0], y: [0, 0] } },
           { t: 193.122, s: [semAloneX, midY], i: { x: [0, 1], y: [1, 1] }, o: { x: [0.5, 0], y: [0, 0] } },
           { t: 241.122, s: [semEndX, midY], i: { x: [1, 1], y: [1, 1] }, o: { x: [0, 0], y: [0, 0] } },
-          { t: 308.4, s: [semEndX, midY], h: 1 }
+          { t: 270, s: [semEndX, midY], h: 1 }
         ]
       };
     }
@@ -156,7 +185,7 @@
           { t: 0, s: [logoStartX, midY + logoYOffset], i: { x: [1, 1], y: [1, 1] }, o: { x: [0, 0], y: [0, 0] } },
           { t: 208.02, s: [logoStartX, midY + logoYOffset], i: { x: [0, 1], y: [1, 1] }, o: { x: [0.5, 0], y: [0, 0] } },
           { t: 256.02, s: [logoEndX, midY + logoYOffset], i: { x: [1, 1], y: [1, 1] }, o: { x: [0, 0], y: [0, 0] } },
-          { t: 308.4, s: [logoEndX, midY + logoYOffset], h: 1 }
+          { t: 270, s: [logoEndX, midY + logoYOffset], h: 1 }
         ]
       };
     }
@@ -165,92 +194,125 @@
     const intWidth = 638 * scale;
     const intHeight = 244 * scale;
     const intY = targetH - marginBot - intHeight - (20 * (scale / 0.38));
-    if (layers[13]) layers[13].ks.p = { a: 0, k: [targetW - marginX - intWidth, intY] };
+    if (layers[13]) setPos(13, targetW - marginX - intWidth, intY);
 
-    // Inject Exit Animation Keyframes
-    const addExit2D = (ind, delay, dx, dy, rot, scaleMult, fadeLate) => {
-      if (!layers[ind]) return;
-      const tStart = 308.4 + delay;
-      const tEnd = 400;
-      
-      const easeI2D = { x: [0.5, 0.5], y: [1, 1] };
-      const easeO2D = { x: [0.5, 0.5], y: [0, 0] };
-      const easeI1D = { x: [0.5], y: [1] };
-      const easeO1D = { x: [0.5], y: [0] };
+    // ===== SAÍDAS COORDENADAS POR GRUPO (Sem quebrar palavras/letras) =====
+    const easeI2D = { x: [0.35, 0.35], y: [1, 1] };
+    const easeO2D = { x: [0.35, 0.35], y: [0, 0] };
+    const easeI1D = { x: [0.35], y: [1] };
+    const easeO1D = { x: [0.35], y: [0] };
 
-      // Position
-      if (layers[ind].ks.p.a === 0) {
-        const startPos = layers[ind].ks.p.k;
-        layers[ind].ks.p = {
+    const addGroupExit = (ind, delay, dx, dy, scaleMult) => {
+      const l = layers[ind];
+      if (!l) return;
+      if (!l.ks) l.ks = {};
+      const tStart = 270 + delay;
+      const tEnd = 360;
+
+      // Movimento de saída do grupo
+      if (!l.ks.p) l.ks.p = { a: 0, k: [0, 0] };
+      if (l.ks.p.a === 0) {
+        const p0 = l.ks.p.k;
+        l.ks.p = {
           a: 1,
           k: [
-            { t: 0, s: startPos, h: 1 },
-            { t: tStart, s: startPos, i: easeI2D, o: easeO2D },
-            { t: tEnd, s: [startPos[0] + dx, startPos[1] + dy], h: 1 }
+            { t: 0, s: p0, h: 1 },
+            { t: tStart, s: p0, i: easeI2D, o: easeO2D },
+            { t: tEnd, s: [p0[0] + dx, p0[1] + dy], h: 1 }
           ]
         };
       } else {
-        const pData = layers[ind].ks.p;
-        const lastKf = pData.k[pData.k.length - 1];
-        const startPos = lastKf.s;
+        const pk = l.ks.p.k;
+        const lastKf = pk[pk.length - 1];
+        const p0 = lastKf.s;
         delete lastKf.h;
         lastKf.i = easeI2D;
         lastKf.o = easeO2D;
-        pData.k.push({ t: tStart, s: startPos, i: easeI2D, o: easeO2D });
-        pData.k.push({ t: tEnd, s: [startPos[0] + dx, startPos[1] + dy], h: 1 });
+        pk.push({ t: tStart, s: p0, i: easeI2D, o: easeO2D });
+        pk.push({ t: tEnd, s: [p0[0] + dx, p0[1] + dy], h: 1 });
       }
 
-      // Scale
-      if (layers[ind].ks.s && layers[ind].ks.s.a === 0) {
-        const startScale = layers[ind].ks.s.k;
-        layers[ind].ks.s = {
+      // Redução de escala suave no final
+      if (!l.ks.s) l.ks.s = { a: 0, k: [100, 100] };
+      if (l.ks.s.a === 0) {
+        const s0 = l.ks.s.k;
+        l.ks.s = {
           a: 1,
           k: [
-            { t: 0, s: startScale, h: 1 },
-            { t: tStart, s: startScale, i: easeI2D, o: easeO2D },
-            { t: tEnd, s: [startScale[0] * scaleMult, startScale[1] * scaleMult], h: 1 }
-          ]
-        };
-      }
-
-      // Rotation
-      if (!layers[ind].ks.r) layers[ind].ks.r = { a: 0, k: 0 };
-      if (layers[ind].ks.r.a === 0) {
-        layers[ind].ks.r = {
-          a: 1,
-          k: [
-            { t: 0, s: [0], h: 1 },
-            { t: tStart, s: [0], i: easeI1D, o: easeO1D },
-            { t: tEnd, s: [rot], h: 1 }
-          ]
-        };
-      }
-
-      // Opacity
-      if (!layers[ind].ks.o) layers[ind].ks.o = { a: 0, k: 100 };
-      if (layers[ind].ks.o.a === 0) {
-        const fadeStart = fadeLate ? tStart + 30 : tStart;
-        layers[ind].ks.o = {
-          a: 1,
-          k: [
-            { t: 0, s: [100], h: 1 },
-            { t: fadeStart, s: [100], i: easeI1D, o: easeO1D },
-            { t: tEnd, s: [0], h: 1 }
+            { t: 0, s: s0, h: 1 },
+            { t: tStart, s: s0, i: easeI2D, o: easeO2D },
+            { t: tEnd, s: [s0[0] * scaleMult, s0[1] * scaleMult], h: 1 }
           ]
         };
       }
     };
 
-    [434, 595, 590, 567, 562, 545, 304, 435, 668].forEach((ind, i) => {
-       const dx = (i % 2 === 0 ? -150 : 150) * scale;
-       const dy = (i < 3 ? -150 : 150) * scale;
-       addExit2D(ind, i * 2, dx, dy, (i % 2 ? 15 : -15), 0.7, true);
-    });
+    // Trajetórias distintas para cada seção:
+    const partDist = targetW * 0.28;
+    addGroupExit(756, 6, -partDist, 0, 0.5);                  // Seminário: Desliza para esquerda
+    addGroupExit(4, 6, partDist, 0, 0.5);                     // Logo: Desliza para direita na MESMA velocidade, distância e proporção
+    addGroupExit(13, 6, targetW * 0.25, 0, 0.5);             // Integrantes: Desliza para direita
+    addGroupExit(434, 4, 0, -targetH * 0.35, 0.5);            // Cabeçalho Superior: Sobe reto
+    addGroupExit(304, 4, -targetW * 0.20, targetH * 0.20, 0.5);  // Disciplina (Inf. Esq.): Sai na diagonal inf. esq.
+    addGroupExit(435, 4, -targetW * 0.20, targetH * 0.20, 0.5);  // Professor (Inf. Esq.): Sai na diagonal inf. esq.
+    addGroupExit(668, 4, targetW * 0.20, targetH * 0.20, 0.5);   // Buriticupu (Inf. Dir.): Sai na diagonal inf. dir.
 
-    addExit2D(13, 10, targetW * 0.2, -50, 10, 0.8, true);
-    addExit2D(842, 20, 0, -targetH * 0.3, -5, 0.7, true);
-    addExit2D(756, 30, -100 * scale, targetH * 0.4, -20, 0.9, false);
-    addExit2D(4, 40, targetW * 0.1, -20, 180, 0.1, false);
+    // ===== TRANSIÇÃO DE OPACIDADE EM 100% DOS ELEMENTOS VISUAIS =====
+    // Garante que absolutamente NADA fique estático ou visível ao passar para o Slide 2
+    const fadeOutLayer = (l, delay = 0) => {
+      if (l.ind === 2 || l.ind === 3) return;
+      l.op = 450;
+      if (!l.ks) l.ks = {};
+      const tStart = 270 + delay;
+      const tEnd = 360;
+
+      if (!l.ks.o) {
+        l.ks.o = { a: 0, k: 100 };
+      }
+
+      if (l.ks.o.a === 0) {
+        let op0 = 100;
+        if (Array.isArray(l.ks.o.k)) {
+          op0 = l.ks.o.k[0] !== undefined ? l.ks.o.k[0] : 100;
+        } else if (typeof l.ks.o.k === 'number') {
+          op0 = l.ks.o.k;
+        }
+        l.ks.o = {
+          a: 1,
+          k: [
+            { t: 0, s: [op0], h: 1 },
+            { t: tStart, s: [op0], i: easeI1D, o: easeO1D },
+            { t: tEnd, s: [0], h: 1 }
+          ]
+        };
+      } else if (l.ks.o.a === 1 && Array.isArray(l.ks.o.k)) {
+        const kfs = l.ks.o.k;
+        const lastKf = kfs[kfs.length - 1];
+        let op0 = 100;
+        if (lastKf && lastKf.s) {
+          op0 = Array.isArray(lastKf.s) ? lastKf.s[0] : lastKf.s;
+        }
+        if (lastKf) {
+          delete lastKf.h;
+          lastKf.i = easeI1D;
+          lastKf.o = easeO1D;
+        }
+        kfs.push({ t: tStart, s: [op0], i: easeI1D, o: easeO1D });
+        kfs.push({ t: tEnd, s: [0], h: 1 });
+      }
+    };
+
+    // Aplica fade-out a todas as camadas do arquivo raiz
+    data.layers.forEach(l => fadeOutLayer(l, (l.ind % 6) * 2));
+    
+    // Aplica fade-out a todas as camadas de pré-composições internas (assets)
+    if (data.assets) {
+      data.assets.forEach(a => {
+        if (a.layers) {
+          a.layers.forEach(al => fadeOutLayer(al, (al.ind % 6) * 2));
+        }
+      });
+    }
 
     return data;
   }
@@ -365,18 +427,22 @@
       }, 200);
     };
 
+    let lastRenderedFrame = -1;
     const tick = () => {
       const diff = targetScrollRatio - currentScrollRatio;
-      if (Math.abs(diff) > 0.0001) {
-        currentScrollRatio += diff * 0.16;
-        if (anim && !isLoading) {
-          const frame = mapScrollToFrame(currentScrollRatio);
-          anim.goToAndStop(frame, true);
-        }
+      if (Math.abs(diff) > 0.00005) {
+        currentScrollRatio += diff * 0.18;
       } else {
         currentScrollRatio = targetScrollRatio;
       }
 
+      if (anim && !isLoading) {
+        const frame = mapScrollToFrame(currentScrollRatio);
+        if (Math.abs(frame - lastRenderedFrame) > 0.04) {
+          lastRenderedFrame = frame;
+          anim.goToAndStop(frame, true);
+        }
+      }
 
       rafId = requestAnimationFrame(tick);
     };
@@ -423,8 +489,8 @@
 
       
       <!-- ENFEITES DO SLIDE 1 (flat, lúdicos) — cada um com entrada, flutuação e saída própria -->
-      <div class="s1-ornaments" style="opacity: {exitG >= 1 ? 0 : 1};
-          --exit-g: {exitG};">
+      <div class="s1-ornaments" style="opacity: {currentScrollRatio >= 0.096 ? 0 : 1};
+          --exit-g: {exitG}; pointer-events: none;">
         <div class="orn glow glow-1" style="transform: translate(-50%, -50%) scale({1 + exitG * 0.9}); opacity: {1 - exitG};"></div>
         <div class="orn glow glow-2" style="transform: translate(30%, 30%) scale({1 - exitG * 0.6}); opacity: {1 - exitG};"></div>
 
@@ -472,9 +538,9 @@
         class="lottie-wrapper"
         style="
           position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-          opacity: {exitG >= 1 ? 0 : 1};
+          opacity: {currentScrollRatio >= 0.096 ? 0 : 1};
           --exit-g: {exitG};
-          pointer-events: {activePhase === 0 ? 'auto' : 'none'};
+          pointer-events: {currentScrollRatio < 0.096 ? 'auto' : 'none'};
         "
       >
         <div 
@@ -484,19 +550,38 @@
         ></div>
       </div>
       
+      <!-- Título Slide 1 (Capslock com Entrada e Saída Copiada do Lottie) -->
+      <div 
+        class="slide1-hero-title-box"
+        style="
+          opacity: {currentFrame < 25 ? 0 : 1 - clamp01(exitG * 1.35)};
+          transform: translate(-50%, {-exitG * 80}px);
+          display: {currentScrollRatio >= 0.096 ? 'none' : 'block'};
+        "
+      >
+        <h1 class="slide1-hero-title">
+          <span class="w" class:show={currentFrame >= 30}>TELEFARMÁCIA</span>{' '}
+          <span class="w" class:show={currentFrame >= 34}>E</span>{' '}
+          <span class="w" class:show={currentFrame >= 37}>SERVIÇOS</span>{' '}
+          <span class="w" class:show={currentFrame >= 41}>DIGITAIS</span>{' '}
+          <span class="w" class:show={currentFrame >= 45}>FARMACÊUTICOS:</span><br>
+          <span class="slide1-hero-sub">
+            <span class="w" class:show={currentFrame >= 48}>O</span>{' '}
+            <span class="w" class:show={currentFrame >= 52}>CUIDADO</span>{' '}
+            <span class="w" class:show={currentFrame >= 56}>CLÍNICO</span>{' '}
+            <span class="w" class:show={currentFrame >= 59}>MEDIADO</span>{' '}
+            <span class="w" class:show={currentFrame >= 63}>POR</span>{' '}
+            <span class="w" class:show={currentFrame >= 67}>TECNOLOGIA</span>
+          </span>
+        </h1>
+      </div>
+
+      <!-- Simulação Líquida em Canvas 2D (Estilo enchendo tanque) -->
+      <LiquidCanvas progress={liqProgress} />
+
       <!-- Slides 2-10 rendered absolutely over the stage -->
       <Slides {activePhase} currentRatio={currentScrollRatio} {scrollToPhase} />
     </div>
-
-    <!-- Dica de Rolagem Inicial -->
-    {#if targetScrollRatio < 0.05}
-      <div class="scroll-hint">
-        <div class="mouse-icon">
-          <div class="mouse-wheel"></div>
-        </div>
-        <span>Role para baixo para animar</span>
-      </div>
-    {/if}
 
   </div>
 </section>
@@ -504,6 +589,17 @@
 <!-- Slides component now inside stage-container -->
 
 <style>
+  /* Esconde a barra de rolagem vertical da página (corrimão) mantendo o scroll fluido */
+  :global(html), :global(body) {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  :global(::-webkit-scrollbar) {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
   /* Trilha de rolagem estendida */
   .scroll-showcase-section {
     position: relative;
@@ -560,6 +656,8 @@
     transition: opacity 0.3s ease;
   }
 
+  /* Classes do SVG estático antigo removidas para limpar código */
+
   .lottie-fullscreen.is-ready {
     opacity: 1;
   }
@@ -574,47 +672,49 @@
 
   
 
-  /* Dica de Rolagem */
-  .scroll-hint {
+  /* Título Slide 1 em Capslock (Tamanho Reduzido e Elegante) */
+  .slide1-hero-title-box {
     position: absolute;
-    bottom: 3.5rem;
+    top: 17vh;
     left: 50%;
     transform: translateX(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.45rem;
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 0.82rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
+    width: 90%;
+    max-width: 920px;
+    text-align: center;
+    z-index: 10;
     pointer-events: none;
-    animation: fadeIn 0.4s ease;
-    z-index: 25;
   }
 
-  .mouse-icon {
-    width: 20px;
-    height: 32px;
-    border: 2px solid #ffffff;
-    border-radius: 12px;
-    position: relative;
-    display: flex;
-    justify-content: center;
-    padding-top: 5px;
+  .slide1-hero-title {
+    font-family: var(--font-sans);
+    font-size: clamp(1.3rem, 2.1vw, 2.2rem);
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.28;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    text-shadow: 0 3px 18px rgba(0, 0, 0, 0.15);
   }
 
-  .mouse-wheel {
-    width: 3px;
-    height: 7px;
-    background-color: #ffffff;
-    border-radius: 2px;
-    animation: scrollWheel 1.6s ease infinite;
+  .slide1-hero-title .w {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(12px) scale(0.92);
+    transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  @keyframes scrollWheel {
-    0% { transform: translateY(0); opacity: 1; }
-    100% { transform: translateY(10px); opacity: 0; }
+  .slide1-hero-title .w.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .slide1-hero-sub {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: clamp(1.1rem, 1.75vw, 1.8rem);
+    font-weight: 700;
+    opacity: 0.95;
+    letter-spacing: 0.015em;
   }
 
   /* ===== Enfeites do Slide 1 ===== */

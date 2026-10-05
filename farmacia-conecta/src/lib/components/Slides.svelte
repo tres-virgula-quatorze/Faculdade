@@ -4,6 +4,10 @@
   let currentRatio = $derived(props.currentRatio || 0);
   let scrollToPhase = $derived(props.scrollToPhase);
 
+  // Estados das micro-animações do Slide 2
+  let callStarted = $state(false);
+  let shopStarted = $state(false);
+
   const TOTAL = 10;
   
   function getT(phaseIndex) {
@@ -147,85 +151,319 @@
 <div id="slides-wrap" class="slides-wrap">
             <!-- SLIDE 2 -->
   {#if true}
-  {@const t = getT(1)}
+  {@const tBase = getT(1)}
+  {@const t = tBase < 0 ? Math.min(0, tBase + 0.5) : tBase}
   <section id="slide-2" class="slide" class:vis={Math.abs(t) < 0.6} style="pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
     <div class="abs-layout" style="perspective: 1200px;">
       
       <!-- BACKGROUND: Formas geométricas lúdicas gigantes (Flat Design) -->
       <!-- Círculo que expande -->
-      <div class="abs center" style="width: 120vh; height: 120vh; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 70%); transform: translate(-50%, -50%) scale({getScale(t, 0.4)}); opacity: {getOp(t, 0)}; pointer-events: none;"></div>
+      <div class="abs center" style="width: 120vh; height: 120vh; border-radius: 50%; background: radial-gradient(circle, rgba(13,141,75,0.04) 0%, rgba(13,141,75,0) 70%); transform: translate(-50%, -50%) scale({getScale(t, 0.4)}); opacity: {getOp(t, 0)}; pointer-events: none;"></div>
       
       <!-- Arco que rotaciona e entra do lado -->
-      <svg class="abs" style="top: 10%; right: -10%; transform: translateX({getTxRight(t, 0.3)}px) rotate({getRotate(t, 0.3, 2)}deg); opacity: {getOp(t, 0.1)};" width="500" height="500" viewBox="0 0 100 100" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="2">
+      <svg class="abs" style="top: 10%; right: -10%; transform: translateX({getTxRight(t, 0.3)}px) rotate({getRotate(t, 0.3, 2)}deg); opacity: {getOp(t, 0.1)};" width="500" height="500" viewBox="0 0 100 100" fill="none" stroke="rgba(13,141,75,0.06)" stroke-width="2">
         <path d="M 10 50 A 40 40 0 0 1 90 50" />
-        <circle cx="90" cy="50" r="3" fill="rgba(255,255,255,0.04)" />
+        <circle cx="90" cy="50" r="3" fill="rgba(13,141,75,0.06)" />
       </svg>
       
       <!-- Cruzeta que entra pela esquerda -->
-      <svg class="abs" style="bottom: 20%; left: 5%; transform: translateX({getTxLeft(t, 0.2)}px) rotate({getRotate(t, 0.2, -1.5)}deg); opacity: {getOp(t, 0.15)};" width="200" height="200" viewBox="0 0 100 100" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1.5">
+      <svg class="abs" style="bottom: 20%; left: 5%; transform: translateX({getTxLeft(t, 0.2)}px) rotate({getRotate(t, 0.2, -1.5)}deg); opacity: {getOp(t, 0.15)};" width="200" height="200" viewBox="0 0 100 100" fill="none" stroke="rgba(13,141,75,0.08)" stroke-width="1.5">
         <line x1="50" y1="20" x2="50" y2="80" />
         <line x1="20" y1="50" x2="80" y2="50" />
       </svg>
       
             <!-- ELEMENTOS DE MOLDURA (Frame) -->
       <div class="abs top-left" style="top: 4vh; left: 4vw; opacity: {getOp(t, 0.05)}; transform: translateY({Math.abs(t)*-20}px);">
-        <p style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(255,255,255,0.7);">02 / Conceitos Fundamentais</p>
+        <p style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(0,0,0,0.5);">02 / Conceitos Fundamentais</p>
       </div>
       <div class="abs top-right" style="top: 4vh; right: 4vw; opacity: {getOp(t, 0.05)}; transform: translateY({Math.abs(t)*-20}px); text-align: right;">
-        <p style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(255,255,255,0.7);">Telefarmácia no Brasil</p>
+        <p style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(0,0,0,0.5);">Telefarmácia no Brasil</p>
       </div>
       <div class="abs bottom-left" style="bottom: 4vh; left: 4vw; opacity: {getOp(t, 0.1)}; transform: translateY({Math.abs(t)*20}px);">
-        <p style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(255,255,255,0.7);">+ Resoluções CFF</p>
+        <p style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(0,0,0,0.5);">+ Resoluções CFF</p>
       </div>
       <div class="abs bottom-right" style="bottom: 4vh; right: 4vw; opacity: {getOp(t, 0.1)}; transform: translateY({Math.abs(t)*20}px); text-align: right;">
-        <p style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(255,255,255,0.7);">Legislação</p>
+        <p style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(0,0,0,0.5);">Legislação</p>
       </div>
       
       <!-- TÍTULO GIGANTE 3D -->
-      <div class="abs w-100" style="top: 25vh; left: 50%; transform: translate(-50%, {t * -50}px) scale({getScale(t, 0)}); text-align: center; padding: 0 4vw;">
-        <h2 style="font-size: clamp(2.2rem, 4.5vw, 4rem); font-weight: 400; line-height: 1.15; color: var(--color-white); letter-spacing: -0.02em; opacity: {getOp(t, 0)}; filter: blur({getBlur(t, 0)}px);">
+      <div class="abs w-100" style="top: 10.5vh; left: 50%; transform: translate(-50%, {t * -50}px) scale({getScale(t, 0)}); text-align: center; padding: 0 4vw;">
+        <h2 style="font-size: clamp(1.6rem, 2.8vw, 2.6rem); font-weight: 400; line-height: 1.15; color: #0d8d4b; letter-spacing: -0.02em; opacity: {getOp(t, 0)}; filter: blur({getBlur(t, 0)}px);">
           O que Define a <br>
           <strong style="font-weight: 800;">Telefarmácia no Brasil?</strong>
         </h2>
-        <p style="margin-top: 1.5rem; font-size: clamp(1rem, 1.3vw, 1.25rem); font-weight: 500; color: rgba(255,255,255,0.9); opacity: {getOp(t, 0.1)}; filter: blur({getBlur(t, 0.1)}px); letter-spacing: 0.05em; text-transform: uppercase;">
+        <p style="margin-top: 0.8rem; font-size: clamp(0.75rem, 0.9vw, 0.95rem); font-weight: 500; color: rgba(0,0,0,0.7); opacity: {getOp(t, 0.1)}; filter: blur({getBlur(t, 0.1)}px); letter-spacing: 0.05em; text-transform: uppercase;">
           Exercício Clínico <span style="opacity: 0.4; margin: 0 0.8em; font-weight: 300;">|</span> Mero Comércio
         </p>
       </div>
 
       <!-- LINHA DIVISÓRIA CENTRAL ANIMADA -->
-      <div class="abs center" style="width: 1px; height: 30vh; background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.5), rgba(255,255,255,0)); top: 70%; transform: translate(-50%, -50%) scaleY({getScale(t, 0.15)}); opacity: {getOp(t, 0.15)};"></div>
+      <div class="abs center" style="width: 1px; height: 42vh; background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.15), rgba(0,0,0,0)); top: 67%; transform: translate(-50%, -50%) scaleY({getScale(t, 0.15)}); opacity: {getOp(t, 0.15)};"></div>
 
-      <!-- TEXTO RODAPÉ ESQUERDA: PERMISSÃO -->
-      <div class="abs" style="bottom: 12vh; left: 8vw; width: 38vw; transform: translateX({getTxLeft(t, 0.2)}px) translateY({Math.abs(t) * 30}px);">
-        <div style="opacity: {getOp(t, 0.2)}; filter: blur({getBlur(t, 0.2)}px); text-align: right; padding-right: 2.5rem; position: relative;">
-          <!-- 01 Gigante de Fundo (Ludic text) -->
-          <span style="position: absolute; right: 0; top: -50%; font-size: 10rem; font-weight: 900; color: rgba(255,255,255,0.03); line-height: 1; pointer-events: none; z-index: -1;">01</span>
+      <!-- COLUNA ESQUERDA: EXERCÍCIO CLÍNICO (Com Animação Flat de Videochamada) -->
+      <div class="abs slide2-col col-left" style="bottom: 7vh; left: 10vw; width: min(34vw, 420px); transform: translateX({getTxLeft(t, 0.2)}px) translateY({Math.abs(t) * 30}px);">
+        <div class="slide2-card-content" style="opacity: {getOp(t, 0.2)}; filter: blur({getBlur(t, 0.2)}px);">
           
-          <h3 style="font-size: clamp(1.1rem, 1.4vw, 1.4rem); font-weight: 700; color: var(--color-white); margin-bottom: 0.8rem; display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
+          <!-- Animação Flat Videochamada Interativa -->
+          <div 
+            class="interactive-anim-box anim-call-box"
+            class:is-active={callStarted}
+            onmouseenter={() => callStarted = true}
+            role="button"
+            tabindex="0"
+            aria-label="Animação interativa de teleconsulta por vídeo"
+          >
+            <!-- Cabeçalho Flat Minimalista (sem botões de janela macOS/iOS) -->
+            <div class="flat-card-header flat-header-green">
+              <span class="flat-badge-title">TELECONSULTA CLÍNICA</span>
+              <span class="flat-status-chip">AO VIVO</span>
+            </div>
+
+            <!-- Palco SVG da Videochamada -->
+            <div class="anim-viewport">
+              <svg class="flat-svg" viewBox="0 0 340 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+                
+                <!-- Grade e cruzetas de fundo médica -->
+                <g opacity="0.6" stroke="rgba(13,141,75,0.15)" stroke-width="1.5">
+                  <path d="M40 35 v20 M30 45 h20" />
+                  <path d="M300 135 v20 M290 145 h20" />
+                  <circle cx="170" cy="85" r="70" stroke-dasharray="4 6" />
+                </g>
+
+                <!-- Avatar Farmacêutico Clínico -->
+                <g class="pharmacist-actor">
+                  <!-- Pulso/Aura ao falar -->
+                  <circle class="voice-aura" cx="170" cy="80" r="50" fill="rgba(74, 222, 128, 0.12)" />
+                  
+                  <!-- Jaleco Branco e Gola Verde -->
+                  <path d="M115 180 C115 140 136 122 170 122 C204 122 225 140 225 180 Z" fill="#ffffff" />
+                  <path d="M156 122 L170 152 L184 122 Z" fill="#0d8d4b" />
+                  
+                  <!-- Crachá / Estetoscópio -->
+                  <rect x="188" y="140" width="16" height="22" rx="3" fill="#0d8d4b" />
+                  <rect x="191" y="144" width="10" height="3" rx="1.5" fill="#ffffff" />
+                  <rect x="191" y="150" width="10" height="2" rx="1" fill="#ffffff" />
+                  <!-- Cruz de Farmácia no peito -->
+                  <path d="M148 144 v10 M143 149 h10" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" />
+
+                  <!-- Cabeça & Cabelo -->
+                  <circle cx="170" cy="82" r="28" fill="#fed7aa" />
+                  <!-- Cabelo moderno e limpo -->
+                  <path d="M142 80 C142 54 154 50 170 50 C186 50 198 54 198 80 C198 68 188 60 170 60 C152 60 142 68 142 80 Z" fill="#1e293b" />
+                  <!-- Óculos de grau profissionais -->
+                  <rect x="152" y="76" width="14" height="10" rx="3" fill="none" stroke="#1e293b" stroke-width="1.8" />
+                  <rect x="174" y="76" width="14" height="10" rx="3" fill="none" stroke="#1e293b" stroke-width="1.8" />
+                  <line x1="166" y1="81" x2="174" y2="81" stroke="#1e293b" stroke-width="1.8" />
+                  <!-- Expressão / Olhos e Sorriso humanizado -->
+                  <circle cx="159" cy="81" r="1.5" fill="#1e293b" />
+                  <circle cx="181" cy="81" r="1.5" fill="#1e293b" />
+                  <path d="M164 96 Q170 101 176 96" stroke="#1e293b" stroke-width="2" stroke-linecap="round" fill="none" />
+                </g>
+
+                <!-- Equalizador de Áudio (Ondas de voz na consulta) -->
+                <g class="sound-equalizer" transform="translate(24, 82)">
+                  <rect class="bar b-1" x="0" y="0" width="4" height="16" rx="2" fill="#4ade80" />
+                  <rect class="bar b-2" x="7" y="-8" width="4" height="28" rx="2" fill="#4ade80" />
+                  <rect class="bar b-3" x="14" y="-14" width="4" height="38" rx="2" fill="#4ade80" />
+                  <rect class="bar b-4" x="21" y="-5" width="4" height="24" rx="2" fill="#4ade80" />
+                  <rect class="bar b-5" x="28" y="2" width="4" height="12" rx="2" fill="#4ade80" />
+                  <text x="0" y="38" fill="rgba(0,0,0,0.6)" font-size="8" font-weight="700" letter-spacing="0.5">VOZ ATIVA</text>
+                </g>
+
+                <!-- Janela PiP do Paciente no canto inferior direito -->
+                <g class="pip-patient" transform="translate(242, 98)">
+                  <rect width="84" height="66" rx="8" fill="#14532d" stroke="rgba(0,0,0,0.1)" stroke-width="1.5" />
+                  <!-- Paciente Avatar -->
+                  <circle cx="42" cy="30" r="14" fill="#fcd34d" />
+                  <path d="M20 66 C20 48 30 42 42 42 C54 42 64 48 64 66 Z" fill="#3b82f6" />
+                  <!-- Status do microfone do paciente -->
+                  <circle class="pip-mic-dot" cx="72" cy="14" r="3.5" fill="#22c55e" />
+                  <text x="10" y="60" fill="rgba(255,255,255,0.85)" font-size="7.5" font-weight="700">PACIENTE</text>
+                </g>
+
+                <!-- Barra de Ferramentas da Chamada (Pill Flutuante) -->
+                <g class="call-actions-bar" transform="translate(100, 144)">
+                  <rect width="140" height="28" rx="14" fill="#ffffff" stroke="rgba(0,0,0,0.08)" stroke-width="1.5" />
+                  <!-- Botão Microfone Ativo -->
+                  <circle cx="22" cy="14" r="9" fill="#22c55e" />
+                  <path d="M20 11 h4 v5 h-4 Z M18 14 a4 4 0 0 0 8 0 M22 19 v2" stroke="#ffffff" stroke-width="1.3" stroke-linecap="round" fill="none" />
+                  <!-- Botão Câmera Ativa -->
+                  <circle cx="52" cy="14" r="9" fill="#22c55e" />
+                  <rect x="47" y="11" width="7" height="6" rx="1" fill="#ffffff" />
+                  <polygon points="55,12 58,10 58,18 55,16" fill="#ffffff" />
+                  <!-- Botão Prontuário Clínico -->
+                  <circle cx="82" cy="14" r="9" fill="#0284c7" />
+                  <path d="M78 11 h8 v6 h-5 l-3 2 Z" fill="#ffffff" />
+                  <!-- Botão Encerrar (Vermelho) -->
+                  <circle cx="114" cy="14" r="9" fill="#ef4444" />
+                  <path d="M109 16 c2 -3 8 -3 10 0" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none" />
+                </g>
+              </svg>
+
+              <!-- Dica de hover no primeiro frame -->
+              {#if !callStarted}
+                <div class="hover-start-tag">
+                  <span class="play-arrow">▶</span> Passe o mouse para animar
+                </div>
+              {/if}
+            </div>
+          </div>
+
+          <!-- 01 Gigante de Fundo (Ludic text) -->
+          <span class="slide2-bg-num" style="right: 0; color: rgba(13,141,75,0.04);">01</span>
+          
+          <h3 class="slide2-section-title" style="color: #0d8d4b;">
             Exercício Clínico
-            <span style="display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: rgba(74, 222, 128, 0.15); color: #4ade80;">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            <span class="badge-icon badge-check">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#0d8d4b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
             </span>
           </h3>
-          <p style="font-size: clamp(0.9rem, 1vw, 1rem); color: rgba(255,255,255,0.75); line-height: 1.6; font-weight: 400; max-width: 420px; margin-left: auto;">
+          <p class="slide2-desc" style="color: rgba(0,0,0,0.65);">
             A telefarmácia é um ato de saúde. O foco é a avaliação clínica, o acompanhamento farmacoterapêutico e a melhoria da qualidade de vida do paciente, utilizando TICs.
           </p>
         </div>
       </div>
 
-      <!-- TEXTO RODAPÉ DIREITA: PROIBIÇÃO -->
-      <div class="abs" style="bottom: 12vh; right: 8vw; width: 38vw; transform: translateX({getTxRight(t, 0.2)}px) translateY({Math.abs(t) * 30}px);">
-        <div style="opacity: {getOp(t, 0.2)}; filter: blur({getBlur(t, 0.2)}px); padding-left: 2.5rem; position: relative;">
-          <!-- 02 Gigante de Fundo (Ludic text) -->
-          <span style="position: absolute; left: 0; top: -50%; font-size: 10rem; font-weight: 900; color: rgba(255,255,255,0.03); line-height: 1; pointer-events: none; z-index: -1;">02</span>
+      <!-- COLUNA DIREITA: MERO COMÉRCIO (Com Animação Flat de Carrinho de Compras) -->
+      <div class="abs slide2-col col-right" style="bottom: 7vh; right: 10vw; width: min(34vw, 420px); transform: translateX({getTxRight(t, 0.2)}px) translateY({Math.abs(t) * 30}px);">
+        <div class="slide2-card-content" style="opacity: {getOp(t, 0.2)}; filter: blur({getBlur(t, 0.2)}px);">
           
-          <h3 style="font-size: clamp(1.1rem, 1.4vw, 1.4rem); font-weight: 700; color: var(--color-white); margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
-            <span style="display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: rgba(248, 113, 113, 0.15); color: #f87171;">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          <!-- Animação Flat E-Commerce Interativa -->
+          <div 
+            class="interactive-anim-box anim-shop-box"
+            class:is-active={shopStarted}
+            onmouseenter={() => shopStarted = true}
+            role="button"
+            tabindex="0"
+            aria-label="Animação interativa de e-commerce e carrinho de compras"
+          >
+            <!-- Cabeçalho Flat Minimalista (sem botões de janela macOS/iOS) -->
+            <div class="flat-card-header flat-header-red">
+              <span class="flat-badge-title">VENDA ONLINE DE BALCÃO</span>
+              <span class="flat-status-chip chip-red">SEM AVALIAÇÃO</span>
+            </div>
+
+            <!-- Palco SVG do E-Commerce com Mouse Indo e Clicando -->
+            <div class="anim-viewport">
+              <svg class="flat-svg" viewBox="0 0 340 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+                <!-- 1. PAINEL PRODUTO À ESQUERDA -->
+                <g class="store-product-card" transform="translate(18, 20)">
+                  <rect width="90" height="126" rx="8" fill="#ffffff" stroke="rgba(0,0,0,0.06)" stroke-width="1.2" />
+                  
+                  <!-- Caixa de Medicamento Flat -->
+                  <rect x="18" y="12" width="54" height="38" rx="4" fill="#f87171" />
+                  <rect x="18" y="25" width="54" height="8" fill="#ef4444" />
+                  <circle cx="33" cy="18" r="2.5" fill="#ffffff" />
+                  <circle cx="45" cy="18" r="2.5" fill="#ffffff" />
+                  <circle cx="57" cy="18" r="2.5" fill="#ffffff" />
+                  
+                  <!-- Nome e Preço -->
+                  <text x="45" y="62" text-anchor="middle" fill="#333333" font-size="8" font-weight="700">MEDICAMENTO</text>
+                  <text x="45" y="76" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="800">R$ 29,90</text>
+                  
+                  <!-- Tag de dispensa direta -->
+                  <rect x="14" y="84" width="62" height="11" rx="3" fill="#f1f5f9" />
+                  <text x="45" y="92" text-anchor="middle" fill="#64748b" font-size="5.8" font-weight="600">DISPENSAÇÃO DIRETA</text>
+
+                  <!-- Botão "+ COMPRAR" (Onde o mouse clica!) -->
+                  <g class="btn-buy-group" transform="translate(8, 100)">
+                    <rect class="btn-buy-bg" width="74" height="19" rx="4" fill="#ef4444" />
+                    <text class="btn-buy-txt" x="37" y="12.5" text-anchor="middle" fill="#ffffff" font-size="7.5" font-weight="800">+ COMPRAR</text>
+                    <!-- Ondinha de clique (Ripple) do clique 1 -->
+                    <circle class="click-ripple click-ripple-1" cx="37" cy="9.5" r="0" fill="none" stroke="#ffffff" stroke-width="2" />
+                  </g>
+                </g>
+
+                <!-- Elemento Voador "+1" para o Carrinho -->
+                <g class="flying-badge">
+                  <rect width="22" height="14" rx="7" fill="#22c55e" />
+                  <text x="11" y="10" text-anchor="middle" fill="#ffffff" font-size="8" font-weight="800">+1</text>
+                </g>
+
+                <!-- 2. ÍCONE CENTRAL DE CARRINHO (Rodas estáticas e limpas, sem giro maluco!) -->
+                <g class="center-cart-target" transform="translate(142, 60)">
+                  <!-- Linhas conectoras pontilhadas -->
+                  <line x1="-20" y1="20" x2="-2" y2="20" stroke="rgba(0,0,0,0.15)" stroke-width="1.5" stroke-dasharray="3 3" />
+                  <line x1="42" y1="20" x2="60" y2="20" stroke="rgba(0,0,0,0.15)" stroke-width="1.5" stroke-dasharray="3 3" />
+                  
+                  <!-- Estrutura do carrinho com bounce suave ao receber o item -->
+                  <g class="cart-bounce-wrapper">
+                    <!-- Estrutura do carrinho -->
+                    <path d="M2 8 L8 8 L14 26 L34 26 L38 12 L11 12" stroke="#475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                    <!-- Rodas estáticas e limpas (sem rotação maluca!) -->
+                    <circle cx="16" cy="31" r="3.2" fill="#f87171" stroke="#ffffff" stroke-width="1.2" />
+                    <circle cx="31" cy="31" r="3.2" fill="#f87171" stroke="#ffffff" stroke-width="1.2" />
+                    
+                    <!-- Contador do Carrinho -->
+                    <circle class="cart-counter-bubble" cx="34" cy="6" r="6.5" fill="#ef4444" />
+                    <text class="cart-counter-num" x="34" y="9" text-anchor="middle" fill="#ffffff" font-size="7" font-weight="800">1</text>
+                  </g>
+                </g>
+
+                <!-- 3. PAINEL DE PAGAMENTO À DIREITA -->
+                <g class="store-checkout-card" transform="translate(232, 20)">
+                  <rect width="90" height="126" rx="8" fill="#ffffff" stroke="rgba(0,0,0,0.06)" stroke-width="1.2" />
+                  
+                  <!-- Resumo da Compra Rápida -->
+                  <text x="45" y="20" text-anchor="middle" fill="#64748b" font-size="7" font-weight="700" letter-spacing="0.5">CHECKOUT</text>
+                  <text x="45" y="38" text-anchor="middle" fill="#4ade80" font-size="11" font-weight="800">R$ 29,90</text>
+                  <text x="45" y="52" text-anchor="middle" fill="#ef4444" font-size="6.5" font-weight="700">SEM PRESCRIÇÃO</text>
+                  
+                  <!-- Alerta Flat de Mero Balcão -->
+                  <rect x="8" y="60" width="74" height="24" rx="4" fill="#fee2e2" />
+                  <text x="45" y="71" text-anchor="middle" fill="#ef4444" font-size="6" font-weight="600">SEM ACOMPANHAMENTO</text>
+                  <text x="45" y="80" text-anchor="middle" fill="#b91c1c" font-size="6.2" font-weight="700">DO FARMACÊUTICO</text>
+
+                  <!-- Botão "PAGAR" (Onde o mouse clica!) -->
+                  <g class="btn-pay-group" transform="translate(8, 97)">
+                    <rect class="btn-pay-bg" width="74" height="22" rx="4" fill="#ef4444" />
+                    <text class="btn-pay-txt" x="37" y="14.5" text-anchor="middle" fill="#ffffff" font-size="8" font-weight="800">PAGAR</text>
+                    <!-- Ondinha de clique (Ripple) do clique 2 -->
+                    <circle class="click-ripple click-ripple-2" cx="37" cy="11" r="0" fill="none" stroke="#ffffff" stroke-width="2" />
+                  </g>
+
+                  <!-- Carimbo de Compra Concluída (Surge após o clique do mouse) -->
+                  <g class="stamp-completed" transform="translate(45, 72)">
+                    <rect x="-35" y="-12" width="70" height="24" rx="4" fill="#22c55e" stroke="#ffffff" stroke-width="1.5" />
+                    <text x="0" y="3.5" text-anchor="middle" fill="#ffffff" font-size="7.5" font-weight="800" letter-spacing="0.5">✓ PAGO!</text>
+                  </g>
+                </g>
+
+                <!-- 4. O MOUSE INDO E CLICANDO (Cursor SVG animado) -->
+                <g class="mouse-pointer-actor">
+                  <!-- Seta universal clássica de mouse em vetor limpo -->
+                  <path 
+                    d="M 0 0 L 0 16 L 4.5 12 L 7.5 18.5 L 10.5 17 L 7.5 10.5 L 13 10.5 Z" 
+                    fill="#ffffff" 
+                    stroke="#0f172a" 
+                    stroke-width="1.2" 
+                    stroke-linejoin="round" 
+                  />
+                  <!-- Ponto de foco no topo do cursor -->
+                  <circle cx="1" cy="1" r="1.5" fill="#ef4444" opacity="0.6" />
+                </g>
+              </svg>
+
+              <!-- Dica de hover no primeiro frame -->
+              {#if !shopStarted}
+                <div class="hover-start-tag">
+                  <span class="play-arrow">▶</span> Passe o mouse para animar
+                </div>
+              {/if}
+            </div>
+          </div>
+
+          <!-- 02 Gigante de Fundo (Ludic text) -->
+          <span class="slide2-bg-num" style="left: 0; color: rgba(239,68,68,0.04);">02</span>
+          
+          <h3 class="slide2-section-title" style="color: #ef4444;">
+            <span class="badge-icon badge-cross">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
             </span>
             Mero Comércio
           </h3>
-          <p style="font-size: clamp(0.9rem, 1vw, 1rem); color: rgba(255,255,255,0.75); line-height: 1.6; font-weight: 400; max-width: 420px;">
+          <p class="slide2-desc" style="color: rgba(0,0,0,0.65);">
             Não se confunde com a simples venda online de medicamentos ou dispensação sem contato clínico prévio. A venda de balcão via internet NÃO é telefarmácia clínica.
           </p>
         </div>
@@ -739,12 +977,12 @@
   }
 
   .card {
-    border-radius: var(--radius-md);
+    border-radius: 0;
     padding: clamp(1rem, 1.5vw, 1.4rem);
     position: relative;
     background: var(--color-white);
-    border: 1px solid var(--color-border);
-    box-shadow: var(--shadow-sm);
+    border: none;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
   }
   .card h3 {
     font-size: clamp(0.95rem, 1.1vw, 1.1rem);
@@ -760,8 +998,9 @@
   .card strong { color: var(--color-text); }
   .glass {
     background: var(--color-white);
-    border: 1px solid var(--color-border);
-    box-shadow: var(--shadow-sm);
+    border-radius: 0;
+    border: none;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
   }
   .hover-lift { transition: transform 0.25s ease, box-shadow 0.25s ease; }
   .vis .hover-lift:hover {
@@ -1014,5 +1253,371 @@
   @media (prefers-reduced-motion: reduce) {
     .rv { transition-duration: 0.01s; transition-delay: 0s; }
     .alert-panel.glow, .ethic-banner.pulse, .btn-gold, .final-card::before, .vault-ring { animation: none; }
+  }
+
+  /* ===== Animações Interativas Flat - Slide 2 (Exercício Clínico & Mero Comércio) ===== */
+  .slide2-col {
+    display: flex;
+    flex-direction: column;
+    z-index: 5;
+  }
+  .col-left .slide2-card-content {
+    text-align: right;
+    padding-right: 1.8rem;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  .col-right .slide2-card-content {
+    text-align: left;
+    padding-left: 1.8rem;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .interactive-anim-box {
+    width: 100%;
+    max-width: 330px;
+    border-radius: 0;
+    overflow: hidden;
+    margin-bottom: 1.15rem;
+    background: transparent;
+    border: none;
+    position: relative;
+    cursor: pointer;
+    box-shadow: none;
+    transition: transform 0.25s ease;
+  }
+  .interactive-anim-box:hover {
+    transform: translateY(-3px);
+    box-shadow: none;
+  }
+  .anim-call-box {
+    border: none;
+  }
+  .anim-call-box:hover, .anim-call-box.is-active {
+    border: none;
+  }
+  .anim-shop-box {
+    border: none;
+  }
+  .anim-shop-box:hover, .anim-shop-box.is-active {
+    border: none;
+  }
+
+  /* Cabeçalhos Flat Minimalistas (Sem imitação de janelas iOS/macOS) */
+  .flat-card-header {
+    height: 30px;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    user-select: none;
+    border-bottom: none;
+  }
+  .flat-header-green {
+    background: rgba(13, 141, 75, 0.06);
+    color: #0d8d4b;
+  }
+  .flat-header-red {
+    background: rgba(239, 68, 68, 0.06);
+    color: #dc2626;
+  }
+  .flat-badge-title {
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .flat-status-chip {
+    font-size: 0.58rem;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+    background: rgba(74, 222, 128, 0.22);
+    color: #4ade80;
+  }
+  .flat-status-chip.chip-red {
+    background: rgba(248, 113, 113, 0.22);
+    color: #fca5a5;
+  }
+
+  .anim-viewport {
+    position: relative;
+    width: 100%;
+    line-height: 0;
+  }
+  .flat-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .hover-start-tag {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    color: #ffffff;
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    pointer-events: none;
+    letter-spacing: 0.02em;
+    animation: pulseHint 2s infinite ease-in-out;
+    white-space: nowrap;
+  }
+  .play-arrow {
+    font-size: 0.6rem;
+    color: #4ade80;
+  }
+  @keyframes pulseHint {
+    0%, 100% { opacity: 0.85; transform: translateX(-50%) scale(1); }
+    50% { opacity: 1; transform: translateX(-50%) scale(1.04); }
+  }
+
+  /* CRÍTICO: Pausado no primeiro frame estático até passar o mouse (hover) */
+  .interactive-anim-box * {
+    animation-play-state: paused;
+  }
+  .interactive-anim-box:hover *,
+  .interactive-anim-box.is-active * {
+    animation-play-state: running !important;
+  }
+
+  /* Animações da Videochamada (Exercício Clínico) */
+
+
+  .voice-aura {
+    transform-origin: 170px 80px;
+    animation: auraPulse 2.2s infinite ease-out;
+  }
+  @keyframes auraPulse {
+    0% { transform: scale(0.9); opacity: 0.3; }
+    50% { transform: scale(1.25); opacity: 0.05; }
+    100% { transform: scale(0.9); opacity: 0.3; }
+  }
+
+  .pharmacist-actor {
+    transform-origin: 170px 140px;
+    animation: docBreathing 2.6s infinite ease-in-out;
+  }
+  @keyframes docBreathing {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+
+  .sound-equalizer .bar {
+    transform-origin: bottom;
+    animation: eqBarBounce 1.2s infinite ease-in-out alternate;
+  }
+  .sound-equalizer .b-1 { animation-delay: -0.15s; }
+  .sound-equalizer .b-2 { animation-delay: -0.4s; }
+  .sound-equalizer .b-3 { animation-delay: -0.8s; }
+  .sound-equalizer .b-4 { animation-delay: -0.3s; }
+  .sound-equalizer .b-5 { animation-delay: -0.6s; }
+  @keyframes eqBarBounce {
+    0% { transform: scaleY(0.4); opacity: 0.6; }
+    100% { transform: scaleY(1.35); opacity: 1; }
+  }
+
+  .pip-mic-dot {
+    animation: pipMicBlink 1.6s infinite ease-in-out;
+  }
+  @keyframes pipMicBlink {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+
+  /* Animações Flat de E-Commerce com Mouse Indo e Clicando (Mero Comércio) */
+  .mouse-pointer-actor {
+    transform-origin: 1px 1px;
+    animation: mouseClickJourney 3.8s infinite ease-in-out;
+  }
+  @keyframes mouseClickJourney {
+    0% { transform: translate(30px, 150px) scale(1); opacity: 0; }
+    6% { transform: translate(35px, 135px) scale(1); opacity: 1; }
+    18% { transform: translate(63px, 126px) scale(1); }
+    22% { transform: translate(63px, 126px) scale(0.78); } /* CLIQUE 1: COMPRAR */
+    27% { transform: translate(63px, 126px) scale(1); }
+    46% { transform: translate(175px, 110px) scale(1); }
+    63% { transform: translate(277px, 124px) scale(1); }
+    67% { transform: translate(277px, 124px) scale(0.78); } /* CLIQUE 2: PAGAR */
+    72% { transform: translate(277px, 124px) scale(1); }
+    84% { transform: translate(295px, 142px) scale(1); opacity: 1; }
+    92% { transform: translate(305px, 155px) scale(1); opacity: 0; }
+    100% { transform: translate(30px, 150px) scale(1); opacity: 0; }
+  }
+
+  /* Ripple (onda) do primeiro clique no botão Comprar */
+  .click-ripple-1 {
+    animation: rippleExpand1 3.8s infinite ease-out;
+  }
+  @keyframes rippleExpand1 {
+    0%, 21% { r: 0; opacity: 0; }
+    22% { r: 2px; opacity: 0.95; stroke-width: 2px; }
+    29% { r: 18px; opacity: 0; stroke-width: 0.5px; }
+    100% { r: 18px; opacity: 0; }
+  }
+
+  /* Reação do botão + COMPRAR ao clique do mouse */
+  .btn-buy-group {
+    transform-origin: 37px 9px;
+  }
+  .btn-buy-bg {
+    animation: btnBuyAction 3.8s infinite ease-in-out;
+  }
+  @keyframes btnBuyAction {
+    0%, 21% { transform: scale(1); fill: #ef4444; }
+    22%, 25% { transform: scale(0.95); fill: #b91c1c; }
+    26%, 86% { transform: scale(1); fill: #16a34a; }
+    92%, 100% { transform: scale(1); fill: #ef4444; }
+  }
+
+  /* Elemento "+1" que voa do botão para o carrinho no clique */
+  .flying-badge {
+    animation: flyToCart 3.8s infinite cubic-bezier(0.2, 0.8, 0.4, 1);
+  }
+  @keyframes flyToCart {
+    0%, 21% { transform: translate(52px, 118px) scale(0); opacity: 0; }
+    23% { transform: translate(52px, 108px) scale(1); opacity: 1; }
+    34% { transform: translate(154px, 58px) scale(0.8); opacity: 0.9; }
+    37% { transform: translate(162px, 64px) scale(0); opacity: 0; }
+    100% { transform: translate(162px, 64px) scale(0); opacity: 0; }
+  }
+
+  /* Carrinho bounce suave quando recebe o produto */
+  .cart-bounce-wrapper {
+    transform-origin: 20px 20px;
+    animation: cartBounce 3.8s infinite ease-in-out;
+  }
+  @keyframes cartBounce {
+    0%, 34% { transform: scale(1); }
+    37% { transform: scale(1.2); }
+    41% { transform: scale(0.92); }
+    45% { transform: scale(1.06); }
+    49%, 100% { transform: scale(1); }
+  }
+
+  /* Contador 1 no carrinho que surge no bounce */
+  .cart-counter-bubble, .cart-counter-num {
+    transform-origin: 34px 6px;
+    animation: cartCounterPop 3.8s infinite ease-out;
+  }
+  @keyframes cartCounterPop {
+    0%, 35% { opacity: 0; transform: scale(0); }
+    38%, 86% { opacity: 1; transform: scale(1); }
+    92%, 100% { opacity: 0; transform: scale(0); }
+  }
+
+  /* Ripple (onda) do segundo clique no botão Pagar */
+  .click-ripple-2 {
+    animation: rippleExpand2 3.8s infinite ease-out;
+  }
+  @keyframes rippleExpand2 {
+    0%, 66% { r: 0; opacity: 0; }
+    67% { r: 2px; opacity: 0.95; stroke-width: 2px; }
+    74% { r: 18px; opacity: 0; stroke-width: 0.5px; }
+    100% { r: 18px; opacity: 0; }
+  }
+
+  /* Reação do botão PAGAR ao clique do mouse */
+  .btn-pay-group {
+    transform-origin: 37px 11px;
+  }
+  .btn-pay-bg {
+    animation: btnPayAction 3.8s infinite ease-in-out;
+  }
+  @keyframes btnPayAction {
+    0%, 66% { transform: scale(1); fill: #ef4444; }
+    67%, 70% { transform: scale(0.95); fill: #b91c1c; }
+    71%, 86% { transform: scale(1); fill: #16a34a; }
+    92%, 100% { transform: scale(1); fill: #ef4444; }
+  }
+
+  /* Carimbo ✓ PAGO! que surge após o clique de pagamento */
+  .stamp-completed {
+    transform-origin: 0 0;
+    animation: stampPop 3.8s infinite ease-out;
+  }
+  @keyframes stampPop {
+    0%, 69% { transform: scale(0) rotate(-6deg); opacity: 0; }
+    72% { transform: scale(1.15) rotate(3deg); opacity: 1; }
+    76%, 86% { transform: scale(1) rotate(0deg); opacity: 1; }
+    92%, 100% { transform: scale(0.8) rotate(0deg); opacity: 0; }
+  }
+
+  /* Estilização complementar dos textos do Slide 2 */
+  .slide2-bg-num {
+    position: absolute;
+    top: -20%;
+    font-size: 8.5rem;
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.03);
+    line-height: 1;
+    pointer-events: none;
+    z-index: -1;
+  }
+  .slide2-section-title {
+    font-size: clamp(1.15rem, 1.4vw, 1.45rem);
+    font-weight: 700;
+    color: var(--color-white);
+    margin-bottom: 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .title-green {
+    justify-content: flex-end;
+  }
+  .badge-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+  }
+  .badge-check {
+    background: rgba(74, 222, 128, 0.15);
+    color: #4ade80;
+  }
+  .badge-cross {
+    background: rgba(248, 113, 113, 0.15);
+    color: #f87171;
+  }
+  .slide2-desc {
+    font-size: clamp(0.9rem, 1vw, 1.02rem);
+    color: rgba(255, 255, 255, 0.78);
+    line-height: 1.6;
+    font-weight: 400;
+    max-width: 420px;
+  }
+  .col-left .slide2-desc {
+    margin-left: auto;
+  }
+
+  @media (max-width: 1020px) {
+    .slide2-col { width: 42vw !important; }
+    .interactive-anim-box { max-width: 290px; }
+  }
+  @media (max-width: 760px) {
+    .slide2-col { width: 90vw !important; left: 5vw !important; right: auto !important; position: static !important; }
+    .col-left .slide2-card-content, .col-right .slide2-card-content { align-items: center; text-align: center; padding: 0; }
   }
 </style>
