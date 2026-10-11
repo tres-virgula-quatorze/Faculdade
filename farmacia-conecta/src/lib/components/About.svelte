@@ -20,15 +20,6 @@
   const clamp01 = (x) => Math.max(0, Math.min(1, x));
   let exitG = $derived(Math.max(0, Math.min(1, (currentScrollRatio - EXIT_START) / (EXIT_END - EXIT_START))));
   
-  let liqProgress = $derived(clamp01((currentScrollRatio - 0.03) / 0.06));
-  let waveHeight = $derived(Math.sin(liqProgress * Math.PI) * 45);
-  let waveY = $derived(100 - liqProgress * 100);
-
-  let transitionProgress = $derived.by(() => {
-    if (currentScrollRatio <= 0.32 || currentScrollRatio >= 0.52) return 0;
-    return Math.sin(((currentScrollRatio - 0.32) / 0.20) * Math.PI);
-  });
-
   function scrollToPhase(phaseIndex) {
     if (!scrollTrackRef) return;
     const rect = scrollTrackRef.getBoundingClientRect();
@@ -57,8 +48,6 @@
   }
 
   let currentFrame = $derived(mapScrollToFrame(currentScrollRatio));
-
-  import LiquidCanvas from './LiquidCanvas.svelte';
 
   function adaptAnimationData(orig, targetW, targetH) {
     const data = JSON.parse(JSON.stringify(orig));
@@ -575,9 +564,6 @@
           </span>
         </h1>
       </div>
-
-      <!-- Simulação Líquida em Canvas 2D (Estilo enchendo tanque) -->
-      <LiquidCanvas progress={liqProgress} />
 
       <!-- Slides 2-10 rendered absolutely over the stage -->
       <Slides {activePhase} currentRatio={currentScrollRatio} {scrollToPhase} />
