@@ -1,14 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --color-primary: #16803A;
-  --color-primary-dark: #10632d;
-  --color-primary-light: #209a47;
-  --color-bg: #DFF3E6;
+  --color-primary: #0D5B3E;
+  --color-primary-dark: #083D2A;
+  --color-primary-light: #3D8D6C;
+  --color-bg: #F2F1E9;
   --color-white: #FFFFFF;
-  --color-text: #263238;
-  --color-text-muted: #546e7a;
-  --color-border: rgba(22, 128, 58, 0.15);
+  --color-text: #17362D;
+  --color-text-muted: #5E7068;
+  --color-border: rgba(13, 91, 62, 0.16);
   
   --shadow-sm: 0 2px 8px rgba(38, 50, 56, 0.06);
   --shadow-md: 0 8px 20px rgba(22, 128, 58, 0.08);

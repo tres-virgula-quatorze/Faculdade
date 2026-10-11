@@ -589,10 +589,10 @@
     height: 0 !important;
   }
 
-  /* Trilha de rolagem estendida */
+  /* Trilha de rolagem: uma viewport por slide, sem espaço ocioso excessivo */
   .scroll-showcase-section {
     position: relative;
-    height: 1200vh; /* 250vh por slide (10 slides) */
+    height: 1000vh;
     background: #0d8d4b;
     margin: 0;
     padding: 0;
@@ -953,9 +953,7 @@
       gap: 1.25rem;
     }
 
-    .scroll-showcase-section {
-      height: 2000vh;
-    }
+    .scroll-showcase-section { height: 1000vh; }
   }
 
   @media (max-width: 480px) {

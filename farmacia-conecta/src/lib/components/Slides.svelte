@@ -1,1721 +1,313 @@
 <script>
   let props = $props();
-  let activePhase = $derived(props.activePhase || 0);
   let currentRatio = $derived(props.currentRatio || 0);
   let scrollToPhase = $derived(props.scrollToPhase);
-
-  // Estados das micro-animações do Slide 2
-  let callStarted = $state(false);
-  let shopStarted = $state(false);
-
-  const TOTAL = 10;
-  
-  function getT(phaseIndex) {
-    const start = phaseIndex / 10;
-    const end = (phaseIndex + 1) / 10;
-    const center = (start + end) / 2;
-    return (currentRatio - center) / 0.05; 
-  }
-
-  function easeOut(x) { return 1 - Math.pow(1 - Math.max(0, Math.min(1, x)), 4); }
-  function easeIn(x) { return Math.pow(Math.max(0, Math.min(1, x)), 4); }
-
-  function getOp(t, delay = 0) {
-    const d = delay * 1.2;
-    const adjustedT = t > 0 ? t - d : t + d;
-    if (adjustedT < -1 || adjustedT > 1) return 0;
-    if (adjustedT >= -0.4 && adjustedT <= 0.4) return 1;
-    if (adjustedT < -0.4) return easeOut((adjustedT + 1) / 0.6);
-    return 1 - easeIn((adjustedT - 0.4) / 0.6);
-  }
-
-  function getTy(t, delay = 0) {
-    const d = delay * 1.2;
-    const adjustedT = t > 0 ? t - d : t + d;
-    if (adjustedT < -0.4) return 120 * (1 - easeOut((adjustedT + 1) / 0.6));
-    if (adjustedT > 0.4) return -120 * easeIn((adjustedT - 0.4) / 0.6);
-    return 0;
-  }
-
-  function getTxLeft(t, delay = 0) {
-    const d = delay * 1.2;
-    const adjustedT = t > 0 ? t - d : t + d;
-    if (adjustedT < -0.4) return -180 * (1 - easeOut((adjustedT + 1) / 0.6));
-    if (adjustedT > 0.4) return 180 * easeIn((adjustedT - 0.4) / 0.6);
-    return 0;
-  }
-
-  function getTxRight(t, delay = 0) {
-    const d = delay * 1.2;
-    const adjustedT = t > 0 ? t - d : t + d;
-    if (adjustedT < -0.4) return 180 * (1 - easeOut((adjustedT + 1) / 0.6));
-    if (adjustedT > 0.4) return -180 * easeIn((adjustedT - 0.4) / 0.6);
-    return 0;
-  }
-
-  function getScale(t, delay = 0) {
-    const d = delay * 1.2;
-    const adjustedT = t > 0 ? t - d : t + d;
-    if (adjustedT < -0.4) return 0.85 + 0.15 * easeOut((adjustedT + 1) / 0.6);
-    if (adjustedT > 0.4) return 1 - 0.15 * easeIn((adjustedT - 0.4) / 0.6);
-    return 1;
-  }
-
-  function getBlur(t, delay = 0) {
-    const d = delay * 1.2;
-    const adjustedT = t > 0 ? t - d : t + d;
-    if (adjustedT >= -0.4 && adjustedT <= 0.4) return 0;
-    if (adjustedT < -0.4) return 15 * (1 - easeOut((adjustedT + 1) / 0.6));
-    return 15 * easeIn((adjustedT - 0.4) / 0.6);
-  }
-
-  function getRotate(t, delay = 0, dir = 1) {
-    const d = delay * 1.2;
-    const adjustedT = t > 0 ? t - d : t + d;
-    if (adjustedT < -0.4) return dir * 15 * (1 - easeOut((adjustedT + 1) / 0.6));
-    if (adjustedT > 0.4) return -dir * 15 * easeIn((adjustedT - 0.4) / 0.6);
-    return 0;
-  }
-
-  const slideIds = ['sobre', ...Array.from({ length: 9 }, (_, i) => `slide-${i + 2}`)];
-
-  let compareMode = $state('side');
+  let compareMode = $state('sup');
   let checks = $state([true, false, false]);
 
-  const modalities = [
+  const phases = [
     {
-      title: 'Teleconsulta Farmacêutica',
-      text: 'Atendimento direto e em tempo real (vídeo/áudio) entre o farmacêutico e o paciente para avaliação clínica e orientação.',
-      icon: 'video'
+      eyebrow: '02 · Conceito-chave',
+      title: 'Telefarmácia não é venda online.',
+      lead: 'É exercício clínico mediado por tecnologia — com escuta, registro e responsabilidade profissional.',
+      accent: 'green',
+      points: [
+        ['Exercício clínico', 'Avaliar, orientar e acompanhar o paciente com método.'],
+        ['Mero comércio', 'Comprar e vender medicamentos sem cuidado clínico não caracteriza telefarmácia.']
+      ]
     },
     {
-      title: 'Teleinterconsulta',
-      text: 'Discussão de caso clínico realizada exclusivamente entre o farmacêutico e outros profissionais da equipe de saúde.',
-      icon: 'users'
+      eyebrow: '03 · Modalidades',
+      title: 'Quatro formas de levar o cuidado mais longe.',
+      lead: 'A tecnologia amplia o acesso sem substituir o raciocínio clínico do farmacêutico.',
+      accent: 'light',
+      points: [
+        ['Teleconsulta', 'Atendimento direto e em tempo real para avaliação e orientação.'],
+        ['Teleinterconsulta', 'Discussão de caso entre profissionais da equipe de saúde.'],
+        ['Telemonitoramento', 'Acompanhamento de parâmetros, reações e adesão.'],
+        ['Teleorientação', 'Aconselhamento, triagem e encaminhamento responsável.']
+      ]
     },
     {
-      title: 'Telemonitoramento / Televigilância',
-      text: 'Acompanhamento contínuo e à distância de parâmetros de saúde, reações adversas e adesão ao tratamento.',
-      icon: 'activity'
+      eyebrow: '04 · Arcabouço legal',
+      title: 'Inovação também precisa de limite.',
+      lead: 'O cuidado digital só é seguro quando respeita as normas que protegem paciente, profissional e serviço.',
+      accent: 'light',
+      laws: [
+        ['Lei Federal nº 14.510/2022', 'Disciplina a telessaúde no Brasil, incluindo o SUS.'],
+        ['Resolução CFF nº 10/2024', 'Regulamenta tecnologias, Saúde Digital e Inteligência Artificial na prática farmacêutica.']
+      ],
+      warning: 'A responsabilidade técnica de farmácias não pode ser assumida de forma remota. A presença física do RT é obrigatória.'
     },
     {
-      title: 'Teleconsultoria',
-      text: 'Emissão de pareceres técnicos, administrativos e operacionais entre profissionais, sem avaliação direta de paciente específico.',
-      icon: 'file'
+      eyebrow: '05 · Segurança da informação',
+      title: 'O prontuário é parte do cuidado.',
+      lead: 'Privacidade não é detalhe operacional: é requisito clínico, ético e legal.',
+      accent: 'light',
+      points: [
+        ['LGPD', 'Dados de saúde são dados pessoais sensíveis e exigem proteção reforçada.'],
+        ['Registro clínico', 'Todo atendimento deve ser documentado em prontuário seguro.'],
+        ['Assinatura digital', 'Prescrições precisam de certificação ICP-Brasil quando aplicável.']
+      ],
+      visual: 'shield'
+    },
+    {
+      eyebrow: '06 · Nosso protótipo',
+      title: 'Uma jornada simples para uma decisão segura.',
+      lead: 'O site organiza o primeiro contato e direciona cada pessoa para o próximo passo.',
+      accent: 'light',
+      steps: [
+        ['01', 'Acolhimento', 'Linguagem clara e humanizada.'],
+        ['02', 'Triagem', 'Identificação da necessidade principal.'],
+        ['03', 'Consentimento', 'Transparência, sigilo e LGPD.'],
+        ['04', 'Direcionamento', 'Teleconsulta ou encaminhamento presencial.']
+      ]
+    },
+    {
+      eyebrow: '07 · Prática clínica',
+      title: 'Tecnologia para acompanhar — não para automatizar o cuidado.',
+      lead: 'Na teleconsulta, o farmacêutico transforma informação em decisão compartilhada.',
+      accent: 'light',
+      points: [
+        ['Conciliação terapêutica', 'Conferência visual das caixas para evitar duplicidades.'],
+        ['Adesão ao tratamento', 'Investigação de esquecimentos, rotina e efeitos colaterais.'],
+        ['Educação em saúde', 'Orientação sobre armazenamento e horários de tomada.']
+      ],
+      visual: 'call'
+    },
+    {
+      eyebrow: '08 · Prescrição e escopo',
+      title: 'Diferenciar orientação de prescrição é proteger o paciente.',
+      lead: 'O farmacêutico atua dentro do seu escopo, com critério técnico e limites bem definidos.',
+      accent: 'light',
+      compare: true
+    },
+    {
+      eyebrow: '09 · Red flags',
+      title: 'Quando a tela não basta, o encaminhamento é cuidado.',
+      lead: 'Reconhecer sinais de alarme é uma competência clínica — e uma responsabilidade ética.',
+      accent: 'red',
+      points: [
+        ['Sintomas de emergência', 'Dor intensa, falta de ar, confusão ou piora súbita exigem serviço imediato.'],
+        ['Limite do exame físico', 'Se a avaliação remota for insuficiente, não se deve concluir o caso.'],
+        ['Conduta ética', 'Orientar, registrar e encaminhar sem atrasar o atendimento necessário.']
+      ]
+    },
+    {
+      eyebrow: '10 · Encerramento',
+      title: 'Telefarmácia: tecnologia a serviço do cuidado humano.',
+      lead: 'A proposta é ampliar acesso, fortalecer a formação e aproximar ciência da comunidade.',
+      accent: 'green',
+      closing: true
     }
   ];
 
-  const steps = [
-    { title: 'Acolhimento Acessível', text: 'Explicação clara e linguagem humanizada sobre o papel do farmacêutico.' },
-    { title: 'Triagem de Necessidades', text: 'Formulário sucinto de identificação e queixa principal.' },
-    { title: 'Consentimento & LGPD', text: 'Aceite transparente do uso de dados e sigilo clínico.' },
-    { title: 'Direcionamento Consciente', text: 'Agendamento da Teleconsulta ou encaminhamento imediato para serviço de urgência.' }
-  ];
-
-  const checklist = [
-    {
-      title: 'Conciliação Terapêutica Remota',
-      text: 'Conferência visual de caixas de medicamentos via câmera para evitar duplicidade ou nomes comerciais redundantes.'
-    },
-    {
-      title: 'Adesão ao Tratamento',
-      text: 'Identificação de rotinas de tomadas de dose e investigação de esquecimentos ou efeitos colaterais.'
-    },
-    {
-      title: 'Educação em Saúde',
-      text: 'Orientação sobre armazenamento correto (geladeira/temperatura ambiente) e horários de tomada.'
-    }
-  ];
-
-  let stepProgress = $derived(
-    activePhase === 5 
-      ? Math.min(1, Math.max(0, (currentRatio - 0.5) * 10))
-      : (activePhase > 5 ? 1 : 0)
-  );
-
-  function goTo(i) {
-    if (scrollToPhase) scrollToPhase(i);
+  function getT(index) {
+    const center = (index + 1.5) / 10;
+    return (currentRatio - center) / 0.055;
   }
 
-  function toTop() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  function visibility(t) {
+    const distance = Math.abs(t);
+    return {
+      opacity: Math.max(0, 1 - Math.max(0, distance - 0.18) * 1.8),
+      transform: `translateY(${Math.max(-1, Math.min(1, t)) * 24}px) scale(${1 - Math.min(0.025, Math.abs(t) * 0.025)})`
+    };
   }
 
-  function pad(n) {
-    return String(n).padStart(2, '0');
+  function goTo(index) {
+    scrollToPhase?.(index + 1);
   }
 </script>
 
+<div class="slides-wrap" aria-label="Apresentação sobre telefarmácia">
+  {#each phases as slide, index}
+    {@const t = getT(index)}
+    {@const style = visibility(t)}
+    <section
+      id={`slide-${index + 2}`}
+      class={`slide redesign-slide theme-${slide.accent} ${Math.abs(t) < 0.7 ? 'is-active' : ''}`}
+      aria-hidden={Math.abs(t) >= 0.9}
+      style={`opacity: ${style.opacity}; transform: ${style.transform}; pointer-events: ${Math.abs(t) < 0.82 ? 'auto' : 'none'}; z-index: ${Math.abs(t) < 0.9 ? 2 : 1};`}
+    >
+      <div class="slide-frame">
+        <div class="slide-topline">
+          <span class="slide-eyebrow">{slide.eyebrow}</span>
+          <span class="slide-index">{String(index + 2).padStart(2, '0')} / 10</span>
+        </div>
 
+        <div class="slide-content">
+          <div class="slide-main-grid">
+            <div class="slide-main">
+              <header class="slide-copy">
+                <h2>{slide.title}</h2>
+                <p class="slide-lead">{slide.lead}</p>
+              </header>
 
-<div id="slides-wrap" class="slides-wrap">
-            <!-- SLIDE 2 -->
-  {#if true}
-  {@const tBase = getT(1)}
-  {@const t = tBase < 0 ? Math.min(0, tBase + 0.5) : tBase}
-  <section id="slide-2" class="slide" class:vis={Math.abs(t) < 0.6} style="pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
-    <div class="abs-layout" style="perspective: 1200px;">
-      
-      <!-- BACKGROUND: Formas geométricas lúdicas gigantes (Flat Design) -->
-      <!-- Círculo que expande -->
-      <div class="abs center" style="width: 120vh; height: 120vh; border-radius: 50%; background: radial-gradient(circle, rgba(13,141,75,0.04) 0%, rgba(13,141,75,0) 70%); transform: translate(-50%, -50%) scale({getScale(t, 0.4)}); opacity: {getOp(t, 0)}; pointer-events: none;"></div>
-      
-      <!-- Arco que rotaciona e entra do lado -->
-      <svg class="abs" style="top: 10%; right: -10%; transform: translateX({getTxRight(t, 0.3)}px) rotate({getRotate(t, 0.3, 2)}deg); opacity: {getOp(t, 0.1)};" width="500" height="500" viewBox="0 0 100 100" fill="none" stroke="rgba(13,141,75,0.06)" stroke-width="2">
-        <path d="M 10 50 A 40 40 0 0 1 90 50" />
-        <circle cx="90" cy="50" r="3" fill="rgba(13,141,75,0.06)" />
-      </svg>
-      
-      <!-- Cruzeta que entra pela esquerda -->
-      <svg class="abs" style="bottom: 20%; left: 5%; transform: translateX({getTxLeft(t, 0.2)}px) rotate({getRotate(t, 0.2, -1.5)}deg); opacity: {getOp(t, 0.15)};" width="200" height="200" viewBox="0 0 100 100" fill="none" stroke="rgba(13,141,75,0.08)" stroke-width="1.5">
-        <line x1="50" y1="20" x2="50" y2="80" />
-        <line x1="20" y1="50" x2="80" y2="50" />
-      </svg>
-      
-            <!-- ELEMENTOS DE MOLDURA (Frame) -->
-      <div class="abs top-left" style="top: 4vh; left: 4vw; opacity: {getOp(t, 0.05)}; transform: translateY({Math.abs(t)*-20}px);">
-        <p style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(0,0,0,0.5);">02 / Conceitos Fundamentais</p>
-      </div>
-      <div class="abs top-right" style="top: 4vh; right: 4vw; opacity: {getOp(t, 0.05)}; transform: translateY({Math.abs(t)*-20}px); text-align: right;">
-        <p style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(0,0,0,0.5);">Telefarmácia no Brasil</p>
-      </div>
-      <div class="abs bottom-left" style="bottom: 4vh; left: 4vw; opacity: {getOp(t, 0.1)}; transform: translateY({Math.abs(t)*20}px);">
-        <p style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(0,0,0,0.5);">+ Resoluções CFF</p>
-      </div>
-      <div class="abs bottom-right" style="bottom: 4vh; right: 4vw; opacity: {getOp(t, 0.1)}; transform: translateY({Math.abs(t)*20}px); text-align: right;">
-        <p style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(0,0,0,0.5);">Legislação</p>
-      </div>
-      
-      <!-- TÍTULO GIGANTE 3D -->
-      <div class="abs w-100" style="top: 10.5vh; left: 50%; transform: translate(-50%, {t * -50}px) scale({getScale(t, 0)}); text-align: center; padding: 0 4vw;">
-        <h2 style="font-size: clamp(1.6rem, 2.8vw, 2.6rem); font-weight: 400; line-height: 1.15; color: #0d8d4b; letter-spacing: -0.02em; opacity: {getOp(t, 0)}; filter: blur({getBlur(t, 0)}px);">
-          O que Define a <br>
-          <strong style="font-weight: 800;">Telefarmácia no Brasil?</strong>
-        </h2>
-        <p style="margin-top: 0.8rem; font-size: clamp(0.75rem, 0.9vw, 0.95rem); font-weight: 500; color: rgba(0,0,0,0.7); opacity: {getOp(t, 0.1)}; filter: blur({getBlur(t, 0.1)}px); letter-spacing: 0.05em; text-transform: uppercase;">
-          Exercício Clínico <span style="opacity: 0.4; margin: 0 0.8em; font-weight: 300;">|</span> Mero Comércio
-        </p>
-      </div>
-
-      <!-- LINHA DIVISÓRIA CENTRAL ANIMADA -->
-      <div class="abs center" style="width: 1px; height: 42vh; background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.15), rgba(0,0,0,0)); top: 67%; transform: translate(-50%, -50%) scaleY({getScale(t, 0.15)}); opacity: {getOp(t, 0.15)};"></div>
-
-      <!-- COLUNA ESQUERDA: EXERCÍCIO CLÍNICO (Com Animação Flat de Videochamada) -->
-      <div class="abs slide2-col col-left" style="bottom: 7vh; left: 10vw; width: min(34vw, 420px); transform: translateX({getTxLeft(t, 0.2)}px) translateY({Math.abs(t) * 30}px);">
-        <div class="slide2-card-content" style="opacity: {getOp(t, 0.2)}; filter: blur({getBlur(t, 0.2)}px);">
-          
-          <!-- Animação Flat Videochamada Interativa -->
-          <div 
-            class="interactive-anim-box anim-call-box"
-            class:is-active={callStarted}
-            onmouseenter={() => callStarted = true}
-            onfocus={() => callStarted = true}
-            onclick={() => callStarted = true}
-            onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (callStarted = true)}
-            role="button"
-            tabindex="0"
-            aria-label="Animação interativa de teleconsulta por vídeo"
-          >
-            <!-- Cabeçalho Flat Minimalista (sem botões de janela macOS/iOS) -->
-            <div class="flat-card-header flat-header-green">
-              <span class="flat-badge-title">TELECONSULTA CLÍNICA</span>
-              <span class="flat-status-chip">AO VIVO</span>
+          {#if slide.points}
+            <div class={`point-grid ${slide.points.length === 2 ? 'two' : ''}`}>
+              {#each slide.points as point, pointIndex}
+                <article class={`point ${slide.accent === 'red' ? 'point-alert' : ''}`}>
+                  <span class="point-number">0{pointIndex + 1}</span>
+                  <div>
+                    <h3>{point[0]}</h3>
+                    <p>{point[1]}</p>
+                  </div>
+                </article>
+              {/each}
             </div>
-
-            <!-- Palco SVG da Videochamada -->
-            <div class="anim-viewport">
-              <svg class="flat-svg" viewBox="0 0 340 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-                
-                <!-- Grade e cruzetas de fundo médica -->
-                <g opacity="0.6" stroke="rgba(13,141,75,0.15)" stroke-width="1.5">
-                  <path d="M40 35 v20 M30 45 h20" />
-                  <path d="M300 135 v20 M290 145 h20" />
-                  <circle cx="170" cy="85" r="70" stroke-dasharray="4 6" />
-                </g>
-
-                <!-- Avatar Farmacêutico Clínico -->
-                <g class="pharmacist-actor">
-                  <!-- Pulso/Aura ao falar -->
-                  <circle class="voice-aura" cx="170" cy="80" r="50" fill="rgba(74, 222, 128, 0.12)" />
-                  
-                  <!-- Jaleco Branco e Gola Verde -->
-                  <path d="M115 180 C115 140 136 122 170 122 C204 122 225 140 225 180 Z" fill="#ffffff" />
-                  <path d="M156 122 L170 152 L184 122 Z" fill="#0d8d4b" />
-                  
-                  <!-- Crachá / Estetoscópio -->
-                  <rect x="188" y="140" width="16" height="22" rx="3" fill="#0d8d4b" />
-                  <rect x="191" y="144" width="10" height="3" rx="1.5" fill="#ffffff" />
-                  <rect x="191" y="150" width="10" height="2" rx="1" fill="#ffffff" />
-                  <!-- Cruz de Farmácia no peito -->
-                  <path d="M148 144 v10 M143 149 h10" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" />
-
-                  <!-- Cabeça & Cabelo -->
-                  <circle cx="170" cy="82" r="28" fill="#fed7aa" />
-                  <!-- Cabelo moderno e limpo -->
-                  <path d="M142 80 C142 54 154 50 170 50 C186 50 198 54 198 80 C198 68 188 60 170 60 C152 60 142 68 142 80 Z" fill="#1e293b" />
-                  <!-- Óculos de grau profissionais -->
-                  <rect x="152" y="76" width="14" height="10" rx="3" fill="none" stroke="#1e293b" stroke-width="1.8" />
-                  <rect x="174" y="76" width="14" height="10" rx="3" fill="none" stroke="#1e293b" stroke-width="1.8" />
-                  <line x1="166" y1="81" x2="174" y2="81" stroke="#1e293b" stroke-width="1.8" />
-                  <!-- Expressão / Olhos e Sorriso humanizado -->
-                  <circle cx="159" cy="81" r="1.5" fill="#1e293b" />
-                  <circle cx="181" cy="81" r="1.5" fill="#1e293b" />
-                  <path d="M164 96 Q170 101 176 96" stroke="#1e293b" stroke-width="2" stroke-linecap="round" fill="none" />
-                </g>
-
-                <!-- Equalizador de Áudio (Ondas de voz na consulta) -->
-                <g class="sound-equalizer" transform="translate(24, 82)">
-                  <rect class="bar b-1" x="0" y="0" width="4" height="16" rx="2" fill="#4ade80" />
-                  <rect class="bar b-2" x="7" y="-8" width="4" height="28" rx="2" fill="#4ade80" />
-                  <rect class="bar b-3" x="14" y="-14" width="4" height="38" rx="2" fill="#4ade80" />
-                  <rect class="bar b-4" x="21" y="-5" width="4" height="24" rx="2" fill="#4ade80" />
-                  <rect class="bar b-5" x="28" y="2" width="4" height="12" rx="2" fill="#4ade80" />
-                  <text x="0" y="38" fill="rgba(0,0,0,0.6)" font-size="8" font-weight="700" letter-spacing="0.5">VOZ ATIVA</text>
-                </g>
-
-                <!-- Janela PiP do Paciente no canto inferior direito -->
-                <g class="pip-patient" transform="translate(242, 98)">
-                  <rect width="84" height="66" rx="8" fill="#14532d" stroke="rgba(0,0,0,0.1)" stroke-width="1.5" />
-                  <!-- Paciente Avatar -->
-                  <circle cx="42" cy="30" r="14" fill="#fcd34d" />
-                  <path d="M20 66 C20 48 30 42 42 42 C54 42 64 48 64 66 Z" fill="#3b82f6" />
-                  <!-- Status do microfone do paciente -->
-                  <circle class="pip-mic-dot" cx="72" cy="14" r="3.5" fill="#22c55e" />
-                  <text x="10" y="60" fill="rgba(255,255,255,0.85)" font-size="7.5" font-weight="700">PACIENTE</text>
-                </g>
-
-                <!-- Barra de Ferramentas da Chamada (Pill Flutuante) -->
-                <g class="call-actions-bar" transform="translate(100, 144)">
-                  <rect width="140" height="28" rx="14" fill="#ffffff" stroke="rgba(0,0,0,0.08)" stroke-width="1.5" />
-                  <!-- Botão Microfone Ativo -->
-                  <circle cx="22" cy="14" r="9" fill="#22c55e" />
-                  <path d="M20 11 h4 v5 h-4 Z M18 14 a4 4 0 0 0 8 0 M22 19 v2" stroke="#ffffff" stroke-width="1.3" stroke-linecap="round" fill="none" />
-                  <!-- Botão Câmera Ativa -->
-                  <circle cx="52" cy="14" r="9" fill="#22c55e" />
-                  <rect x="47" y="11" width="7" height="6" rx="1" fill="#ffffff" />
-                  <polygon points="55,12 58,10 58,18 55,16" fill="#ffffff" />
-                  <!-- Botão Prontuário Clínico -->
-                  <circle cx="82" cy="14" r="9" fill="#0284c7" />
-                  <path d="M78 11 h8 v6 h-5 l-3 2 Z" fill="#ffffff" />
-                  <!-- Botão Encerrar (Vermelho) -->
-                  <circle cx="114" cy="14" r="9" fill="#ef4444" />
-                  <path d="M109 16 c2 -3 8 -3 10 0" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none" />
-                </g>
-              </svg>
-
-              <!-- Dica de hover no primeiro frame -->
-              {#if !callStarted}
-                <div class="hover-start-tag">
-                  <span class="play-arrow">▶</span> Passe o mouse para animar
-                </div>
+          {:else if slide.laws}
+            <div class="law-grid">
+              {#each slide.laws as law}
+                <article class="law-item">
+                  <span class="law-mark">§</span>
+                  <div><h3>{law[0]}</h3><p>{law[1]}</p></div>
+                </article>
+              {/each}
+            </div>
+            <aside class="warning-strip"><strong>Limite essencial</strong><span>{slide.warning}</span></aside>
+          {:else if slide.steps}
+            <div class="journey">
+              {#each slide.steps as step, stepIndex}
+                <button class:journey-active={stepIndex <= 2} class="journey-step" type="button" onclick={() => goTo(stepIndex + 5)}>
+                  <span class="journey-number">{step[0]}</span>
+                  <span><strong>{step[1]}</strong><small>{step[2]}</small></span>
+                </button>
+              {/each}
+            </div>
+          {:else if slide.compare}
+            <div class="compare-header">
+              <span>Escolha o enquadramento para comparar</span>
+              <div class="compare-tabs">
+                <button class:chosen={compareMode === 'sup'} onclick={() => compareMode = 'sup'}>Suplemento</button>
+                <button class:chosen={compareMode === 'med'} onclick={() => compareMode = 'med'}>Medicamento</button>
+              </div>
+            </div>
+            <div class="compare-grid">
+              <article class:dimmed={compareMode === 'med'} class="compare-item supplement"><span class="compare-label">SUPLEMENTOS</span><h3>Orientação responsável</h3><p>Informar composição, uso adequado e limites da comunicação ao paciente.</p></article>
+              <article class:dimmed={compareMode === 'sup'} class="compare-item medicine"><span class="compare-label">MEDICAMENTOS</span><h3>Prescrição farmacêutica</h3><p>Exige avaliação clínica, indicação, registro e respeito às normas profissionais.</p></article>
+            </div>
+          {:else if slide.closing}
+            <div class="closing-grid">
+              <div><span>01</span><strong>Ampliação do acesso</strong><p>Mais proximidade entre serviço e comunidade.</p></div>
+              <div><span>02</span><strong>Sinergia acadêmica</strong><p>Aprendizagem aplicada à realidade local.</p></div>
+              <div><span>03</span><strong>Cuidado humano</strong><p>Tecnologia com escuta e responsabilidade.</p></div>
+            </div>
+          {/if}
+            </div>
+            <aside class={`slide-art art-${slide.visual || (index % 3)}`} aria-hidden="true">
+              {#if slide.visual === 'shield'}
+                <div class="art-orbit orbit-a"></div><div class="art-orbit orbit-b"></div>
+                <div class="art-shield"><span>LGPD</span><i>✓</i></div>
+                <div class="art-caption">DADOS<br><strong>PROTEGIDOS</strong></div>
+              {:else if slide.visual === 'call'}
+                <div class="art-window"><div class="window-bar"><i></i><i></i><i></i><span>teleconsulta</span></div><div class="window-body"><div class="art-avatar"></div><div class="art-lines"><b></b><b></b><b></b></div></div><div class="window-footer"><span>● AO VIVO</span><span>12:45</span></div></div>
+                <div class="art-pulse"></div>
+              {:else if slide.warning}
+                <div class="art-law">§<span>REGRA<br><strong>ANTES DA<br>INOVAÇÃO</strong></span></div>
+              {:else if slide.compare}
+                <div class="art-scale"><div class="scale-pan pan-left">ORIENTAR</div><div class="scale-pan pan-right">PRESCREVER</div><div class="scale-beam"></div><div class="scale-post"></div></div>
+              {:else if slide.steps}
+                <div class="art-route"><span>ACOLHER</span><i></i><span>AVALIAR</span><i></i><span>CUIDAR</span></div>
+              {:else if slide.closing}
+                <div class="art-sun"><div></div><span>CIÊNCIA<br><strong>+ CUIDADO</strong></span></div>
+              {:else}
+                <div class="art-number">{String(index + 2).padStart(2, '0')}</div><div class="art-line line-one"></div><div class="art-line line-two"></div><div class="art-dot"></div>
               {/if}
-            </div>
+            </aside>
           </div>
-
-          <!-- 01 Gigante de Fundo (Ludic text) -->
-          <span class="slide2-bg-num" style="right: 0; color: rgba(13,141,75,0.04);">01</span>
-          
-          <h3 class="slide2-section-title" style="color: #0d8d4b;">
-            Exercício Clínico
-            <span class="badge-icon badge-check">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#0d8d4b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-            </span>
-          </h3>
-          <p class="slide2-desc" style="color: rgba(0,0,0,0.65);">
-            A telefarmácia é um ato de saúde. O foco é a avaliação clínica, o acompanhamento farmacoterapêutico e a melhoria da qualidade de vida do paciente, utilizando TICs.
-          </p>
-        </div>
-      </div>
-
-      <!-- COLUNA DIREITA: MERO COMÉRCIO (Com Animação Flat de Carrinho de Compras) -->
-      <div class="abs slide2-col col-right" style="bottom: 7vh; right: 10vw; width: min(34vw, 420px); transform: translateX({getTxRight(t, 0.2)}px) translateY({Math.abs(t) * 30}px);">
-        <div class="slide2-card-content" style="opacity: {getOp(t, 0.2)}; filter: blur({getBlur(t, 0.2)}px);">
-          
-          <!-- Animação Flat E-Commerce Interativa -->
-          <div 
-            class="interactive-anim-box anim-shop-box"
-            class:is-active={shopStarted}
-            onmouseenter={() => shopStarted = true}
-            onfocus={() => shopStarted = true}
-            onclick={() => shopStarted = true}
-            onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (shopStarted = true)}
-            role="button"
-            tabindex="0"
-            aria-label="Animação interativa de e-commerce e carrinho de compras"
-          >
-            <!-- Cabeçalho Flat Minimalista (sem botões de janela macOS/iOS) -->
-            <div class="flat-card-header flat-header-red">
-              <span class="flat-badge-title">VENDA ONLINE DE BALCÃO</span>
-              <span class="flat-status-chip chip-red">SEM AVALIAÇÃO</span>
-            </div>
-
-            <!-- Palco SVG do E-Commerce com Mouse Indo e Clicando -->
-            <div class="anim-viewport">
-              <svg class="flat-svg" viewBox="0 0 340 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-
-                <!-- 1. PAINEL PRODUTO À ESQUERDA -->
-                <g class="store-product-card" transform="translate(18, 20)">
-                  <rect width="90" height="126" rx="8" fill="#ffffff" stroke="rgba(0,0,0,0.06)" stroke-width="1.2" />
-                  
-                  <!-- Caixa de Medicamento Flat -->
-                  <rect x="18" y="12" width="54" height="38" rx="4" fill="#f87171" />
-                  <rect x="18" y="25" width="54" height="8" fill="#ef4444" />
-                  <circle cx="33" cy="18" r="2.5" fill="#ffffff" />
-                  <circle cx="45" cy="18" r="2.5" fill="#ffffff" />
-                  <circle cx="57" cy="18" r="2.5" fill="#ffffff" />
-                  
-                  <!-- Nome e Preço -->
-                  <text x="45" y="62" text-anchor="middle" fill="#333333" font-size="8" font-weight="700">MEDICAMENTO</text>
-                  <text x="45" y="76" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="800">R$ 29,90</text>
-                  
-                  <!-- Tag de dispensa direta -->
-                  <rect x="14" y="84" width="62" height="11" rx="3" fill="#f1f5f9" />
-                  <text x="45" y="92" text-anchor="middle" fill="#64748b" font-size="5.8" font-weight="600">DISPENSAÇÃO DIRETA</text>
-
-                  <!-- Botão "+ COMPRAR" (Onde o mouse clica!) -->
-                  <g class="btn-buy-group" transform="translate(8, 100)">
-                    <rect class="btn-buy-bg" width="74" height="19" rx="4" fill="#ef4444" />
-                    <text class="btn-buy-txt" x="37" y="12.5" text-anchor="middle" fill="#ffffff" font-size="7.5" font-weight="800">+ COMPRAR</text>
-                    <!-- Ondinha de clique (Ripple) do clique 1 -->
-                    <circle class="click-ripple click-ripple-1" cx="37" cy="9.5" r="0" fill="none" stroke="#ffffff" stroke-width="2" />
-                  </g>
-                </g>
-
-                <!-- Elemento Voador "+1" para o Carrinho -->
-                <g class="flying-badge">
-                  <rect width="22" height="14" rx="7" fill="#22c55e" />
-                  <text x="11" y="10" text-anchor="middle" fill="#ffffff" font-size="8" font-weight="800">+1</text>
-                </g>
-
-                <!-- 2. ÍCONE CENTRAL DE CARRINHO (Rodas estáticas e limpas, sem giro maluco!) -->
-                <g class="center-cart-target" transform="translate(142, 60)">
-                  <!-- Linhas conectoras pontilhadas -->
-                  <line x1="-20" y1="20" x2="-2" y2="20" stroke="rgba(0,0,0,0.15)" stroke-width="1.5" stroke-dasharray="3 3" />
-                  <line x1="42" y1="20" x2="60" y2="20" stroke="rgba(0,0,0,0.15)" stroke-width="1.5" stroke-dasharray="3 3" />
-                  
-                  <!-- Estrutura do carrinho com bounce suave ao receber o item -->
-                  <g class="cart-bounce-wrapper">
-                    <!-- Estrutura do carrinho -->
-                    <path d="M2 8 L8 8 L14 26 L34 26 L38 12 L11 12" stroke="#475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
-                    <!-- Rodas estáticas e limpas (sem rotação maluca!) -->
-                    <circle cx="16" cy="31" r="3.2" fill="#f87171" stroke="#ffffff" stroke-width="1.2" />
-                    <circle cx="31" cy="31" r="3.2" fill="#f87171" stroke="#ffffff" stroke-width="1.2" />
-                    
-                    <!-- Contador do Carrinho -->
-                    <circle class="cart-counter-bubble" cx="34" cy="6" r="6.5" fill="#ef4444" />
-                    <text class="cart-counter-num" x="34" y="9" text-anchor="middle" fill="#ffffff" font-size="7" font-weight="800">1</text>
-                  </g>
-                </g>
-
-                <!-- 3. PAINEL DE PAGAMENTO À DIREITA -->
-                <g class="store-checkout-card" transform="translate(232, 20)">
-                  <rect width="90" height="126" rx="8" fill="#ffffff" stroke="rgba(0,0,0,0.06)" stroke-width="1.2" />
-                  
-                  <!-- Resumo da Compra Rápida -->
-                  <text x="45" y="20" text-anchor="middle" fill="#64748b" font-size="7" font-weight="700" letter-spacing="0.5">CHECKOUT</text>
-                  <text x="45" y="38" text-anchor="middle" fill="#4ade80" font-size="11" font-weight="800">R$ 29,90</text>
-                  <text x="45" y="52" text-anchor="middle" fill="#ef4444" font-size="6.5" font-weight="700">SEM PRESCRIÇÃO</text>
-                  
-                  <!-- Alerta Flat de Mero Balcão -->
-                  <rect x="8" y="60" width="74" height="24" rx="4" fill="#fee2e2" />
-                  <text x="45" y="71" text-anchor="middle" fill="#ef4444" font-size="6" font-weight="600">SEM ACOMPANHAMENTO</text>
-                  <text x="45" y="80" text-anchor="middle" fill="#b91c1c" font-size="6.2" font-weight="700">DO FARMACÊUTICO</text>
-
-                  <!-- Botão "PAGAR" (Onde o mouse clica!) -->
-                  <g class="btn-pay-group" transform="translate(8, 97)">
-                    <rect class="btn-pay-bg" width="74" height="22" rx="4" fill="#ef4444" />
-                    <text class="btn-pay-txt" x="37" y="14.5" text-anchor="middle" fill="#ffffff" font-size="8" font-weight="800">PAGAR</text>
-                    <!-- Ondinha de clique (Ripple) do clique 2 -->
-                    <circle class="click-ripple click-ripple-2" cx="37" cy="11" r="0" fill="none" stroke="#ffffff" stroke-width="2" />
-                  </g>
-
-                  <!-- Carimbo de Compra Concluída (Surge após o clique do mouse) -->
-                  <g class="stamp-completed" transform="translate(45, 72)">
-                    <rect x="-35" y="-12" width="70" height="24" rx="4" fill="#22c55e" stroke="#ffffff" stroke-width="1.5" />
-                    <text x="0" y="3.5" text-anchor="middle" fill="#ffffff" font-size="7.5" font-weight="800" letter-spacing="0.5">✓ PAGO!</text>
-                  </g>
-                </g>
-
-                <!-- 4. O MOUSE INDO E CLICANDO (Cursor SVG animado) -->
-                <g class="mouse-pointer-actor">
-                  <!-- Seta universal clássica de mouse em vetor limpo -->
-                  <path 
-                    d="M 0 0 L 0 16 L 4.5 12 L 7.5 18.5 L 10.5 17 L 7.5 10.5 L 13 10.5 Z" 
-                    fill="#ffffff" 
-                    stroke="#0f172a" 
-                    stroke-width="1.2" 
-                    stroke-linejoin="round" 
-                  />
-                  <!-- Ponto de foco no topo do cursor -->
-                  <circle cx="1" cy="1" r="1.5" fill="#ef4444" opacity="0.6" />
-                </g>
-              </svg>
-
-              <!-- Dica de hover no primeiro frame -->
-              {#if !shopStarted}
-                <div class="hover-start-tag">
-                  <span class="play-arrow">▶</span> Passe o mouse para animar
-                </div>
-              {/if}
-            </div>
-          </div>
-
-          <!-- 02 Gigante de Fundo (Ludic text) -->
-          <span class="slide2-bg-num" style="left: 0; color: rgba(239,68,68,0.04);">02</span>
-          
-          <h3 class="slide2-section-title" style="color: #ef4444;">
-            <span class="badge-icon badge-cross">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-            </span>
-            Mero Comércio
-          </h3>
-          <p class="slide2-desc" style="color: rgba(0,0,0,0.65);">
-            Não se confunde com a simples venda online de medicamentos ou dispensação sem contato clínico prévio. A venda de balcão via internet NÃO é telefarmácia clínica.
-          </p>
-        </div>
-      </div>
-    </div>
-  </section>
-  {/if}
-
-    <!-- SLIDE 3 -->
-  {#if true}
-  {@const t = getT(2)}
-  <section id="slide-3" class="slide alt" class:vis={Math.abs(t) < 0.6} style="pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
-    <div class="abs-layout">
-      <!-- Decos -->
-      <svg class="deco deco-3" style="opacity: {getOp(t, 0.45)}; transform: translate({getTxRight(t, 0.45)}px, {getTy(t, 0.45)}px) rotate({getRotate(t, 0.45, 1)}deg);" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
-      
-      <div class="abs top-center w-60" style="transform: translateY({getTy(t, 0)}px) translateX(-50%); text-align: center;">
-        <header class="slide-head" style="opacity: {getOp(t, 0)}; filter: blur({getBlur(t, 0)}px);">
-          <span class="eyebrow">Slide 03 · Atendimento remoto</span>
-          <h2 style="justify-content: center;">Modalidades da Telefarmácia</h2>
-          <p>Nota Técnica CFF 2022 &amp; Resolução 727/2022</p>
-        </header>
-      </div>
-
-      <div class="abs mid-left w-45" style="transform: translateX({getTxLeft(t, 0.1)}px);">
-        <article class="card glass hover-lift" style="opacity: {getOp(t, 0.1)}; filter: blur({getBlur(t, 0.1)}px);">
-          <span class="num">01</span>
-          <h3>Teleconsulta Farmacêutica</h3>
-          <p>Atendimento direto e em tempo real (vídeo/áudio) entre o farmacêutico e o paciente para avaliação clínica e orientação.</p>
-        </article>
-      </div>
-      
-      <div class="abs mid-right w-45" style="transform: translateX({getTxRight(t, 0.15)}px);">
-        <article class="card glass hover-lift" style="opacity: {getOp(t, 0.15)}; filter: blur({getBlur(t, 0.15)}px);">
-          <span class="num">02</span>
-          <h3>Teleinterconsulta</h3>
-          <p>Troca de informações e opiniões entre farmacêuticos ou entre o farmacêutico e outros profissionais da saúde.</p>
-        </article>
-      </div>
-
-      <div class="abs bottom-left w-45" style="transform: translateY({getTy(t, 0.2)}px);">
-        <article class="card glass hover-lift" style="opacity: {getOp(t, 0.2)}; filter: blur({getBlur(t, 0.2)}px);">
-          <span class="num">03</span>
-          <h3>Telemonitoramento</h3>
-          <p>Acompanhamento à distância de parâmetros de saúde e adesão ao tratamento (ex: glicemia, pressão arterial).</p>
-        </article>
-      </div>
-
-      <div class="abs bottom-right w-45" style="transform: translateY({getTy(t, 0.25)}px);">
-        <article class="card glass hover-lift" style="opacity: {getOp(t, 0.25)}; filter: blur({getBlur(t, 0.25)}px);">
-          <span class="num">04</span>
-          <h3>Teleorientação</h3>
-          <p>Aconselhamento geral e triagem à distância, encaminhando o paciente a serviços de saúde presenciais quando necessário.</p>
-        </article>
-      </div>
-    </div>
-  </section>
-  {/if}
-
-
-    <!-- SLIDE 4 -->
-  {#if true}
-  {@const t = getT(3)}
-  <section id="slide-4" class="slide" class:vis={Math.abs(t) < 0.6} style="pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
-    <div class="abs-layout">
-      <!-- Decos -->
-      <svg class="deco deco-2" style="opacity: {getOp(t, 0.35)}; transform: translate({getTxLeft(t, 0.35)}px, {getTy(t, 0.35)}px) rotate({getRotate(t, 0.35, -1)}deg);" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3"><circle cx="12" cy="12" r="9"/></svg>
-      
-      <div class="abs top-left w-50" style="transform: translateY({getTy(t, 0)}px);">
-        <header class="slide-head" style="opacity: {getOp(t, 0)}; filter: blur({getBlur(t, 0)}px);">
-          <span class="eyebrow">Slide 04 · Arcabouço Legal</span>
-          <h2>Legislação e Limites da Atuação Digital</h2>
-        </header>
-      </div>
-
-      <div class="abs mid-left w-45" style="transform: translateX({getTxLeft(t, 0.1)}px);">
-        <div class="card" style="opacity: {getOp(t, 0.1)}; filter: blur({getBlur(t, 0.1)}px);">
-          <div class="norm">
-            <span>Base normativa</span>
-            <strong>Lei Federal nº 14.510/2022</strong>
-          </div>
-          <p>Disciplina a Telessaúde no Brasil em âmbito nacional e no SUS.</p>
-        </div>
-      </div>
-
-      <div class="abs top-right w-45" style="transform: translateX({getTxRight(t, 0.15)}px);">
-        <div class="card" style="opacity: {getOp(t, 0.15)}; filter: blur({getBlur(t, 0.15)}px);">
-          <div class="norm">
-            <span>Base normativa</span>
-            <strong>Resolução CFF nº 10/2024</strong>
-          </div>
-          <p>Regulamenta o uso de novas tecnologias, Saúde Digital e Inteligência Artificial na prática farmacêutica.</p>
-        </div>
-      </div>
-
-      <div class="abs bottom-center w-80" style="transform: translateY({getTy(t, 0.25)}px) translateX(-50%);">
-        <div class="alert-panel glow" style="opacity: {getOp(t, 0.25)}; filter: blur({getBlur(t, 0.25)}px);">
-          <div class="alert-top">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
-            RESOLUÇÃO CFF Nº 727/2022 · ART. 3º
-          </div>
-          <p>É VEDADO (PROIBIDO) assumir a Responsabilidade Técnica (RT) de farmácias de forma remota/não presencial.</p>
-          <small>A presença física do RT é obrigatória.</small>
-        </div>
-      </div>
-    </div>
-  </section>
-  {/if}
-
-    <!-- SLIDE 5 -->
-  {#if true}
-  {@const t = getT(4)}
-  <section id="slide-5" class="slide alt" class:vis={Math.abs(t) < 0.6} style="pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
-    <div class="abs-layout">
-      <!-- Decos -->
-      <svg class="deco deco-3" style="opacity: {getOp(t, 0.45)}; transform: translate({getTxRight(t, 0.45)}px, {getTy(t, 0.45)}px) rotate({getRotate(t, 0.45, 1)}deg);" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
-      
-      <div class="abs top-right w-50" style="transform: translateY({getTy(t, 0)}px);">
-        <header class="slide-head" style="opacity: {getOp(t, 0)}; filter: blur({getBlur(t, 0)}px);">
-          <span class="eyebrow">Slide 05 · Segurança cibernética</span>
-          <h2>Privacidade e Registro Clínico Obrigatório</h2>
-        </header>
-      </div>
-
-      <div class="abs mid-left w-40" style="transform: translateX({getTxLeft(t, 0.1)}px);">
-        <div class="vault" style="opacity: {getOp(t, 0.1)}; filter: blur({getBlur(t, 0.1)}px);" aria-hidden="true">
-          <div class="vault-body">
-            <div class="vault-ring"></div>
-            <svg class="doc" viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6M9 13h6M9 17h4" /></svg>
-            <svg class="lock" viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
-            <span class="seal">LGPD</span>
-          </div>
-          <div class="vault-base">COFRE DIGITAL</div>
-        </div>
-      </div>
-
-      <div class="abs mid-right w-45" style="transform: translateX({getTxRight(t, 0.2)}px);">
-        <div class="sec-list" style="opacity: {getOp(t, 0.2)}; filter: blur({getBlur(t, 0.2)}px);">
-          <article class="card glass sec-item" style="transform: translateY({getTy(t, 0.25)}px);" >
-            <div class="sec-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" /></svg></div>
-            <div>
-              <h3>LGPD (Lei nº 13.709/2018)</h3>
-              <p>Dados de saúde do paciente são classificados legalmente como <strong>dados pessoais sensíveis</strong>.</p>
-            </div>
-          </article>
-          <article class="card glass sec-item" style="transform: translateY({getTy(t, 0.35)}px);" >
-            <div class="sec-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg></div>
-            <div>
-              <h3>Prontuário Eletrônico</h3>
-              <p>Obrigatoriedade de registrar todos os atendimentos prestados em prontuário seguro, garantindo sigilo.</p>
-            </div>
-          </article>
-          <article class="card glass sec-item" style="transform: translateY({getTy(t, 0.45)}px);" >
-            <div class="sec-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6" /><path d="m8.5 14-1.5 8 5-3 5 3-1.5-8" /></svg></div>
-            <div>
-              <h3>Assinatura Digital</h3>
-              <p>Todas as prescrições geradas precisam de certificação ICP-Brasil.</p>
-            </div>
-          </article>
-        </div>
-      </div>
-    </div>
-  </section>
-  {/if}
-
-    <!-- SLIDE 6 -->
-  {#if true}
-  {@const t = getT(5)}
-  <section id="slide-6" class="slide" class:vis={Math.abs(t) < 0.6} style="pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
-    <div class="abs-layout">
-      <!-- Decos -->
-      <svg class="deco deco-2" style="opacity: {getOp(t, 0.35)}; transform: translate({getTxLeft(t, 0.35)}px, {getTy(t, 0.35)}px) rotate({getRotate(t, 0.35, -1)}deg);" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3"><circle cx="12" cy="12" r="9"/></svg>
-      
-      <div class="abs top-center w-80" style="transform: translateY({getTy(t, 0)}px) translateX(-50%); text-align: center;">
-        <header class="slide-head" style="opacity: {getOp(t, 0)}; filter: blur({getBlur(t, 0)}px);">
-          <span class="eyebrow">Slide 06 · O protótipo</span>
-          <h2 style="justify-content: center;">Fluxo de Atendimento no Nosso Protótipo Digital</h2>
-          <p>A jornada do paciente no nosso site</p>
-        </header>
-      </div>
-
-      <div class="abs center w-100" style="padding: 0 4vw;">
-        <ol class="stepper" style="opacity: {getOp(t, 0.1)}; filter: blur({getBlur(t, 0.1)}px); transform: translateY({getTy(t, 0.1)}px);" >
-          <div class="track"><div class="track-fill" style="--f:{Math.min(1, stepProgress * 1.25)}"></div></div>
-          {#each steps as s, i}
-            <li class="step" class:lit={stepProgress * 1.25 >= i / 3 - 0.001}>
-              <span class="step-dot">{i + 1}</span>
-              <div class="step-card card glass">
-                <h3>{s.title}</h3>
-                <p>{s.text}</p>
-              </div>
-            </li>
-          {/each}
-        </ol>
-      </div>
-    </div>
-  </section>
-  {/if}
-
-    <!-- SLIDE 7 -->
-  {#if true}
-  {@const t = getT(6)}
-  <section id="slide-7" class="slide alt" class:vis={Math.abs(t) < 0.6} style="pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
-    <div class="abs-layout">
-      <!-- Decos -->
-      <svg class="deco deco-1" style="opacity: {getOp(t, 0.25)}; transform: translate({getTxRight(t, 0.25)}px, {getTy(t, 0.25)}px) rotate({getRotate(t, 0.25, 1)}deg);" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round"><path d="M12 4v16m-8-8h16"/></svg>
-      
-      <div class="abs top-left w-50" style="transform: translateY({getTy(t, 0)}px);">
-        <header class="slide-head" style="opacity: {getOp(t, 0)}; filter: blur({getBlur(t, 0)}px);">
-          <span class="eyebrow">Slide 07 · Prática clínica I</span>
-          <h2>Cuidado Clínico na Teleconsulta</h2>
-          <p>Foco em Pacientes Hipertensos, Diabéticos e Polimedicados</p>
-        </header>
-      </div>
-
-      <div class="abs mid-left w-45" style="transform: translateX({getTxLeft(t, 0.15)}px);">
-        <div class="video-mock" style="opacity: {getOp(t, 0.15)}; filter: blur({getBlur(t, 0.15)}px);" aria-hidden="true">
-          <div class="vm-bar">
-            <span class="rec"><i></i> AO VIVO</span>
-            <span>Teleconsulta Farmacêutica</span>
-            <span>00:12:45</span>
-          </div>
-          <div class="vm-stage">
-            <div class="vm-patient">
-              <div class="avatar"></div>
-              <div class="pills"><span></span><span></span><span></span></div>
-              <em>Paciente</em>
-            </div>
-            <div class="vm-pharma">
-              <div class="avatar small"></div>
-              <em>Farmacêutico</em>
-            </div>
-          </div>
-          <div class="vm-controls"><span></span><span></span><span class="end"></span></div>
-        </div>
-      </div>
-
-      <div class="abs mid-right w-40" style="transform: translateX({getTxRight(t, 0.25)}px);">
-        <ul class="checklist">
-          {#each checklist as c, i}
-            <li class="" style="opacity: {getOp(t, 0.25)}; filter: blur({getBlur(t, 0.25)}px);" >
-              <button type="button" class="check-item" class:done={checks[i]} onclick={() => (checks[i] = !checks[i])} aria-pressed={checks[i]}>
-                <span class="box"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg></span>
-                <span class="check-text">
-                  <strong>{c.title}</strong>
-                  <small>{c.text}</small>
-                </span>
-              </button>
-            </li>
-          {/each}
-        </ul>
-      </div>
-    </div>
-  </section>
-  {/if}
-
-    <!-- SLIDE 8 -->
-  {#if true}
-  {@const t = getT(7)}
-  <section id="slide-8" class="slide" class:vis={Math.abs(t) < 0.6} style="pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
-    <div class="abs-layout">
-      <!-- Decos -->
-      <svg class="deco deco-3" style="opacity: {getOp(t, 0.45)}; transform: translate({getTxRight(t, 0.45)}px, {getTy(t, 0.45)}px) rotate({getRotate(t, 0.45, 1)}deg);" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
-      
-      <div class="abs top-right w-50" style="transform: translateY({getTy(t, 0)}px);">
-        <header class="slide-head" style="opacity: {getOp(t, 0)}; filter: blur({getBlur(t, 0)}px); text-align: right;">
-          <span class="eyebrow" style="margin-left:auto;">Slide 08 · Prática clínica II</span>
-          <h2 style="justify-content: flex-end;">Diferenciação Regulatória e Prescrição</h2>
-          <p>Suplementos Alimentares vs. Medicamentos</p>
-        </header>
-      </div>
-
-      <div class="abs center w-80" style="transform: translate(-50%, -50%) translateY({getTy(t, 0.1)}px);">
-        <div class="toggle" style="opacity: {getOp(t, 0.1)}; filter: blur({getBlur(t, 0.1)}px);" role="group" aria-label="Alternar comparação">
-          <button type="button" class:on={compareMode === 'side'} onclick={() => (compareMode = 'side')}>Lado a lado</button>
-          <button type="button" class:on={compareMode === 'sup'} onclick={() => (compareMode = 'sup')}>Suplemento</button>
-          <button type="button" class:on={compareMode === 'med'} onclick={() => (compareMode = 'med')}>Medicamento</button>
         </div>
 
-        <div class="compare" data-mode={compareMode}>
-          <article class="card cmp cmp-sup -l" style="opacity: {getOp(t, 0.2)}; filter: blur({getBlur(t, 0.2)}px);" >
-            <span class="chip chip-gold">Anvisa</span>
-            <h3>Suplementos Alimentares</h3>
-            <p>Não são medicamentos; destinam-se a suprir nutrientes em pessoas saudáveis e <strong>não tratam doenças</strong>.</p>
-          </article>
-          <article class="card cmp cmp-med -r" style="opacity: {getOp(t, 0.2)}; filter: blur({getBlur(t, 0.2)}px);" >
-            <span class="chip chip-green">Res. CFF nº 586/2013</span>
-            <h3>Prescrição Farmacêutica</h3>
-            <p>Autonomia restrita à indicação de <strong>Medicamentos Isentos de Prescrição (MIPs)</strong> e fitoterápicos.</p>
-          </article>
+        <div class="slide-footer">
+          <span>Telefarmácia & Serviços Digitais Farmacêuticos</span>
+          <button type="button" onclick={() => goTo(index)}>{index === 0 ? 'Voltar ao início' : 'Anterior'}</button>
         </div>
       </div>
-
-      <div class="abs bottom-right w-50" style="transform: translateX({getTxRight(t, 0.3)}px);">
-        <div class="root-cause card glass" style="opacity: {getOp(t, 0.3)}; filter: blur({getBlur(t, 0.3)}px);" >
-          <div class="icon-bubble sm"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg></div>
-          <p><strong>Análise de Causa Raiz:</strong> queixas como cansaço ou insônia exigem investigação detalhada antes de qualquer indicação direta de suplementos.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-  {/if}
-
-    <!-- SLIDE 9 -->
-  {#if true}
-  {@const t = getT(8)}
-  <section id="slide-9" class="slide danger" class:vis={Math.abs(t) < 0.6} style="pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
-    <div class="abs-layout">
-      <!-- Decos -->
-      <svg class="deco deco-2" style="opacity: {getOp(t, 0.35)}; transform: translate({getTxLeft(t, 0.35)}px, {getTy(t, 0.35)}px) rotate({getRotate(t, 0.35, -1)}deg);" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3"><circle cx="12" cy="12" r="9"/></svg>
-      
-      <div class="abs mid-left w-45" style="transform: translateY({getTy(t, 0)}px);">
-        <header class="slide-head" style="opacity: {getOp(t, 0)}; filter: blur({getBlur(t, 0)}px);">
-          <span class="eyebrow eyebrow-red">Slide 09 · Triagem digital</span>
-          <h2>Limites Clínicos e Sinais de Alarme (Red Flags)</h2>
-          <p>Triagem Digital e Limites do Atendimento</p>
-        </header>
-      </div>
-
-      <div class="abs mid-right w-45" style="transform: scale({getScale(t, 0.15)}) translateY({getTy(t, 0.15)}px);">
-        <div class="alert-panel" style="opacity: {getOp(t, 0.15)}; filter: blur({getBlur(t, 0.15)}px);" >
-          <div class="alert-top">
-            <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4M12 17h.01" /></svg>
-            <strong>ALERTA CRÍTICO · EMERGÊNCIA</strong>
-          </div>
-          <ul class="risk-list" style="grid-template-columns: 1fr;">
-            <li class="" style="opacity: {getOp(t, 0.2)}; filter: blur({getBlur(t, 0.2)}px); transform: translateX({getTxRight(t, 0.2)}px);" >
-              <span class="risk-ico">!</span>
-              <div>
-                <h3>Sintomas de Emergência</h3>
-                <p>Dor no peito, falta de ar súbita, febre exigem <strong>Pronto-Atendimento Presencial Imediato</strong>.</p>
-              </div>
-            </li>
-            <li class="" style="opacity: {getOp(t, 0.3)}; filter: blur({getBlur(t, 0.3)}px); transform: translateX({getTxRight(t, 0.3)}px);" >
-              <span class="risk-ico">!</span>
-              <div>
-                <h3>Impossibilidade do Exame Físico</h3>
-                <p>O canal remoto não substitui a palpação, ausculta ou inspeção presencial.</p>
-              </div>
-            </li>
-            <li class="" style="opacity: {getOp(t, 0.4)}; filter: blur({getBlur(t, 0.4)}px); transform: translateX({getTxRight(t, 0.4)}px);" >
-              <span class="risk-ico">!</span>
-              <div>
-                <h3>Conduta Ética</h3>
-                <p>Se a queixa ultrapassar o escopo remoto, emitir parecer de encaminhamento imediato.</p>
-              </div>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </section>
-  {/if}
-
-    <!-- SLIDE 10 -->
-  {#if true}
-  {@const t = getT(9)}
-  <section id="slide-10" class="slide final" class:vis={Math.abs(t) < 0.6} style="pointer-events: {Math.abs(t) < 0.9 ? 'auto' : 'none'}; z-index: {Math.abs(t) < 1 ? 2 : 1};">
-    <div class="abs-layout">
-      <!-- Decos -->
-      <svg class="deco deco-1" style="opacity: {getOp(t, 0.25)}; transform: translate({getTxRight(t, 0.25)}px, {getTy(t, 0.25)}px) rotate({getRotate(t, 0.25, 1)}deg);" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round"><path d="M12 4v16m-8-8h16"/></svg>
-      <svg class="deco deco-3" style="opacity: {getOp(t, 0.45)}; transform: translate({getTxRight(t, 0.45)}px, {getTy(t, 0.45)}px) rotate({getRotate(t, 0.45, 1)}deg);" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
-      
-      <div class="abs center w-80" style="transform: translate(-50%, -50%) scale({getScale(t, 0)}); text-align: center;">
-        <article class="final-card" style="opacity: {getOp(t, 0)}; filter: blur({getBlur(t, 0)}px);">
-          <span class="eyebrow">Slide 10 · Conclusão e encerramento</span>
-          <h2 style="justify-content: center;">Telefarmácia: Tecnologia a Serviço do Cuidado Humano</h2>
-  
-          <div class="final-grid">
-            <div class="final-block">
-              <h3>Ampliação do Acesso</h3>
-              <p>Inclusão de pacientes com limitações de mobilidade ou moradores de áreas remotas.</p>
-            </div>
-            <div class="final-block">
-              <h3>Sinergia Acadêmica</h3>
-              <p>Integração entre Farmacologia, Legislação Farmacêutica, Tecnologia e Ética Profissional.</p>
-            </div>
-            <div class="final-block">
-              <h3>Equipe de Desenvolvimento</h3>
-              <p>Antonio Erick Conceição da Silva, Yara Lima da Silva, Ezequiel Olanda de Oliveira, Thamyres dos Santos de Souza.</p>
-            </div>
-            <div class="final-block">
-              <h3>Orientadora</h3>
-              <p>Prof.ª Bianca Lira</p>
-              <h3 class="mt">Instituição</h3>
-              <p>Centro Universitário UNIGRANDE (2026)</p>
-            </div>
-          </div>
-  
-          <div class="final-actions" style="justify-content: center; margin-top: 2rem;">
-            <a class="btn btn-gold" href="#agendamento">Testar Protótipo</a>
-            <button type="button" class="btn-ghost" onclick={toTop}>Voltar ao topo</button>
-          </div>
-        </article>
-      </div>
-    </div>
-  </section>
-  {/if}
+    </section>
+  {/each}
 </div>
 
 <style>
-  .slides-wrap {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 10;
-    pointer-events: none;
-    color: var(--color-white);
-  }
-
-  
-  .deco { position: absolute; pointer-events: none; z-index: -1; }
-  .deco-1 { top: -2rem; right: -3rem; }
-  .deco-2 { bottom: 2rem; left: -4rem; }
-  .deco-3 { top: 40%; right: -5rem; }
-
-  /* ===== Slide base ===== */
-  .slide {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: clamp(2.5rem, 5vh, 3.5rem) clamp(1rem, 3vw, 2.5rem);
-    background: transparent;
-    opacity: 1;
-    pointer-events: none;
-    z-index: 1;
-    overflow: hidden;
-    transition: opacity 0.35s ease;
-  }
-  .slide::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(circle at 12% 20%, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 40%),
-      radial-gradient(circle at 88% 85%, rgba(13, 141, 75, 0.12), rgba(13, 141, 75, 0) 45%);
-    pointer-events: none;
-    z-index: 0;
-  }
-  .slide.alt {
-    background: transparent;
-  }
-  .slide-inner {
-    position: relative;
-    width: 100%;
-    max-width: 980px;
-    display: flex;
-    flex-direction: column;
-    gap: clamp(0.9rem, 1.8vh, 1.5rem);
-  }
-
-  .slide-head h2 {
-    font-size: clamp(1.25rem, 2.2vw, 1.8rem);
-    line-height: 1.12;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    padding-bottom: 0.14em;
-    color: var(--color-white);
-  }
-  .slide-head p {
-    margin-top: 0.55rem;
-    color: rgba(255, 255, 255, 0.9);
-    font-size: clamp(0.8rem, 0.9vw, 0.95rem);
-    font-weight: 500;
-  }
-  .eyebrow {
-    display: inline-block;
-    margin-bottom: 0.8rem;
-    padding: 0.3rem 0.85rem;
-    border-radius: 999px;
-    font-size: 0.74rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--color-primary);
-    background: rgba(22, 128, 58, 0.1);
-    border: 1px solid rgba(22, 128, 58, 0.2);
-  }
-  .eyebrow-red {
-    color: #d32f2f;
-    background: rgba(211, 47, 47, 0.1);
-    border-color: rgba(211, 47, 47, 0.2);
-  }
-
-  /* ===== Cards ===== */
-  .abs-layout {
-    position: absolute;
-    inset: 0;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-    pointer-events: none;
-    padding: clamp(1.2rem, 2.2vw, 2rem) clamp(1rem, 2.8vw, 3rem);
-  }
-  .abs { position: absolute; pointer-events: auto; }
-  
-  .top-left { top: 9vh; left: clamp(1rem, 5vw, 8vw); }
-  .top-right { top: 9vh; right: clamp(1rem, 5vw, 8vw); }
-  .top-center { top: 9vh; left: 50%; transform: translateX(-50%); }
-  
-  .bottom-left { bottom: 8vh; left: clamp(1rem, 5vw, 8vw); }
-  .bottom-right { bottom: 8vh; right: clamp(1rem, 5vw, 8vw); }
-  .bottom-center { bottom: 8vh; left: 50%; transform: translateX(-50%); }
-  
-  .mid-left { top: 52%; left: clamp(1rem, 5vw, 8vw); transform: translateY(-50%); }
-  .mid-right { top: 52%; right: clamp(1rem, 5vw, 8vw); transform: translateY(-50%); }
-  .center { top: 50%; left: 50%; transform: translate(-50%, -50%); }
-
-  .w-30 { width: min(30vw, 420px); }
-  .w-40 { width: min(40vw, 560px); }
-  .w-45 { width: min(45vw, 620px); }
-  .w-50 { width: min(50vw, 680px); }
-  .w-60 { width: min(60vw, 860px); }
-  .w-80 { width: min(80vw, 1120px); }
-  .w-100 { width: 100vw; }
-
-  @media (max-width: 900px) {
-    .abs-layout {
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      gap: 1rem;
-      overflow-y: auto;
-      overflow-x: hidden;
-      padding: 5rem 1rem 4rem;
-      scroll-padding-top: 5rem;
-    }
-    .abs {
-      position: relative;
-      top: auto !important;
-      right: auto !important;
-      bottom: auto !important;
-      left: auto !important;
-      transform: none !important;
-      width: 100% !important;
-      max-width: 780px;
-      margin-inline: auto;
-    }
-    .deco,
-    .slide2-bg-num,
-    .top-left,
-    .top-right,
-    .bottom-left,
-    .bottom-right { display: none; }
-    .center { transform: none !important; }
-    .w-30, .w-40, .w-45, .w-50, .w-60, .w-80, .w-100 { width: 100% !important; }
-    .slide-head {
-      text-align: center !important;
-    }
-    .slide-head h2 {
-      justify-content: center !important;
-      font-size: clamp(1.08rem, 4.8vw, 1.55rem);
-      line-height: 1.2;
-    }
-    .slide-head p {
-      font-size: clamp(0.76rem, 3.4vw, 0.95rem);
-    }
-    .eyebrow {
-      font-size: 0.64rem;
-      margin-bottom: 0.5rem;
-    }
-  }
-
-  .card {
-    border-radius: 20px;
-    padding: clamp(1.05rem, 1.65vw, 1.45rem);
-    position: relative;
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(22, 128, 58, 0.14);
-    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
-    backdrop-filter: blur(6px);
-  }
-  .card h3 {
-    font-size: clamp(0.95rem, 1.1vw, 1.1rem);
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    color: var(--color-text);
-  }
-  .card p {
-    color: var(--color-text-muted);
-    font-size: clamp(0.85rem, 0.95vw, 0.9rem);
-    line-height: 1.6;
-  }
-  .card strong { color: var(--color-text); }
-  .glass {
-    background: rgba(255, 255, 255, 0.88);
-    border-radius: 20px;
-    border: 1px solid rgba(22, 128, 58, 0.15);
-    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
-  }
-  .hover-lift { transition: transform 0.25s ease, box-shadow 0.25s ease; }
-  .vis .hover-lift:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
-  }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(0.8rem, 1.5vw, 1.5rem); }
-  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(0.8rem, 1vw, 1rem); }
-
-  .icon-bubble {
-    width: 48px; height: 48px;
-    display: grid; place-items: center;
-    border-radius: var(--radius-sm);
-    color: var(--color-primary);
-    background: rgba(22, 128, 58, 0.1);
-    margin-bottom: 1rem;
-  }
-  .icon-bubble.sm { width: 40px; height: 40px; margin: 0; flex-shrink: 0; color: #d32f2f; background: rgba(211,47,47,.1); }
-  .num {
-    position: absolute; top: 1.1rem; right: 1.3rem;
-    font-weight: 800; font-size: 1.6rem; color: rgba(38, 50, 56, 0.05);
-  }
-
-  /* ===== Slide 2 ===== */
-  .card-ok {
-    background: #e8f5e9;
-    border: 1px solid #c8e6c9;
-  }
-  .card-no {
-    overflow: hidden;
-    background: #ffebee;
-    border: 1px solid #ffcdd2;
-  }
-  .ban { position: absolute; right: -14px; bottom: -14px; color: rgba(211, 47, 47, 0.05); }
-  .card-tag {
-    display: inline-flex; align-items: center; gap: 0.45rem;
-    font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-    padding: 0.35rem 0.8rem; border-radius: 999px; margin-bottom: 1rem;
-  }
-  .card-tag.ok { color: #2e7d32; background: #c8e6c9; }
-  .card-tag.no { color: #c62828; background: #ffcdd2; }
-  .norm {
-    margin-top: 1.2rem; padding: 0.8rem 1rem; border-radius: 8px;
-    background: rgba(38, 50, 56, 0.04); display: flex; flex-direction: column; gap: 0.15rem;
-  }
-  .norm span { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-primary-dark); font-weight: 700; }
-  .norm strong { font-size: 0.98rem; color: var(--color-text); }
-
-  /* ===== Slide 4 ===== */
-  .mosaic { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 2vw, 1.6rem); }
-  .badge-card .law {
-    display: inline-block; margin-bottom: 0.7rem; padding: 0.4rem 0.9rem; border-radius: 8px;
-    font-weight: 800; font-size: 0.95rem; color: var(--color-white);
-    background: var(--color-primary);
-  }
-  .ethic-banner {
-    grid-column: 1 / -1;
-    padding: clamp(1.4rem, 3vw, 2.2rem);
-    border-radius: var(--radius-md);
-    background: #ffebee;
-    border: 1px solid #ffcdd2;
-    text-align: center;
-  }
-  .ethic-label {
-    display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem;
-    color: #c62828; font-weight: 700; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase;
-  }
-  .ethic-banner h3 { font-size: clamp(1.15rem, 2.3vw, 1.8rem); line-height: 1.3; color: #b71c1c; font-weight: 800; }
-  .ethic-banner p { margin-top: 0.6rem; color: #c62828; font-weight: 600; }
-  .ethic-banner.pulse { animation: none; }
-
-  /* ===== Slide 5 ===== */
-  .security-panel { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: clamp(1.4rem, 3vw, 3rem); align-items: center; }
-  .vault { display: flex; flex-direction: column; align-items: center; gap: 0.8rem; }
-  .vault-body {
-    position: relative; width: min(270px, 60vw); aspect-ratio: 1;
-    border-radius: var(--radius-lg); display: grid; place-items: center;
-    background: var(--color-bg);
-    border: 2px solid var(--color-border);
-    overflow: hidden;
-  }
-  .vault-ring {
-    position: absolute; inset: 18%; border-radius: 50%;
-    border: 3px dashed var(--color-primary);
-    animation: spin 18s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .doc { position: absolute; color: var(--color-text); transform: translateY(-190px); opacity: 0; transition: transform 1.1s cubic-bezier(0.34, 1.3, 0.5, 1) 0.5s, opacity 0.5s ease 0.5s; }
-  .lock { position: absolute; bottom: 14%; color: var(--color-primary-dark); transform: scale(0); transition: transform 0.5s cubic-bezier(0.34, 1.8, 0.5, 1) 1.5s; }
-  .seal {
-    position: absolute; top: 12%; right: 10%; padding: 0.25rem 0.6rem; border-radius: 8px;
-    font-size: 0.8rem; font-weight: 800; letter-spacing: 0.08em; color: var(--color-white);
-    background: var(--color-primary);
-    transform: rotate(10deg) scale(0); transition: transform 0.5s cubic-bezier(0.34, 1.8, 0.5, 1) 1.9s;
-  }
-  .vis .doc { transform: translateY(-8px); opacity: 1; }
-  .vis .lock { transform: scale(1); }
-  .vis .seal { transform: rotate(10deg) scale(1); }
-  .vault-base { font-size: 0.72rem; letter-spacing: 0.3em; font-weight: 700; color: var(--color-text-muted); }
-  .sec-list { display: flex; flex-direction: column; gap: 1rem; }
-  .sec-item { display: flex; gap: 1rem; align-items: flex-start; padding: 1.1rem 1.3rem; }
-  .sec-icon {
-    flex-shrink: 0; width: 46px; height: 46px; border-radius: var(--radius-sm); display: grid; place-items: center;
-    color: var(--color-primary); background: rgba(22, 128, 58, 0.1); border: 1px solid rgba(22, 128, 58, 0.2);
-  }
-
-  /* ===== Slide 6 ===== */
-  .stepper { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.2rem; list-style: none; padding-top: 1rem; }
-  .track { position: absolute; top: calc(1rem + 22px); left: 12%; right: 12%; height: 4px; border-radius: 4px; background: rgba(38, 50, 56, 0.1); }
-  .track-fill { height: 100%; border-radius: 4px; width: 100%; transform-origin: left; transform: scaleX(var(--f)); background: var(--color-primary); }
-  .step { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1.2rem; text-align: center; }
-  .step-dot {
-    position: relative; z-index: 1; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center;
-    font-weight: 800; color: var(--color-text-muted); background: var(--color-bg); border: 2px solid var(--color-border);
-    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .step.lit .step-dot { color: var(--color-white); background: var(--color-primary); border-color: var(--color-primary); transform: scale(1.12); }
-  .step-card { opacity: 0.45; transform: translateY(10px) scale(0.97); transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1); width: 100%; padding: 1.2rem; }
-  .step.lit .step-card { opacity: 1; transform: none; border-color: var(--color-primary); }
-
-  /* ===== Slide 7 ===== */
-  .grid-clinical { display: grid; grid-template-columns: 1.15fr 1fr; gap: clamp(1.2rem, 3vw, 2.6rem); align-items: center; }
-  .video-mock {
-    border-radius: 22px; overflow: hidden; background: var(--color-white); border: 1px solid var(--color-border);
-    box-shadow: var(--shadow-sm);
-  }
-  .vm-bar { display: flex; justify-content: space-between; gap: 0.5rem; padding: 0.7rem 1rem; font-size: 0.75rem; font-weight: 600; color: var(--color-text); background: rgba(38, 50, 56, 0.05); }
-  .rec { display: inline-flex; align-items: center; gap: 0.4rem; color: #d32f2f; font-weight: 800; }
-  .rec i { width: 8px; height: 8px; border-radius: 50%; background: #d32f2f; animation: blink 1.2s infinite; }
-  @keyframes blink { 50% { opacity: 0.2; } }
-  .vm-stage { position: relative; aspect-ratio: 16 / 10; background: #e0e0e0; display: grid; place-items: center; }
-  .vm-patient { display: flex; flex-direction: column; align-items: center; gap: 0.8rem; }
-  .avatar { width: 84px; height: 84px; border-radius: 50%; background: var(--color-primary); }
-  .avatar.small { width: 46px; height: 46px; }
-  .pills { display: flex; gap: 0.5rem; }
-  .pills span { width: 34px; height: 52px; border-radius: 8px; background: #bdbdbd; opacity: 0.9; }
-  .vm-patient em, .vm-pharma em { font-style: normal; font-size: 0.72rem; color: var(--color-text-muted); }
-  .vm-pharma { position: absolute; right: 4%; bottom: 6%; display: flex; flex-direction: column; align-items: center; gap: 0.3rem; padding: 0.6rem; border-radius: 14px; background: var(--color-white); border: 1px solid var(--color-border); }
-  .vm-controls { display: flex; justify-content: center; gap: 0.8rem; padding: 0.8rem; background: var(--color-white); }
-  .vm-controls span { width: 34px; height: 34px; border-radius: 50%; background: rgba(38, 50, 56, 0.1); }
-  .vm-controls .end { background: #d32f2f; }
-  .checklist { list-style: none; display: flex; flex-direction: column; gap: 0.9rem; }
-  .check-item {
-    width: 100%; display: flex; gap: 0.9rem; align-items: flex-start; text-align: left; border-radius: 18px; padding: 1rem 1.2rem;
-    color: var(--color-text); background: var(--color-white); border: 1px solid var(--color-border); font-weight: 400;
-  }
-  .check-item:hover { background: rgba(22, 128, 58, 0.05); transform: translateX(-4px); }
-  .check-item .box { flex-shrink: 0; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; color: transparent; border: 2px solid var(--color-border); transition: all 0.3s; margin-top: 2px; }
-  .check-item.done .box { color: var(--color-white); background: var(--color-primary); border-color: var(--color-primary); }
-  .check-text { display: flex; flex-direction: column; gap: 0.25rem; }
-  .check-text strong { font-size: 1.02rem; color: var(--color-text); }
-  .check-text small { font-size: 0.9rem; color: var(--color-text-muted); line-height: 1.5; }
-  .check-item.done { border-color: var(--color-primary); }
-
-  /* ===== Slide 8 ===== */
-  .toggle { display: inline-flex; align-self: flex-start; padding: 0.3rem; border-radius: 999px; background: var(--color-white); border: 1px solid var(--color-border); }
-  .toggle button { background: transparent; box-shadow: none; padding: 0.6rem 1.2rem; font-size: 0.9rem; color: var(--color-text-muted); }
-  .toggle button:hover { background: rgba(38, 50, 56, 0.05); transform: none; box-shadow: none; }
-  .toggle button.on { background: var(--color-primary); color: var(--color-white); font-weight: 700; }
-  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1rem, 2.4vw, 2rem); }
-  .cmp { transition: opacity 0.85s ease, transform 0.95s cubic-bezier(0.16, 1, 0.3, 1), filter 0.85s ease, flex 0.4s; }
-  .cmp-sup { background: var(--color-white); border: 1px solid var(--color-border); }
-  .cmp-med { background: var(--color-white); border: 1px solid var(--color-border); }
-  .chip { display: inline-block; margin-bottom: 0.8rem; padding: 0.3rem 0.8rem; border-radius: 999px; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.06em; }
-  .chip-gold { color: var(--color-white); background: var(--color-primary-light); }
-  .chip-green { color: var(--color-white); background: var(--color-primary); }
-  .vis .compare[data-mode='sup'] .cmp-med,
-  .vis .compare[data-mode='med'] .cmp-sup { opacity: 0.25; transform: scale(0.95); filter: grayscale(0.8); }
-  .vis .compare[data-mode='sup'] .cmp-sup,
-  .vis .compare[data-mode='med'] .cmp-med { transform: scale(1.03); box-shadow: var(--shadow-md); }
-  .root-cause { display: flex; align-items: center; gap: 1rem; padding: 1.1rem 1.4rem; }
-
-  /* ===== Slide 9 ===== */
-  .slide.danger {
-    background: transparent;
-  }
-  .alert-panel {
-    border-radius: 26px; padding: clamp(1.2rem, 2.6vw, 2rem);
-    background: var(--color-white);
-    border: 2px solid #d32f2f;
-  }
-  .alert-panel.glow { box-shadow: var(--shadow-sm); }
-  .alert-top { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.2rem; color: #d32f2f; letter-spacing: 0.1em; font-size: 0.95rem; }
-  .risk-list { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-  .risk-list li { display: flex; gap: 0.9rem; padding: 1.1rem; border-radius: 18px; background: var(--color-white); border: 1px solid #ffcdd2; }
-  .risk-ico { flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 900; color: var(--color-white); background: #d32f2f; }
-  .risk-list h3 { font-size: 1.05rem; color: var(--color-text); margin-bottom: 0.35rem; }
-  .risk-list p { font-size: 0.95rem; color: var(--color-text-muted); line-height: 1.55; }
-  .risk-list strong { color: var(--color-text); }
-
-  /* ===== Slide 10 ===== */
-  .slide.final {
-    background: transparent;
-  }
-  .final-card {
-    position: relative; padding: clamp(1.2rem, 2.5vw, 2rem); border-radius: 30px; text-align: center;
-    background: var(--color-white); border: 1px solid var(--color-border);
-    overflow: hidden;
-    box-shadow: var(--shadow-md);
-  }
-  .final-card::before, .final-card::after { display: none; }
-  .final-card > * { position: relative; z-index: 1; }
-  .final-card h2 { font-size: clamp(1.3rem, 2.5vw, 2rem); line-height: 1.15; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1.8rem; color: var(--color-primary-dark); }
-  .final-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; text-align: left; }
-  .final-block { padding: 1.1rem; border-radius: 16px; background: rgba(38, 50, 56, 0.02); border: 1px solid var(--color-border); }
-  .final-block h3 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-primary); margin-bottom: 0.4rem; }
-  .final-block h3.mt { margin-top: 0.9rem; }
-  .final-block p { font-size: 0.95rem; color: var(--color-text); line-height: 1.5; }
-  .final-actions { margin-top: 2rem; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
-  .btn-gold { background: var(--color-primary); color: var(--color-white); box-shadow: var(--shadow-sm); }
-  .btn-gold:hover { background: var(--color-primary-dark); }
-  .btn-ghost { background: transparent; color: var(--color-text); border: 1px solid var(--color-border); box-shadow: none; }
-  .btn-ghost:hover { background: rgba(38, 50, 56, 0.05); box-shadow: none; }
-
-  /* ===== Indicador lateral ===== */
-  .slide-nav {
-    position: fixed; right: clamp(0.6rem, 1.6vw, 1.6rem); top: 50%; transform: translateY(-50%) translateX(30px);
-    z-index: 1100; display: flex; flex-direction: column; align-items: center; gap: 0.8rem;
-    padding: 0.9rem 0.55rem; border-radius: 999px; opacity: 0; pointer-events: none;
-    background: var(--color-white); border: 1px solid var(--color-border);
-    transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .slide-nav.show { opacity: 1; pointer-events: auto; transform: translateY(-50%); }
-  .slide-counter { font-size: 0.7rem; color: var(--color-text-muted); writing-mode: horizontal-tb; text-align: center; line-height: 1.1; font-weight: 600; }
-  .slide-counter strong { display: block; color: var(--color-text); font-size: 0.95rem; }
-  .slide-nav ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
-  .dot { width: 9px; height: 9px; padding: 0; border-radius: 50%; background: rgba(38, 50, 56, 0.15); box-shadow: none; transition: all 0.3s; }
-  .dot:hover { background: rgba(38, 50, 56, 0.3); transform: scale(1.3); box-shadow: none; }
-  .dot.on { background: var(--color-primary); height: 22px; border-radius: 8px; box-shadow: none; }
-
-  /* ===== Responsivo ===== */
-  @media (max-width: 1020px) {
-    .grid-4 { grid-template-columns: repeat(2, 1fr); }
-    .final-grid { grid-template-columns: repeat(2, 1fr); }
-    .risk-list { grid-template-columns: 1fr; }
-    .stepper { grid-template-columns: 1fr; gap: 1rem; padding-left: 0; }
-    .track { top: 1rem; bottom: 1rem; left: 22px; right: auto; width: 4px; height: auto; }
-    .track-fill { transform-origin: top; transform: scaleY(var(--f)); }
-    .step { flex-direction: row; align-items: flex-start; text-align: left; }
-    .step-dot { flex-shrink: 0; }
-    .step-card { min-height: 100%; }
-  }
-  @media (max-width: 760px) {
-    .grid-2, .mosaic, .security-panel, .grid-clinical, .compare { grid-template-columns: 1fr; }
-    .grid-4, .final-grid { grid-template-columns: 1fr; }
-    .rv-l, .rv-r, .rv-slide-l, .rv-slide-r { transform: translateY(40px); }
-    .slide-nav { right: 0.3rem; padding: 0.6rem 0.35rem; }
-    .slide-counter { display: none; }
-    .slide { padding-top: 4rem; padding-bottom: 3rem; }
-    .abs-layout { gap: 0.9rem; padding-top: 4.5rem; }
-    .alert-panel { border-radius: 18px; padding: 1rem; }
-    .risk-list li { padding: 0.9rem; border-radius: 14px; }
-    .check-item { padding: 0.85rem 0.95rem; border-radius: 14px; gap: 0.7rem; }
-    .check-text strong { font-size: 0.92rem; }
-    .check-text small { font-size: 0.8rem; line-height: 1.4; }
-    .final-card { padding: 1rem; border-radius: 20px; }
-    .final-actions { margin-top: 1.2rem; gap: 0.6rem; }
-    .toggle { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-radius: 14px; }
-    .toggle button { width: 100%; padding: 0.55rem 0.4rem; font-size: 0.77rem; }
-    #slide-2 .abs-layout > svg.abs { display: none; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .rv { transition-duration: 0.01s; transition-delay: 0s; }
-    .alert-panel.glow, .ethic-banner.pulse, .btn-gold, .final-card::before, .vault-ring { animation: none; }
-  }
-
-  /* ===== Animações Interativas Flat - Slide 2 (Exercício Clínico & Mero Comércio) ===== */
-  .slide2-col {
-    display: flex;
-    flex-direction: column;
-    z-index: 5;
-    width: min(33vw, 430px) !important;
-  }
-  .col-left .slide2-card-content {
-    text-align: right;
-    padding-right: 1.2rem;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.35rem;
-  }
-  .col-right .slide2-card-content {
-    text-align: left;
-    padding-left: 1.2rem;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.35rem;
-  }
-
-  .interactive-anim-box {
-    width: 100%;
-    max-width: 330px;
-    border-radius: 18px;
-    overflow: hidden;
-    margin-bottom: 1.15rem;
-    background: rgba(255, 255, 255, 0.96);
-    border: 1px solid rgba(22, 128, 58, 0.16);
-    position: relative;
-    cursor: pointer;
-    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-    margin-inline: auto;
-  }
-  .interactive-anim-box:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 16px 30px rgba(15, 23, 42, 0.16);
-  }
-  .interactive-anim-box:focus-visible {
-    outline: 3px solid rgba(22, 128, 58, 0.35);
-    outline-offset: 2px;
-  }
-  .anim-call-box {
-    border: none;
-  }
-  .anim-call-box:hover, .anim-call-box.is-active {
-    border: none;
-  }
-  .anim-shop-box {
-    border: none;
-  }
-  .anim-shop-box:hover, .anim-shop-box.is-active {
-    border: none;
-  }
-
-  /* Cabeçalhos Flat Minimalistas (Sem imitação de janelas iOS/macOS) */
-  .flat-card-header {
-    height: 30px;
-    padding: 0 12px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 0.64rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    user-select: none;
-    border-bottom: none;
-  }
-  .flat-header-green {
-    background: rgba(13, 141, 75, 0.06);
-    color: #0d8d4b;
-  }
-  .flat-header-red {
-    background: rgba(239, 68, 68, 0.06);
-    color: #dc2626;
-  }
-  .flat-badge-title {
-    font-size: 0.62rem;
-    font-weight: 800;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-  .flat-status-chip {
-    font-size: 0.58rem;
-    font-weight: 800;
-    padding: 2px 7px;
-    border-radius: 4px;
-    letter-spacing: 0.04em;
-    background: rgba(74, 222, 128, 0.22);
-    color: #4ade80;
-  }
-  .flat-status-chip.chip-red {
-    background: rgba(248, 113, 113, 0.22);
-    color: #fca5a5;
-  }
-
-  .anim-viewport {
-    position: relative;
-    width: 100%;
-    line-height: 0;
-  }
-  .flat-svg {
-    width: 100%;
-    height: auto;
-    display: block;
-  }
-
-  .hover-start-tag {
-    position: absolute;
-    bottom: 8px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(4px);
-    color: #ffffff;
-    font-size: 0.68rem;
-    font-weight: 600;
-    padding: 4px 10px;
-    border-radius: 999px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    pointer-events: none;
-    letter-spacing: 0.02em;
-    animation: pulseHint 2s infinite ease-in-out;
-    white-space: nowrap;
-  }
-  .play-arrow {
-    font-size: 0.6rem;
-    color: #4ade80;
-  }
-  @keyframes pulseHint {
-    0%, 100% { opacity: 0.85; transform: translateX(-50%) scale(1); }
-    50% { opacity: 1; transform: translateX(-50%) scale(1.04); }
-  }
-
-  /* CRÍTICO: Pausado no primeiro frame estático até passar o mouse (hover) */
-  .interactive-anim-box * {
-    animation-play-state: paused;
-  }
-  .interactive-anim-box:hover *,
-  .interactive-anim-box.is-active * {
-    animation-play-state: running !important;
-  }
-
-  /* Animações da Videochamada (Exercício Clínico) */
-
-
-  .voice-aura {
-    transform-origin: 170px 80px;
-    animation: auraPulse 2.2s infinite ease-out;
-  }
-  @keyframes auraPulse {
-    0% { transform: scale(0.9); opacity: 0.3; }
-    50% { transform: scale(1.25); opacity: 0.05; }
-    100% { transform: scale(0.9); opacity: 0.3; }
-  }
-
-  .pharmacist-actor {
-    transform-origin: 170px 140px;
-    animation: docBreathing 2.6s infinite ease-in-out;
-  }
-  @keyframes docBreathing {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-3px); }
-  }
-
-  .sound-equalizer .bar {
-    transform-origin: bottom;
-    animation: eqBarBounce 1.2s infinite ease-in-out alternate;
-  }
-  .sound-equalizer .b-1 { animation-delay: -0.15s; }
-  .sound-equalizer .b-2 { animation-delay: -0.4s; }
-  .sound-equalizer .b-3 { animation-delay: -0.8s; }
-  .sound-equalizer .b-4 { animation-delay: -0.3s; }
-  .sound-equalizer .b-5 { animation-delay: -0.6s; }
-  @keyframes eqBarBounce {
-    0% { transform: scaleY(0.4); opacity: 0.6; }
-    100% { transform: scaleY(1.35); opacity: 1; }
-  }
-
-  .pip-mic-dot {
-    animation: pipMicBlink 1.6s infinite ease-in-out;
-  }
-  @keyframes pipMicBlink {
-    0%, 100% { opacity: 0.6; }
-    50% { opacity: 1; }
-  }
-
-  /* Animações Flat de E-Commerce com Mouse Indo e Clicando (Mero Comércio) */
-  .mouse-pointer-actor {
-    transform-origin: 1px 1px;
-    animation: mouseClickJourney 3.8s infinite ease-in-out;
-  }
-  @keyframes mouseClickJourney {
-    0% { transform: translate(30px, 150px) scale(1); opacity: 0; }
-    6% { transform: translate(35px, 135px) scale(1); opacity: 1; }
-    18% { transform: translate(63px, 126px) scale(1); }
-    22% { transform: translate(63px, 126px) scale(0.78); } /* CLIQUE 1: COMPRAR */
-    27% { transform: translate(63px, 126px) scale(1); }
-    46% { transform: translate(175px, 110px) scale(1); }
-    63% { transform: translate(277px, 124px) scale(1); }
-    67% { transform: translate(277px, 124px) scale(0.78); } /* CLIQUE 2: PAGAR */
-    72% { transform: translate(277px, 124px) scale(1); }
-    84% { transform: translate(295px, 142px) scale(1); opacity: 1; }
-    92% { transform: translate(305px, 155px) scale(1); opacity: 0; }
-    100% { transform: translate(30px, 150px) scale(1); opacity: 0; }
-  }
-
-  /* Ripple (onda) do primeiro clique no botão Comprar */
-  .click-ripple-1 {
-    animation: rippleExpand1 3.8s infinite ease-out;
-  }
-  @keyframes rippleExpand1 {
-    0%, 21% { r: 0; opacity: 0; }
-    22% { r: 2px; opacity: 0.95; stroke-width: 2px; }
-    29% { r: 18px; opacity: 0; stroke-width: 0.5px; }
-    100% { r: 18px; opacity: 0; }
-  }
-
-  /* Reação do botão + COMPRAR ao clique do mouse */
-  .btn-buy-group {
-    transform-origin: 37px 9px;
-  }
-  .btn-buy-bg {
-    animation: btnBuyAction 3.8s infinite ease-in-out;
-  }
-  @keyframes btnBuyAction {
-    0%, 21% { transform: scale(1); fill: #ef4444; }
-    22%, 25% { transform: scale(0.95); fill: #b91c1c; }
-    26%, 86% { transform: scale(1); fill: #16a34a; }
-    92%, 100% { transform: scale(1); fill: #ef4444; }
-  }
-
-  /* Elemento "+1" que voa do botão para o carrinho no clique */
-  .flying-badge {
-    animation: flyToCart 3.8s infinite cubic-bezier(0.2, 0.8, 0.4, 1);
-  }
-  @keyframes flyToCart {
-    0%, 21% { transform: translate(52px, 118px) scale(0); opacity: 0; }
-    23% { transform: translate(52px, 108px) scale(1); opacity: 1; }
-    34% { transform: translate(154px, 58px) scale(0.8); opacity: 0.9; }
-    37% { transform: translate(162px, 64px) scale(0); opacity: 0; }
-    100% { transform: translate(162px, 64px) scale(0); opacity: 0; }
-  }
-
-  /* Carrinho bounce suave quando recebe o produto */
-  .cart-bounce-wrapper {
-    transform-origin: 20px 20px;
-    animation: cartBounce 3.8s infinite ease-in-out;
-  }
-  @keyframes cartBounce {
-    0%, 34% { transform: scale(1); }
-    37% { transform: scale(1.2); }
-    41% { transform: scale(0.92); }
-    45% { transform: scale(1.06); }
-    49%, 100% { transform: scale(1); }
-  }
-
-  /* Contador 1 no carrinho que surge no bounce */
-  .cart-counter-bubble, .cart-counter-num {
-    transform-origin: 34px 6px;
-    animation: cartCounterPop 3.8s infinite ease-out;
-  }
-  @keyframes cartCounterPop {
-    0%, 35% { opacity: 0; transform: scale(0); }
-    38%, 86% { opacity: 1; transform: scale(1); }
-    92%, 100% { opacity: 0; transform: scale(0); }
-  }
-
-  /* Ripple (onda) do segundo clique no botão Pagar */
-  .click-ripple-2 {
-    animation: rippleExpand2 3.8s infinite ease-out;
-  }
-  @keyframes rippleExpand2 {
-    0%, 66% { r: 0; opacity: 0; }
-    67% { r: 2px; opacity: 0.95; stroke-width: 2px; }
-    74% { r: 18px; opacity: 0; stroke-width: 0.5px; }
-    100% { r: 18px; opacity: 0; }
-  }
-
-  /* Reação do botão PAGAR ao clique do mouse */
-  .btn-pay-group {
-    transform-origin: 37px 11px;
-  }
-  .btn-pay-bg {
-    animation: btnPayAction 3.8s infinite ease-in-out;
-  }
-  @keyframes btnPayAction {
-    0%, 66% { transform: scale(1); fill: #ef4444; }
-    67%, 70% { transform: scale(0.95); fill: #b91c1c; }
-    71%, 86% { transform: scale(1); fill: #16a34a; }
-    92%, 100% { transform: scale(1); fill: #ef4444; }
-  }
-
-  /* Carimbo ✓ PAGO! que surge após o clique de pagamento */
-  .stamp-completed {
-    transform-origin: 0 0;
-    animation: stampPop 3.8s infinite ease-out;
-  }
-  @keyframes stampPop {
-    0%, 69% { transform: scale(0) rotate(-6deg); opacity: 0; }
-    72% { transform: scale(1.15) rotate(3deg); opacity: 1; }
-    76%, 86% { transform: scale(1) rotate(0deg); opacity: 1; }
-    92%, 100% { transform: scale(0.8) rotate(0deg); opacity: 0; }
-  }
-
-  /* Estilização complementar dos textos do Slide 2 */
-  .slide2-bg-num {
-    position: absolute;
-    top: -20%;
-    font-size: 8.5rem;
-    font-weight: 900;
-    color: rgba(255, 255, 255, 0.03);
-    line-height: 1;
-    pointer-events: none;
-    z-index: -1;
-  }
-  .slide2-section-title {
-    font-size: clamp(1.15rem, 1.4vw, 1.45rem);
-    font-weight: 700;
-    color: var(--color-white);
-    margin-bottom: 0.6rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  .col-left .slide2-section-title {
-    justify-content: flex-end;
-  }
-  .title-green {
-    justify-content: flex-end;
-  }
-  .badge-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-  }
-  .badge-check {
-    background: rgba(74, 222, 128, 0.15);
-    color: #4ade80;
-  }
-  .badge-cross {
-    background: rgba(248, 113, 113, 0.15);
-    color: #f87171;
-  }
-  .slide2-desc {
-    font-size: clamp(0.9rem, 1vw, 1.02rem);
-    color: rgba(255, 255, 255, 0.78);
-    line-height: 1.6;
-    font-weight: 400;
-    max-width: 420px;
-  }
-  .col-left .slide2-desc {
-    margin-left: auto;
-  }
-
-  @media (max-width: 1020px) {
-    .slide2-col { width: min(44vw, 390px) !important; }
-    .interactive-anim-box { max-width: 290px; }
-  }
-  @media (max-width: 760px) {
-    .slide2-col { width: 100% !important; left: auto !important; right: auto !important; position: static !important; }
-    .slide2-col { align-items: center; }
-    .col-left .slide2-card-content, .col-right .slide2-card-content { align-items: center; text-align: center; padding: 0; width: min(100%, 460px); }
-    .col-left .slide2-section-title { justify-content: center; }
-    .slide2-desc { max-width: 100%; }
-    .interactive-anim-box { max-width: min(100%, 360px); margin-bottom: 0.85rem; }
-  }
-  @media (hover: none) {
-    .hover-start-tag {
-      animation: none;
-      bottom: 10px;
-      font-size: 0.64rem;
-      background: rgba(15, 23, 42, 0.8);
-    }
-  }
+  .slides-wrap { position:absolute; inset:0; z-index:10; pointer-events:none; color:#17362d; }
+  .slide { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:clamp(3.5rem,8vh,6rem) clamp(1.25rem,7vw,7.5rem); overflow:hidden; transition:opacity .35s ease, transform .5s cubic-bezier(.16,1,.3,1); }
+  .slide::before { content:''; position:absolute; inset:0; background:radial-gradient(circle at 88% 18%, rgba(255,255,255,.7), transparent 32%), linear-gradient(135deg, rgba(255,255,255,.42), transparent 55%); pointer-events:none; }
+  .theme-green { background:#0d5b3e; color:#f8f6ed; }
+  .theme-light { background:#f2f1e9; color:#17362d; }
+  .theme-red { background:#f6eeea; color:#2f2523; }
+  .slide-frame { position:relative; width:min(1120px,100%); min-height:min(680px,86vh); display:flex; flex-direction:column; justify-content:space-between; gap:2rem; }
+  .slide-topline,.slide-footer { display:flex; justify-content:space-between; align-items:center; gap:1rem; font-size:.7rem; letter-spacing:.12em; text-transform:uppercase; }
+  .slide-topline { border-bottom:1px solid currentColor; padding-bottom:1rem; opacity:.72; }
+  .slide-index { font-variant-numeric:tabular-nums; }
+  .slide-content { display:flex; flex-direction:column; gap:clamp(2rem,5vh,3.8rem); flex:1; justify-content:center; padding:clamp(1.5rem,3vh,2.5rem) 0; }
+  .slide-main-grid { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(250px,.65fr); align-items:center; gap:clamp(2rem,7vw,7rem); }
+  .slide-main { min-width:0; }
+  .slide-copy { max-width:780px; }
+  .slide-eyebrow { font-weight:800; }
+  .slide-copy h2 { margin:.8rem 0 1.2rem; max-width:840px; font-size:clamp(2.3rem,5vw,5rem); line-height:.97; letter-spacing:-.055em; font-weight:800; }
+  .slide-lead { max-width:680px; font-size:clamp(1rem,1.5vw,1.35rem); line-height:1.45; opacity:.78; }
+  .point-grid,.law-grid,.closing-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+  .point-grid.two,.law-grid { grid-template-columns:repeat(2,1fr); }
+  .point,.law-item,.compare-item,.closing-grid>div { position:relative; display:flex; gap:1rem; padding:1.35rem 1.4rem; border-top:2px solid currentColor; background:rgba(255,255,255,.5); min-height:150px; }
+  .theme-green .point,.theme-green .closing-grid>div { background:rgba(255,255,255,.08); }
+  .point-number,.law-mark,.closing-grid span { font-size:.78rem; font-weight:800; letter-spacing:.12em; opacity:.55; }
+  .point h3,.law-item h3,.compare-item h3,.closing-grid strong { margin:0 0 .45rem; font-size:1.1rem; line-height:1.15; }
+  .point p,.law-item p,.compare-item p,.closing-grid p { margin:0; font-size:.94rem; line-height:1.5; opacity:.72; }
+  .warning-strip { display:flex; gap:1rem; align-items:baseline; padding:1.1rem 1.3rem; border-left:4px solid #b94d39; background:rgba(185,77,57,.1); color:#713126; }
+  .warning-strip span { font-size:.95rem; line-height:1.45; }
+  .journey { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; position:relative; }
+  .journey::before { content:''; position:absolute; top:2rem; left:7%; right:7%; height:1px; background:#4e8c73; opacity:.45; }
+  .journey-step { position:relative; z-index:1; display:flex; flex-direction:column; gap:1rem; align-items:flex-start; text-align:left; border:0; border-radius:0; padding:0; background:none; box-shadow:none; color:inherit; }
+  .journey-number { display:grid; place-items:center; width:4rem; height:4rem; border:1px solid currentColor; border-radius:50%; background:#f2f1e9; color:#0d5b3e; font-weight:800; }
+  .journey-active .journey-number { background:#0d5b3e; color:#f8f6ed; }
+  .journey-step strong,.journey-step small { display:block; }
+  .journey-step small { margin-top:.45rem; font-size:.85rem; line-height:1.4; opacity:.7; }
+  .compare-header { display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap; font-size:.9rem; opacity:.7; }
+  .compare-tabs { display:flex; border:1px solid currentColor; padding:.25rem; }
+  .compare-tabs button { border:0; border-radius:0; padding:.65rem .9rem; box-shadow:none; color:inherit; background:transparent; font-size:.8rem; }
+  .compare-tabs button.chosen { background:#0d5b3e; color:#f8f6ed; }
+  .compare-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+  .compare-item { transition:opacity .25s ease, transform .25s ease; min-height:180px; }
+  .compare-item.dimmed { opacity:.35; transform:scale(.98); }
+  .compare-label { font-size:.72rem; font-weight:800; letter-spacing:.12em; }
+  .medicine { border-color:#b94d39; }
+  .medicine .compare-label { color:#a44332; }
+  .closing-grid { grid-template-columns:repeat(3,1fr); }
+  .closing-grid>div { flex-direction:column; min-height:135px; }
+  .slide-footer { border-top:1px solid currentColor; padding-top:1rem; opacity:.58; }
+  .slide-footer button { border:0; padding:0; border-radius:0; box-shadow:none; background:none; color:inherit; font:inherit; text-transform:uppercase; letter-spacing:.12em; }
+  .slide-footer button:hover { transform:none; box-shadow:none; opacity:.7; }
+  .slide-art { min-height:330px; position:relative; display:grid; place-items:center; color:currentColor; opacity:.95; }
+  .slide-art::before { content:''; position:absolute; inset:9% 4%; border:1px solid currentColor; border-radius:50%; opacity:.16; transform:rotate(-18deg) scaleY(.65); }
+  .art-number { font-size:clamp(8rem,18vw,15rem); font-weight:800; line-height:1; letter-spacing:-.12em; opacity:.1; }
+  .art-line { position:absolute; height:1px; background:currentColor; opacity:.35; transform-origin:left; }
+  .line-one { width:78%; top:34%; left:8%; transform:rotate(-18deg); }.line-two { width:64%; top:60%; left:30%; transform:rotate(26deg); }
+  .art-dot { width:18px; height:18px; border-radius:50%; background:#d7a95c; box-shadow:0 0 0 10px rgba(215,169,92,.16); position:absolute; top:31%; left:72%; }
+  .art-orbit { position:absolute; width:240px; height:240px; border:1px solid currentColor; border-radius:50%; opacity:.3; }.orbit-a { transform:rotate(28deg) scaleX(.5); }.orbit-b { transform:rotate(-32deg) scaleX(.7); }
+  .art-shield { position:relative; width:150px; height:180px; clip-path:polygon(50% 0, 92% 16%, 84% 67%, 50% 100%, 16% 67%, 8% 16%); background:#d7a95c; display:grid; place-items:center; color:#0d5b3e; font-weight:800; letter-spacing:.12em; }.art-shield span { font-size:1.2rem; }.art-shield i { position:absolute; bottom:42px; font-size:2rem; font-style:normal; }
+  .art-caption { position:absolute; bottom:24%; right:0; font-size:.65rem; line-height:1.1; letter-spacing:.16em; opacity:.65; }.art-caption strong { font-size:.9rem; }
+  .art-window { width:min(310px,100%); background:#fff; color:#17362d; box-shadow:18px 18px 0 rgba(13,91,62,.12); border:1px solid rgba(13,91,62,.2); transform:rotate(3deg); }.window-bar,.window-footer { display:flex; align-items:center; gap:6px; padding:.65rem .8rem; font-size:.62rem; letter-spacing:.1em; text-transform:uppercase; }.window-bar { border-bottom:1px solid #e4e5dd; }.window-bar i { width:7px; height:7px; border-radius:50%; background:#d7a95c; }.window-bar span { margin-left:auto; opacity:.55; }.window-body { height:150px; display:grid; place-items:center; background:linear-gradient(135deg,#dfe9df,#f7f6ef); }.art-avatar { width:75px; height:75px; border-radius:50%; background:#0d5b3e; box-shadow:0 0 0 14px rgba(13,91,62,.12); }.art-lines { position:absolute; margin:90px 0 0 150px; }.art-lines b { display:block; width:46px; height:5px; margin:6px; background:#8db9a1; }.window-footer { justify-content:space-between; color:#0d5b3e; }.art-pulse { position:absolute; width:200px; height:200px; border:1px solid #d7a95c; border-radius:50%; opacity:.45; }
+  .art-law { display:flex; align-items:center; gap:1rem; font-size:9rem; line-height:.8; color:#b94d39; transform:rotate(-8deg); }.art-law span { font-size:.8rem; line-height:1.15; letter-spacing:.14em; }.art-law strong { font-size:1.25rem; }
+  .art-route { display:flex; flex-direction:column; align-items:flex-start; gap:1.2rem; font-size:1rem; font-weight:800; letter-spacing:.1em; }.art-route i { display:block; width:1px; height:42px; background:currentColor; margin-left:7px; opacity:.4; }
+  .art-scale { position:relative; width:270px; height:220px; }.scale-post { position:absolute; width:10px; height:180px; bottom:0; left:50%; background:currentColor; opacity:.6; }.scale-beam { position:absolute; width:220px; height:4px; top:50px; left:25px; background:currentColor; transform:rotate(-7deg); }.scale-pan { position:absolute; top:85px; border:1px solid currentColor; padding:1.2rem .8rem; font-size:.65rem; letter-spacing:.1em; }.pan-left { left:12px; transform:rotate(-7deg); }.pan-right { right:12px; transform:rotate(7deg); }
+  .art-sun { width:230px; height:230px; display:grid; place-items:center; border:1px solid #d7a95c; border-radius:50%; position:relative; text-align:center; font-size:1rem; line-height:1.1; letter-spacing:.12em; }.art-sun::before,.art-sun::after { content:''; position:absolute; inset:-18px; border:1px solid #d7a95c; border-radius:50%; opacity:.35; }.art-sun::after { inset:-38px; opacity:.18; }.art-sun div { position:absolute; inset:36%; background:#d7a95c; border-radius:50%; opacity:.55; }.art-sun span { position:relative; z-index:1; }.art-sun strong { font-size:1.25rem; }
+  @media (max-width:900px) {
+    .slide { align-items:flex-start; overflow-y:auto; padding:4.5rem 1.25rem 2rem; }
+    .slide-frame { min-height:calc(100vh - 6.5rem); gap:1.3rem; }
+    .slide-content { justify-content:flex-start; gap:1.6rem; padding:1.2rem 0; }
+    .slide-main-grid { grid-template-columns:1fr; gap:1.5rem; }
+    .slide-art { min-height:170px; order:-1; }
+    .slide-art::before { inset:5% 22%; }
+    .art-number { font-size:7rem; }
+    .art-shield { transform:scale(.72); }.art-orbit { transform:scale(.72); }
+    .art-law { transform:scale(.72) rotate(-8deg); }.art-scale { transform:scale(.72); }
+    .slide-copy h2 { font-size:clamp(2rem,8.5vw,3.5rem); }
+    .slide-lead { font-size:1rem; }
+    .point-grid,.point-grid.two,.law-grid,.closing-grid,.compare-grid { grid-template-columns:1fr; }
+    .journey { grid-template-columns:1fr; gap:1rem; }
+    .journey::before { top:2rem; bottom:2rem; left:2rem; right:auto; width:1px; height:auto; }
+    .journey-step { flex-direction:row; align-items:flex-start; width:100%; }
+    .journey-step span:last-child { padding-top:.45rem; }
+    .slide-footer { font-size:.6rem; }
+  }
+  @media (prefers-reduced-motion:reduce) { .slide,.compare-item { transition:none; } }
 </style>
