@@ -7,7 +7,7 @@
       </div>
       
       <h1 class="hero-title">
-        Farmácia Conecta <span class="highlight">Buriticupu</span>
+        Farmácia Unigrande <span class="highlight">Buriticupu</span>
       </h1>
       
       <p class="hero-subtitle">

@@ -15,11 +15,11 @@
     <a href="#inicio" class="brand" onclick={closeMenu}>
       <img 
         src="/logo.png" 
-        alt="Logo Farmácia Conecta" 
+        alt="Logo Farmácia Unigrande" 
         class="brand-logo" 
         onerror={(e) => { e.currentTarget.style.display = 'none'; }} 
       />
-      <span class="brand-text">Farmácia Conecta</span>
+      <span class="brand-text">Farmácia Unigrande</span>
     </a>
 
     <button 

@@ -5,11 +5,11 @@
         <div class="brand-row">
           <img 
             src="/logo.png" 
-            alt="Farmácia Conecta" 
+            alt="Farmácia Unigrande" 
             class="footer-logo" 
             onerror={(e) => { e.currentTarget.style.display = 'none'; }} 
           />
-          <span class="footer-brand-title">Farmácia Conecta</span>
+          <span class="footer-brand-title">Farmácia Unigrande</span>
         </div>
         <p class="footer-tagline">
           Conectando a ciência farmacêutica ao cuidado humano em Buriticupu.
@@ -47,7 +47,7 @@
 
     <div class="footer-bottom">
       <p class="copyright">
-        © {new Date().getFullYear()} Farmácia Conecta Buriticupu. Projeto Acadêmico de Extensão e Prática Farmacêutica.
+        © {new Date().getFullYear()} Farmácia Unigrande Buriticupu. Projeto Acadêmico de Extensão e Prática Farmacêutica.
       </p>
       <p class="academic-note">
         Desenvolvido para fins didáticos e científicos.
