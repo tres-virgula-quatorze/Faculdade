@@ -6,32 +6,16 @@
   let canvas;
   let ctx;
   let width, height, screenHeight;
-  
-  const SPRING_K = 0.035;
-  const DAMPING = 0.95;
-  const SPREAD = 0.25;
-  
-  let springs = [];
-  const pointsCount = 60;
-  
+  let time = 0;
   let animationFrame;
-  let lastProgress = 0;
 
   function initCanvas() {
     if (!canvas) return;
     width = window.innerWidth;
     screenHeight = window.innerHeight;
-    height = screenHeight * 2; // O canvas cobre 2 telas
+    height = screenHeight * 2;
     canvas.width = width;
     canvas.height = height;
-    
-    springs = [];
-    for (let i = 0; i <= pointsCount; i++) {
-      springs.push({
-        y: screenHeight, // Inicia exatamente na base da primeira tela
-        velocity: 0
-      });
-    }
   }
 
   onMount(() => {
@@ -40,7 +24,7 @@
     window.addEventListener('resize', initCanvas);
     
     function loop() {
-      update();
+      time += 0.016;
       draw();
       animationFrame = requestAnimationFrame(loop);
     }
@@ -51,83 +35,28 @@
       cancelAnimationFrame(animationFrame);
     };
   });
-  
-  function update() {
-    if (!ctx) return;
-    
-    // Alvo vai da base da tela (screenHeight) até acima do topo (-10vh)
-    let targetY = screenHeight - (progress * screenHeight * 1.2); 
-    
-    let delta = progress - lastProgress;
-    lastProgress = progress;
-
-    // Gera ondulações constantes enquanto está subindo
-    if (progress > 0.01 && progress < 0.95) {
-      if (Math.random() > 0.4) {
-         let p = Math.floor(Math.random() * pointsCount);
-         springs[p].velocity += (Math.random() - 0.5) * 45;
-      }
-      // Um empurrão central proporcional ao scroll para criar a lombada no meio
-      if (delta > 0) {
-         let center = Math.floor(pointsCount / 2);
-         springs[center].velocity -= delta * 1200;
-         springs[center-1].velocity -= delta * 800;
-         springs[center+1].velocity -= delta * 800;
-      }
-    }
-
-    // Pass 1: Hooke's Law
-    for (let i = 0; i <= pointsCount; i++) {
-      let s = springs[i];
-      let extension = s.y - targetY;
-      let force = -SPRING_K * extension;
-      s.velocity += force;
-      s.velocity *= DAMPING;
-      s.y += s.velocity;
-    }
-    
-    // Pass 2: Wave propagation
-    let leftDeltas = new Array(pointsCount + 1).fill(0);
-    let rightDeltas = new Array(pointsCount + 1).fill(0);
-    
-    for (let iter = 0; iter < 4; iter++) {
-      for (let i = 0; i <= pointsCount; i++) {
-        if (i > 0) {
-          leftDeltas[i] = SPREAD * (springs[i].y - springs[i - 1].y);
-          springs[i - 1].velocity += leftDeltas[i];
-        }
-        if (i < pointsCount) {
-          rightDeltas[i] = SPREAD * (springs[i].y - springs[i + 1].y);
-          springs[i + 1].velocity += rightDeltas[i];
-        }
-      }
-      for (let i = 0; i <= pointsCount; i++) {
-        if (i > 0) springs[i - 1].y += leftDeltas[i];
-        if (i < pointsCount) springs[i + 1].y += rightDeltas[i];
-      }
-    }
-  }
 
   function draw() {
     if (!ctx) return;
     ctx.clearRect(0, 0, width, height);
     
     if (progress <= 0.001) return;
-    
+
+    const p = Math.max(0, Math.min(1, progress));
+    const baseY = screenHeight - p * screenHeight * 1.15;
+    const amp = (1 - p) * 26 + 6;
+    const speed = 1 + (1 - p) * 0.4;
+    const phase = time * speed;
+
+    const y0 = baseY + Math.sin(phase) * amp;
+    const y1 = baseY + Math.sin(phase + 1.2) * amp * 0.85;
+    const y2 = baseY + Math.sin(phase + 2.3) * amp * 0.9;
     ctx.fillStyle = '#f4f7f6';
     ctx.beginPath();
-    
-    let step = width / pointsCount;
     ctx.moveTo(0, height);
-    ctx.lineTo(0, springs[0].y);
-    
-    for (let i = 0; i < pointsCount; i++) {
-      let cx = (i + 0.5) * step;
-      let cy = (springs[i].y + springs[i + 1].y) / 2;
-      ctx.quadraticCurveTo(i * step, springs[i].y, cx, cy);
-    }
-    
-    ctx.lineTo(width, springs[pointsCount].y);
+    ctx.lineTo(0, y0);
+    ctx.bezierCurveTo(width * 0.2, y0, width * 0.3, y1, width * 0.5, y1);
+    ctx.bezierCurveTo(width * 0.7, y1, width * 0.8, y2, width, y2);
     ctx.lineTo(width, height);
     ctx.fill();
   }
