@@ -999,7 +999,8 @@
       gap: 1rem;
       overflow-y: auto;
       overflow-x: hidden;
-      padding: 5.2rem 1rem 4rem;
+      padding: 5rem 1rem 4rem;
+      scroll-padding-top: 5rem;
     }
     .abs {
       position: relative;
@@ -1020,6 +1021,21 @@
     .bottom-right { display: none; }
     .center { transform: none !important; }
     .w-30, .w-40, .w-45, .w-50, .w-60, .w-80, .w-100 { width: 100% !important; }
+    .slide-head {
+      text-align: center !important;
+    }
+    .slide-head h2 {
+      justify-content: center !important;
+      font-size: clamp(1.08rem, 4.8vw, 1.55rem);
+      line-height: 1.2;
+    }
+    .slide-head p {
+      font-size: clamp(0.76rem, 3.4vw, 0.95rem);
+    }
+    .eyebrow {
+      font-size: 0.64rem;
+      margin-bottom: 0.5rem;
+    }
   }
 
   .card {
@@ -1288,6 +1304,7 @@
     .track-fill { transform-origin: top; transform: scaleY(var(--f)); }
     .step { flex-direction: row; align-items: flex-start; text-align: left; }
     .step-dot { flex-shrink: 0; }
+    .step-card { min-height: 100%; }
   }
   @media (max-width: 760px) {
     .grid-2, .mosaic, .security-panel, .grid-clinical, .compare { grid-template-columns: 1fr; }
@@ -1296,6 +1313,17 @@
     .slide-nav { right: 0.3rem; padding: 0.6rem 0.35rem; }
     .slide-counter { display: none; }
     .slide { padding-top: 4rem; padding-bottom: 3rem; }
+    .abs-layout { gap: 0.9rem; padding-top: 4.5rem; }
+    .alert-panel { border-radius: 18px; padding: 1rem; }
+    .risk-list li { padding: 0.9rem; border-radius: 14px; }
+    .check-item { padding: 0.85rem 0.95rem; border-radius: 14px; gap: 0.7rem; }
+    .check-text strong { font-size: 0.92rem; }
+    .check-text small { font-size: 0.8rem; line-height: 1.4; }
+    .final-card { padding: 1rem; border-radius: 20px; }
+    .final-actions { margin-top: 1.2rem; gap: 0.6rem; }
+    .toggle { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-radius: 14px; }
+    .toggle button { width: 100%; padding: 0.55rem 0.4rem; font-size: 0.77rem; }
+    #slide-2 .abs-layout > svg.abs { display: none; }
   }
   @media (prefers-reduced-motion: reduce) {
     .rv { transition-duration: 0.01s; transition-delay: 0s; }
@@ -1340,6 +1368,7 @@
     cursor: pointer;
     box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
     transition: transform 0.25s ease, box-shadow 0.25s ease;
+    margin-inline: auto;
   }
   .interactive-anim-box:hover {
     transform: translateY(-3px);
@@ -1675,9 +1704,11 @@
   }
   @media (max-width: 760px) {
     .slide2-col { width: 100% !important; left: auto !important; right: auto !important; position: static !important; }
-    .col-left .slide2-card-content, .col-right .slide2-card-content { align-items: center; text-align: center; padding: 0; }
+    .slide2-col { align-items: center; }
+    .col-left .slide2-card-content, .col-right .slide2-card-content { align-items: center; text-align: center; padding: 0; width: min(100%, 460px); }
     .col-left .slide2-section-title { justify-content: center; }
     .slide2-desc { max-width: 100%; }
+    .interactive-anim-box { max-width: min(100%, 360px); margin-bottom: 0.85rem; }
   }
   @media (hover: none) {
     .hover-start-tag {
