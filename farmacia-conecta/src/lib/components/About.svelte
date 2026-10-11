@@ -72,16 +72,19 @@
       l.op = 450;
     });
 
+    const isNarrowScreen = targetW < 820;
+
     // Base scale is 0.38 for 1920x880 (compact & elegant layout).
     const scaleH = targetH / 880;
     const scaleW = targetW / 1920;
-    let scale = 0.38 * Math.min(scaleW, scaleH);
-    scale = Math.max(0.24, Math.min(0.38, scale));
+    const baseScale = isNarrowScreen ? 0.32 : 0.38;
+    let scale = baseScale * Math.min(scaleW, scaleH);
+    scale = Math.max(isNarrowScreen ? 0.2 : 0.24, Math.min(baseScale, scale));
     const scaleVec = [scale * 100, scale * 100];
 
-    const marginX = 40;
-    const marginY = 35;
-    const marginBot = 45;
+    const marginX = isNarrowScreen ? 16 : 40;
+    const marginY = isNarrowScreen ? 20 : 35;
+    const marginBot = isNarrowScreen ? 22 : 45;
 
     // Apply scale to layers
     [842, 756, 4, 13, 434, 435, 304, 668].forEach((ind) => {
@@ -119,7 +122,7 @@
     });
 
     // 3. Bottom-Left: Disciplina & Professor (304, 435)
-    const lineSpacing = 32 * (scale / 0.38);
+    const lineSpacing = (isNarrowScreen ? 24 : 32) * (scale / 0.38);
     setPos(304, marginX, targetH - marginBot);
     setPos(435, marginX, targetH - marginBot - lineSpacing);
 
@@ -142,18 +145,18 @@
     // 6. Seminário (756) & Logo (4) - Centered group at targetW / 2
     const semW = 485 * scale;
     const logoW = 921 * scale;
-    const gap = 160 * scale;
+    const gap = (isNarrowScreen ? 90 : 160) * scale;
     const totalW = semW + gap + logoW;
     const groupStart = targetW / 2 - totalW / 2;
     const semEndX = groupStart;
     const logoEndX = semEndX + semW + gap;
     const semAloneX = targetW / 2 - semW / 2;
-    const logoDelta = 100 * scale;
+    const logoDelta = (isNarrowScreen ? 45 : 100) * scale;
     const logoStartX = logoEndX - logoDelta;
 
     // Baixa a posição da logo, data e seminário conforme solicitado
-    const midY = Math.round(targetH * 0.49);
-    const logoYOffset = 46 * (scale / 0.38);
+    const midY = Math.round(targetH * (isNarrowScreen ? 0.47 : 0.49));
+    const logoYOffset = (isNarrowScreen ? 24 : 46) * (scale / 0.38);
 
     if (layers[756]) {
       layers[756].ks.p = {
@@ -182,7 +185,7 @@
     // 7. Integrantes (13) - Right Lateral
     const intWidth = 638 * scale;
     const intHeight = 244 * scale;
-    const intY = targetH - marginBot - intHeight - (20 * (scale / 0.38));
+    const intY = targetH - marginBot - intHeight - ((isNarrowScreen ? 8 : 20) * (scale / 0.38));
     if (layers[13]) setPos(13, targetW - marginX - intWidth, intY);
 
     // ===== SAÍDAS COORDENADAS POR GRUPO (Sem quebrar palavras/letras) =====
@@ -885,6 +888,66 @@
 
 
   @media (max-width: 820px) {
+    .sticky-viewport {
+      min-height: 100dvh;
+    }
+
+    .slide1-hero-title-box {
+      top: 11.5vh;
+      width: min(94vw, 560px);
+      max-width: none;
+      padding: 0 0.3rem;
+    }
+
+    .slide1-hero-title {
+      font-size: clamp(0.96rem, 4.5vw, 1.35rem);
+      line-height: 1.22;
+      letter-spacing: 0.005em;
+    }
+
+    .slide1-hero-sub {
+      margin-top: 0.22rem;
+      font-size: clamp(0.78rem, 3.7vw, 1.08rem);
+      line-height: 1.2;
+      letter-spacing: 0.01em;
+    }
+
+    .s1-ornaments {
+      opacity: 0.5;
+    }
+
+    .orn-ring,
+    .orn-diamond,
+    .orn-plus,
+    .orn-dots,
+    .orn-arc,
+    .orn-capsule {
+      display: none;
+    }
+
+    .glow-1 {
+      top: 4%;
+      left: -12%;
+      width: 74vw;
+      height: 74vw;
+    }
+
+    .glow-2 {
+      right: -26%;
+      bottom: -6%;
+      width: 88vw;
+      height: 88vw;
+    }
+
+    .lottie-wrapper {
+      transform: scale(0.9);
+      transform-origin: center 52%;
+    }
+
+    .lottie-fullscreen :global(svg) {
+      transform: translateY(2.5vh);
+    }
+
     .about-highlights {
       grid-template-columns: 1fr;
       gap: 1.25rem;
@@ -892,6 +955,26 @@
 
     .scroll-showcase-section {
       height: 2000vh;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .slide1-hero-title-box {
+      top: 10vh;
+      width: 95vw;
+    }
+
+    .slide1-hero-title {
+      font-size: clamp(0.88rem, 4.6vw, 1.08rem);
+    }
+
+    .slide1-hero-sub {
+      font-size: clamp(0.72rem, 3.8vw, 0.94rem);
+    }
+
+    .lottie-wrapper {
+      transform: scale(0.84);
+      transform-origin: center 54%;
     }
   }
 
