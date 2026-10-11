@@ -207,8 +207,8 @@
             <aside class={`slide-art art-${slide.visual || (index % 3)}`} aria-hidden="true">
               {#if slide.visual === 'shield'}
                 <div class="art-orbit orbit-a"></div><div class="art-orbit orbit-b"></div>
-                <div class="art-shield"><span>LGPD</span><i>✓</i></div>
-                <div class="art-caption">DADOS<br><strong>PROTEGIDOS</strong></div>
+                <div class="official-brand"><img src="/assets/anpd-symbol-official.png" alt="" /><strong>ANPD</strong><span>Autoridade Nacional<br>de Proteção de Dados</span></div>
+                <div class="art-caption">MARCA OFICIAL<br><strong>ANPD</strong></div>
               {:else if slide.visual === 'call'}
                 <div class="art-window"><div class="window-bar"><i></i><i></i><i></i><span>teleconsulta</span></div><div class="window-body"><div class="art-avatar"></div><div class="art-lines"><b></b><b></b><b></b></div></div><div class="window-footer"><span>● AO VIVO</span><span>12:45</span></div></div>
                 <div class="art-pulse"></div>
@@ -292,7 +292,7 @@
   .line-one { width:78%; top:34%; left:8%; transform:rotate(-18deg); }.line-two { width:64%; top:60%; left:30%; transform:rotate(26deg); }
   .art-dot { width:18px; height:18px; border-radius:50%; background:#d7a95c; box-shadow:0 0 0 10px rgba(215,169,92,.16); position:absolute; top:31%; left:72%; }
   .art-orbit { position:absolute; width:240px; height:240px; border:1px solid currentColor; border-radius:50%; opacity:.3; }.orbit-a { transform:rotate(28deg) scaleX(.5); }.orbit-b { transform:rotate(-32deg) scaleX(.7); }
-  .art-shield { position:relative; width:150px; height:180px; clip-path:polygon(50% 0, 92% 16%, 84% 67%, 50% 100%, 16% 67%, 8% 16%); background:#d7a95c; display:grid; place-items:center; color:#0d5b3e; font-weight:800; letter-spacing:.12em; }.art-shield span { font-size:1.2rem; }.art-shield i { position:absolute; bottom:42px; font-size:2rem; font-style:normal; }
+  .official-brand { position:relative; display:flex; flex-direction:column; align-items:center; gap:.45rem; color:#17362d; text-align:center; transform:rotate(-4deg); }.official-brand img { width:180px; height:135px; object-fit:contain; }.official-brand strong { font-size:2.3rem; line-height:.8; letter-spacing:.08em; }.official-brand span { font-size:.58rem; line-height:1.15; letter-spacing:.1em; text-transform:uppercase; opacity:.72; }
   .art-caption { position:absolute; bottom:24%; right:0; font-size:.65rem; line-height:1.1; letter-spacing:.16em; opacity:.65; }.art-caption strong { font-size:.9rem; }
   .art-window { width:min(310px,100%); background:#fff; color:#17362d; box-shadow:18px 18px 0 rgba(13,91,62,.12); border:1px solid rgba(13,91,62,.2); transform:rotate(3deg); }.window-bar,.window-footer { display:flex; align-items:center; gap:6px; padding:.65rem .8rem; font-size:.62rem; letter-spacing:.1em; text-transform:uppercase; }.window-bar { border-bottom:1px solid #e4e5dd; }.window-bar i { width:7px; height:7px; border-radius:50%; background:#d7a95c; }.window-bar span { margin-left:auto; opacity:.55; }.window-body { height:150px; display:grid; place-items:center; background:linear-gradient(135deg,#dfe9df,#f7f6ef); }.art-avatar { width:75px; height:75px; border-radius:50%; background:#0d5b3e; box-shadow:0 0 0 14px rgba(13,91,62,.12); }.art-lines { position:absolute; margin:90px 0 0 150px; }.art-lines b { display:block; width:46px; height:5px; margin:6px; background:#8db9a1; }.window-footer { justify-content:space-between; color:#0d5b3e; }.art-pulse { position:absolute; width:200px; height:200px; border:1px solid #d7a95c; border-radius:50%; opacity:.45; }
   .art-law { display:flex; align-items:center; gap:1rem; font-size:9rem; line-height:.8; color:#b94d39; transform:rotate(-8deg); }.art-law span { font-size:.8rem; line-height:1.15; letter-spacing:.14em; }.art-law strong { font-size:1.25rem; }
@@ -309,7 +309,7 @@
     .slide-art { min-height:170px; order:-1; }
     .slide-art::before { inset:5% 22%; }
     .art-number { font-size:7rem; }
-    .art-shield { transform:scale(.72); }.art-orbit { transform:scale(.72); }
+    .official-brand { transform:scale(.8) rotate(-4deg); }.art-orbit { transform:scale(.72); }
     .art-law { transform:scale(.72) rotate(-8deg); }.art-scale { transform:scale(.72); }
     .slide-copy h2 { font-size:clamp(2rem,8.5vw,3.5rem); }
     .slide-lead { font-size:1rem; }
