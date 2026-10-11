@@ -2,6 +2,7 @@
   let props = $props();
   let currentRatio = $derived(props.currentRatio || 0);
   let scrollToPhase = $derived(props.scrollToPhase);
+  let mobile = $derived(Boolean(props.mobile));
   let compareMode = $state('sup');
   let checks = $state([true, false, false]);
 
@@ -116,6 +117,14 @@
   }
 
   function goTo(index) {
+    if (mobile) {
+      if (index <= 0) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        document.getElementById(`slide-${index + 1}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      return;
+    }
     scrollToPhase?.(index + 1);
   }
 </script>
@@ -123,7 +132,7 @@
 <div class="slides-wrap" aria-label="Apresentação sobre telefarmácia">
   {#each phases as slide, index}
     {@const t = getT(index)}
-    {@const style = visibility(t)}
+    {@const style = mobile ? { opacity: 1, transform: 'none' } : visibility(t)}
     <section
       id={`slide-${index + 2}`}
       class={`slide redesign-slide theme-${slide.accent} ${Math.abs(t) < 0.7 ? 'is-active' : ''}`}
@@ -291,6 +300,8 @@
   .art-scale { position:relative; width:270px; height:220px; }.scale-post { position:absolute; width:10px; height:180px; bottom:0; left:50%; background:currentColor; opacity:.6; }.scale-beam { position:absolute; width:220px; height:4px; top:50px; left:25px; background:currentColor; transform:rotate(-7deg); }.scale-pan { position:absolute; top:85px; border:1px solid currentColor; padding:1.2rem .8rem; font-size:.65rem; letter-spacing:.1em; }.pan-left { left:12px; transform:rotate(-7deg); }.pan-right { right:12px; transform:rotate(7deg); }
   .art-sun { width:230px; height:230px; display:grid; place-items:center; border:1px solid #d7a95c; border-radius:50%; position:relative; text-align:center; font-size:1rem; line-height:1.1; letter-spacing:.12em; }.art-sun::before,.art-sun::after { content:''; position:absolute; inset:-18px; border:1px solid #d7a95c; border-radius:50%; opacity:.35; }.art-sun::after { inset:-38px; opacity:.18; }.art-sun div { position:absolute; inset:36%; background:#d7a95c; border-radius:50%; opacity:.55; }.art-sun span { position:relative; z-index:1; }.art-sun strong { font-size:1.25rem; }
   @media (max-width:900px) {
+    .slides-wrap { position:relative; inset:auto; pointer-events:auto; }
+    .slides-wrap .slide { position:relative; inset:auto; min-height:100svh; height:auto; opacity:1 !important; transform:none !important; pointer-events:auto !important; overflow:visible; padding-top:4.5rem; padding-bottom:2rem; }
     .slide { align-items:flex-start; overflow-y:auto; padding:4.5rem 1.25rem 2rem; }
     .slide-frame { min-height:calc(100vh - 6.5rem); gap:1.3rem; }
     .slide-content { justify-content:flex-start; gap:1.6rem; padding:1.2rem 0; }

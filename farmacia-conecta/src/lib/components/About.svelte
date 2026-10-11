@@ -7,6 +7,7 @@
   let anim = null;
   let isLoading = $state(true);
   let hasError = $state(false);
+  let isMobile = $state(false);
 
   // Progresso do scroll com interpolação suave (lerp)
   let targetScrollRatio = $state(0);
@@ -317,6 +318,10 @@
     let rawAnimationData = null;
     let lastW = 0;
     let lastH = 0;
+    const mobileQuery = window.matchMedia('(max-width: 900px)');
+    const updateMobileMode = () => { isMobile = mobileQuery.matches; };
+    updateMobileMode();
+    mobileQuery.addEventListener?.('change', updateMobileMode);
 
     function renderLottie() {
       if (isCancelled || !lottieContainer || !lottieModuleRef || !rawAnimationData) return;
@@ -398,6 +403,10 @@
 
     const handleScroll = () => {
       if (!scrollTrackRef) return;
+      if (isMobile) {
+        targetScrollRatio = 0;
+        return;
+      }
       const rect = scrollTrackRef.getBoundingClientRect();
       const maxScroll = rect.height - window.innerHeight;
       if (maxScroll <= 0) return;
@@ -449,6 +458,7 @@
       clearTimeout(resizeTimer);
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleResize);
+      mobileQuery.removeEventListener?.('change', updateMobileMode);
       if (rafId) cancelAnimationFrame(rafId);
       if (anim) {
         anim.destroy();
@@ -568,8 +578,8 @@
         </h1>
       </div>
 
-      <!-- Slides 2-10 rendered absolutely over the stage -->
-      <Slides {activePhase} currentRatio={currentScrollRatio} {scrollToPhase} />
+      <!-- Desktop usa scroll narrativo; mobile usa leitura vertical normal -->
+      <Slides {activePhase} currentRatio={currentScrollRatio} {scrollToPhase} mobile={isMobile} />
     </div>
 
   </div>
@@ -953,7 +963,36 @@
       gap: 1.25rem;
     }
 
-    .scroll-showcase-section { height: 1000vh; }
+    .scroll-showcase-section {
+      height: auto;
+      min-height: 100svh;
+    }
+
+    .sticky-viewport {
+      position: relative;
+      height: auto;
+      min-height: 100svh;
+      overflow: visible;
+      display: block;
+    }
+
+    .stage-container {
+      height: auto;
+      min-height: 100svh;
+      overflow: visible;
+      display: block;
+    }
+
+    .lottie-wrapper {
+      position: absolute !important;
+      inset: 0;
+      height: 100svh !important;
+    }
+
+    .s1-ornaments {
+      position: absolute;
+      height: 100svh;
+    }
   }
 
   @media (max-width: 480px) {
