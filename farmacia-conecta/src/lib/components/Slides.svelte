@@ -118,6 +118,14 @@
     };
   }
 
+  function creativeStyle(index, t) {
+    const enter = Math.max(0, Math.min(1, (t + 0.9) / 0.7));
+    const exit = Math.max(0, Math.min(1, (t - 0.25) / 0.7));
+    const settledOpacity = enter < 0.75 ? 0.58 + (enter * 0.42) : 1;
+    const opacity = settledOpacity * (1 - exit * 0.9);
+    return { opacity, transform: 'none', clipPath: 'none' };
+  }
+
   function goTo(index) {
     if (mobile) {
       if (index <= 0) {
@@ -135,12 +143,12 @@
   {#each phases as slide, index}
     {@const t = getT(index)}
     {@const bridgeEntry = index === 0 ? Math.max(0, Math.min(1, (currentRatio - 0.075) / 0.025)) : 0}
-    {@const style = mobile ? { opacity: 1, transform: 'none' } : index === 0 ? { opacity: bridgeEntry, transform: `translateY(${(1 - bridgeEntry) * 18}px)` } : visibility(t)}
+    {@const style = mobile ? { opacity: 1, transform: 'none', clipPath: 'none' } : index === 0 ? { opacity: bridgeEntry, transform: 'none', clipPath: 'none' } : creativeStyle(index, t)}
     <section
       id={`slide-${index + 2}`}
-      class={`slide redesign-slide theme-${slide.accent} ${index === 0 ? (bridgeEntry > 0.35 ? 'is-active' : '') : Math.abs(t) < 0.7 ? 'is-active' : ''}`}
+      class={`slide redesign-slide theme-${slide.accent} motion-${index % 3} ${mobile ? 'mobile-slide' : ''} ${index === 0 ? (bridgeEntry > 0.35 ? 'is-active' : '') : Math.abs(t) < 0.7 ? 'is-active' : ''}`}
       aria-hidden={index === 0 ? bridgeEntry < 0.35 : Math.abs(t) >= 0.9}
-      style={`opacity: ${style.opacity}; transform: ${style.transform}; pointer-events: ${index === 0 ? (bridgeEntry > 0.35 ? 'auto' : 'none') : Math.abs(t) < 0.82 ? 'auto' : 'none'}; z-index: ${index === 0 ? 3 : Math.abs(t) < 0.9 ? 2 : 1};`}
+      style={`opacity: ${style.opacity}; transform: ${style.transform}; clip-path: ${style.clipPath}; pointer-events: ${index === 0 ? (bridgeEntry > 0.35 ? 'auto' : 'none') : Math.abs(t) < 0.82 ? 'auto' : 'none'}; z-index: ${index === 0 ? 3 : Math.abs(t) < 0.9 ? 2 : 1};`}
     >
       <div class="slide-frame">
         <div class="slide-topline">
@@ -241,7 +249,7 @@
 
 <style>
   .slides-wrap { position:absolute; inset:0; z-index:10; pointer-events:none; color:#17362d; }
-  .slide { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:clamp(3.5rem,8vh,6rem) clamp(1.25rem,7vw,7.5rem); overflow:hidden; transition:opacity .35s ease, transform .5s cubic-bezier(.16,1,.3,1); }
+  .slide { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:clamp(3.5rem,8vh,6rem) clamp(1.25rem,7vw,7.5rem); overflow:hidden; transition:opacity .45s ease; }
   .slide::before { content:''; position:absolute; inset:0; background:radial-gradient(circle at 88% 18%, rgba(255,255,255,.7), transparent 32%), linear-gradient(135deg, rgba(255,255,255,.42), transparent 55%); pointer-events:none; }
   .theme-green { background:#0d5b3e; color:#f8f6ed; }
   .theme-light { background:#f2f1e9; color:#17362d; }
@@ -288,6 +296,15 @@
   .slide-footer { border-top:1px solid currentColor; padding-top:1rem; opacity:.58; }
   .slide-footer button { border:0; padding:0; border-radius:0; box-shadow:none; background:none; color:inherit; font:inherit; text-transform:uppercase; letter-spacing:.12em; }
   .slide-footer button:hover { transform:none; box-shadow:none; opacity:.7; }
+  @keyframes element-in-side { from { opacity:0; transform:translate3d(58px,0,0); } to { opacity:1; transform:none; } }
+  @keyframes element-in-rise { from { opacity:0; transform:translate3d(0,48px,0) scale(.96); } to { opacity:1; transform:none; } }
+  @keyframes element-in-diagonal { from { opacity:0; transform:translate3d(42px,-28px,0) rotate(-2deg) scale(.96); } to { opacity:1; transform:none; } }
+  .slide.is-active .slide-topline,.slide.mobile-slide .slide-topline { animation:element-in-side .7s cubic-bezier(.16,1,.3,1) both; }
+  .slide.is-active .slide-copy,.slide.mobile-slide .slide-copy { animation:element-in-rise .8s cubic-bezier(.16,1,.3,1) .08s both; }
+  .slide.is-active .slide-content > .slide-main-grid > .slide-art,.slide.mobile-slide .slide-art { animation:element-in-diagonal .85s cubic-bezier(.16,1,.3,1) .15s both; }
+  .slide.is-active .point-grid,.slide.is-active .law-grid,.slide.is-active .journey,.slide.is-active .compare-header,.slide.is-active .compare-grid,.slide.is-active .closing-grid,.slide.is-active .warning-strip,
+  .slide.mobile-slide .point-grid,.slide.mobile-slide .law-grid,.slide.mobile-slide .journey,.slide.mobile-slide .compare-header,.slide.mobile-slide .compare-grid,.slide.mobile-slide .closing-grid,.slide.mobile-slide .warning-strip { animation:element-in-rise .8s cubic-bezier(.16,1,.3,1) .22s both; }
+  .slide.is-active .slide-footer,.slide.mobile-slide .slide-footer { animation:element-in-side .7s cubic-bezier(.16,1,.3,1) .3s both; }
   .slide-art { min-height:330px; position:relative; display:grid; place-items:center; color:currentColor; opacity:.95; }
   .slide-art::before { content:''; position:absolute; inset:9% 4%; border:1px solid currentColor; border-radius:50%; opacity:.16; transform:rotate(-18deg) scaleY(.65); }
   .art-number { font-size:clamp(8rem,18vw,15rem); font-weight:800; line-height:1; letter-spacing:-.12em; opacity:.1; }
