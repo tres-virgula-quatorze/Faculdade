@@ -121,8 +121,9 @@
   function creativeStyle(index, t) {
     const enter = Math.max(0, Math.min(1, (t + 0.9) / 0.7));
     const exit = Math.max(0, Math.min(1, (t - 0.25) / 0.7));
-    const settledOpacity = enter < 0.75 ? 0.58 + (enter * 0.42) : 1;
-    const opacity = settledOpacity * (1 - exit * 0.9);
+    // Fora da janela de entrada o slide precisa desaparecer de verdade;
+    // caso contrário todo o deck fica empilhado e legível ao mesmo tempo.
+    const opacity = enter * (1 - exit * 0.95);
     return { opacity, transform: 'none', clipPath: 'none' };
   }
 
