@@ -104,8 +104,10 @@
   ];
 
   function getT(index) {
-    const center = (index + 1.5) / 10;
-    return (currentRatio - center) / 0.055;
+    // Cada slide começa a assumir a tela antes do ponto exato da seção,
+    // criando crossfade curto sem deixar o conteúdo translúcido por muito tempo.
+    const center = (index + 1.2) / 10;
+    return (currentRatio - center) / 0.06;
   }
 
   function visibility(t) {
@@ -132,12 +134,13 @@
 <div class="slides-wrap" aria-label="Apresentação sobre telefarmácia">
   {#each phases as slide, index}
     {@const t = getT(index)}
-    {@const style = mobile ? { opacity: 1, transform: 'none' } : visibility(t)}
+    {@const bridgeEntry = index === 0 ? Math.max(0, Math.min(1, (currentRatio - 0.075) / 0.025)) : 0}
+    {@const style = mobile ? { opacity: 1, transform: 'none' } : index === 0 ? { opacity: bridgeEntry, transform: `translateY(${(1 - bridgeEntry) * 18}px)` } : visibility(t)}
     <section
       id={`slide-${index + 2}`}
-      class={`slide redesign-slide theme-${slide.accent} ${Math.abs(t) < 0.7 ? 'is-active' : ''}`}
-      aria-hidden={Math.abs(t) >= 0.9}
-      style={`opacity: ${style.opacity}; transform: ${style.transform}; pointer-events: ${Math.abs(t) < 0.82 ? 'auto' : 'none'}; z-index: ${Math.abs(t) < 0.9 ? 2 : 1};`}
+      class={`slide redesign-slide theme-${slide.accent} ${index === 0 ? (bridgeEntry > 0.35 ? 'is-active' : '') : Math.abs(t) < 0.7 ? 'is-active' : ''}`}
+      aria-hidden={index === 0 ? bridgeEntry < 0.35 : Math.abs(t) >= 0.9}
+      style={`opacity: ${style.opacity}; transform: ${style.transform}; pointer-events: ${index === 0 ? (bridgeEntry > 0.35 ? 'auto' : 'none') : Math.abs(t) < 0.82 ? 'auto' : 'none'}; z-index: ${index === 0 ? 3 : Math.abs(t) < 0.9 ? 2 : 1};`}
     >
       <div class="slide-frame">
         <div class="slide-topline">

@@ -15,9 +15,9 @@
   let activePhase = $derived(Math.min(9, Math.floor(currentScrollRatio * 10)));
   
   // ===== SAÍDA INDIVIDUAL DO SLIDE 1 =====
-  // Cada grupo sai para sua própria direção de forma coordenada, terminando antes do Slide 2.
+  // Cada grupo sai para sua própria direção de forma coordenada, com crossfade para o Slide 2.
   const EXIT_START = 0.05;
-  const EXIT_END = 0.096;
+  const EXIT_END = 0.125;
   const clamp01 = (x) => Math.max(0, Math.min(1, x));
   let exitG = $derived(Math.max(0, Math.min(1, (currentScrollRatio - EXIT_START) / (EXIT_END - EXIT_START))));
   
@@ -32,16 +32,16 @@
   // Mapeamento linear do scroll para a timeline do Lottie (Slide 1):
   // 0.00 a 0.04: Entrada suave completa de todos os elementos (frame 0 a 270) copiada do Lottie
   // 0.04 a 0.05: Pausa / leitura com slide 1 totalmente montado e estático (frame 270)
-  // 0.05 a 0.096: Saída individual, sincronizada e elegante de cada grupo (frame 270 a 360)
-  // >= 0.096: Slide 1 100% invisível (opacidade 0), pronto para o Slide 2 entrar no ratio 0.10
+  // 0.05 a 0.125: Saída individual, sincronizada e elegante de cada grupo (frame 270 a 360)
+  // >= 0.125: Slide 1 100% invisível
   function mapScrollToFrame(s) {
     if (s < 0.04) {
       const t = s / 0.04;
       return t * 270;
     } else if (s <= 0.05) {
       return 270;
-    } else if (s <= 0.096) {
-      const t = (s - 0.05) / (0.096 - 0.05);
+    } else if (s <= 0.125) {
+      const t = (s - 0.05) / (0.125 - 0.05);
       return 270 + (t * (360 - 270));
     } else {
       return 400;
@@ -491,7 +491,7 @@
 
       
       <!-- ENFEITES DO SLIDE 1 (flat, lúdicos) — cada um com entrada, flutuação e saída própria -->
-      <div class="s1-ornaments" style="opacity: {currentScrollRatio >= 0.096 ? 0 : 1};
+      <div class="s1-ornaments" style="opacity: {1 - clamp01((currentScrollRatio - EXIT_START) / (EXIT_END - EXIT_START))};
           --exit-g: {exitG}; pointer-events: none;">
         <div class="orn glow glow-1" style="transform: translate(-50%, -50%) scale({1 + exitG * 0.9}); opacity: {1 - exitG};"></div>
         <div class="orn glow glow-2" style="transform: translate(30%, 30%) scale({1 - exitG * 0.6}); opacity: {1 - exitG};"></div>
@@ -540,9 +540,9 @@
         class="lottie-wrapper"
         style="
           position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-          opacity: {currentScrollRatio >= 0.096 ? 0 : 1};
+          opacity: {1 - clamp01((currentScrollRatio - EXIT_START) / (EXIT_END - EXIT_START))};
           --exit-g: {exitG};
-          pointer-events: {currentScrollRatio < 0.096 ? 'auto' : 'none'};
+          pointer-events: {currentScrollRatio < EXIT_END ? 'auto' : 'none'};
         "
       >
         <div 
@@ -558,7 +558,7 @@
         style="
           opacity: {currentFrame < 25 ? 0 : 1 - clamp01(exitG * 1.35)};
           transform: translate(-50%, {-exitG * 80}px);
-          display: {currentScrollRatio >= 0.096 ? 'none' : 'block'};
+          display: {currentScrollRatio >= EXIT_END ? 'none' : 'block'};
         "
       >
         <h1 class="slide1-hero-title">
