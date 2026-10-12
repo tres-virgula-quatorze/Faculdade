@@ -8,6 +8,9 @@
   let isLoading = $state(true);
   let hasError = $state(false);
   let isMobile = $state(false);
+  let presentationMode = $state(false);
+  let presentationIndex = $state(0);
+  const presentationRatios = [0.04, 0.14, 0.24, 0.34, 0.44, 0.54, 0.64, 0.74, 0.84, 0.94];
 
   // Progresso do scroll com interpolação suave (lerp)
   let targetScrollRatio = $state(0);
@@ -27,6 +30,24 @@
     const maxScroll = scrollTrackRef.scrollHeight - window.innerHeight;
     const targetY = window.scrollY + rect.top + (phaseIndex / 10) * maxScroll + 5; 
     window.scrollTo({ top: targetY, behavior: 'smooth' });
+  }
+
+  function setPresentationSlide(nextIndex) {
+    presentationIndex = Math.max(0, Math.min(9, nextIndex));
+    targetScrollRatio = presentationRatios[presentationIndex];
+  }
+
+  function togglePresentationMode() {
+    if (!presentationMode) {
+      presentationIndex = Math.max(0, Math.min(9, Math.floor(currentScrollRatio * 10)));
+      presentationMode = true;
+      targetScrollRatio = presentationRatios[presentationIndex];
+      document.body.style.overflow = 'hidden';
+    } else {
+      presentationMode = false;
+      targetScrollRatio = currentScrollRatio;
+      document.body.style.overflow = '';
+    }
   }
 
   // Mapeamento linear do scroll para a timeline do Lottie (Slide 1):
@@ -403,6 +424,7 @@
 
     const handleScroll = () => {
       if (!scrollTrackRef) return;
+      if (presentationMode) return;
       if (isMobile) {
         targetScrollRatio = 0;
         return;
@@ -428,6 +450,20 @@
       }, 200);
     };
 
+    const handlePresentationKey = (event) => {
+      if (!presentationMode || isMobile) return;
+      if (event.code === 'Space') {
+        event.preventDefault();
+        setPresentationSlide(presentationIndex + (event.shiftKey ? -1 : 1));
+      } else if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+        event.preventDefault();
+        setPresentationSlide(presentationIndex + 1);
+      } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        setPresentationSlide(presentationIndex - 1);
+      }
+    };
+
     let lastRenderedFrame = -1;
     const tick = () => {
       const diff = targetScrollRatio - currentScrollRatio;
@@ -450,6 +486,7 @@
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', handleResize, { passive: true });
+    window.addEventListener('keydown', handlePresentationKey);
     handleScroll();
     rafId = requestAnimationFrame(tick);
 
@@ -458,7 +495,9 @@
       clearTimeout(resizeTimer);
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('keydown', handlePresentationKey);
       mobileQuery.removeEventListener?.('change', updateMobileMode);
+      document.body.style.overflow = '';
       if (rafId) cancelAnimationFrame(rafId);
       if (anim) {
         anim.destroy();
@@ -476,6 +515,13 @@
 
     <!-- Palco Principal: Animação original do JSON em tela cheia verde -->
     <div class="stage-container">
+      <button class:active={presentationMode} class="presentation-toggle" type="button" onclick={togglePresentationMode} aria-pressed={presentationMode}>
+        <span class="presentation-dot"></span>
+        {presentationMode ? 'Sair do modo apresentação' : 'Modo apresentação'}
+      </button>
+      {#if presentationMode}
+        <div class="presentation-hint">Espaço avança · Shift + Espaço volta</div>
+      {/if}
       {#if isLoading}
         <div class="loading-state">
           <div class="spinner"></div>
@@ -640,6 +686,31 @@
     box-sizing: border-box;
     overflow: hidden;
   }
+
+  .presentation-toggle {
+    position: absolute;
+    top: 1.35rem;
+    right: 1.5rem;
+    z-index: 1200;
+    display: inline-flex;
+    align-items: center;
+    gap: .55rem;
+    padding: .65rem .85rem;
+    border: 1px solid rgba(255,255,255,.35);
+    border-radius: 999px;
+    background: rgba(7,55,38,.3);
+    color: rgba(255,255,255,.85);
+    box-shadow: none;
+    font: inherit;
+    font-size: .68rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    backdrop-filter: blur(12px);
+    cursor: pointer;
+  }
+  .presentation-toggle:hover,.presentation-toggle.active { background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.7); }
+  .presentation-dot { width: .48rem; height: .48rem; border-radius: 50%; background: #d7a95c; box-shadow: 0 0 0 4px rgba(215,169,92,.16); }
+  .presentation-hint { position: absolute; top: 4.3rem; right: 1.6rem; z-index: 1200; color: rgba(255,255,255,.64); font-size: .64rem; letter-spacing: .06em; }
 
   .lottie-fullscreen {
     position: relative;
@@ -898,6 +969,11 @@
 
 
   @media (max-width: 820px) {
+    .presentation-toggle,
+    .presentation-hint {
+      display: none;
+    }
+
     .sticky-viewport {
       min-height: 100dvh;
     }
