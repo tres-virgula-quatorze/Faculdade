@@ -129,8 +129,8 @@
 
   function timelineStyle(index, activeIndex) {
     if (index === activeIndex) return { opacity: 1, transform: 'none', clipPath: 'none' };
-    if (index === activeIndex + 1) return { opacity: 0.18, transform: 'translateY(18px) scale(.985)', clipPath: 'none' };
-    if (index === activeIndex - 1) return { opacity: 0.12, transform: 'translateY(-14px) scale(.985)', clipPath: 'none' };
+    if (index === activeIndex + 1) return { opacity: 0, transform: 'translateY(18px) scale(.985)', clipPath: 'none' };
+    if (index === activeIndex - 1) return { opacity: 0, transform: 'translateY(-14px) scale(.985)', clipPath: 'none' };
     return { opacity: 0, transform: 'none', clipPath: 'none' };
   }
 
@@ -260,7 +260,7 @@
 
 <style>
   .slides-wrap { position:absolute; inset:0; z-index:10; pointer-events:none; color:#17362d; }
-  .slide { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:clamp(3.5rem,8vh,6rem) clamp(1.25rem,7vw,7.5rem); overflow:hidden; transition:opacity .45s ease; }
+  .slide { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:clamp(3.5rem,8vh,6rem) clamp(1.25rem,7vw,7.5rem); overflow:hidden; }
   .slide::before { content:''; position:absolute; inset:0; background:radial-gradient(circle at 88% 18%, rgba(255,255,255,.7), transparent 32%), linear-gradient(135deg, rgba(255,255,255,.42), transparent 55%); pointer-events:none; }
   .theme-green { background:#0d5b3e; color:#f8f6ed; }
   .theme-light { background:#f2f1e9; color:#17362d; }
