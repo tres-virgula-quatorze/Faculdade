@@ -127,6 +127,13 @@
     return { opacity, transform: 'none', clipPath: 'none' };
   }
 
+  function timelineStyle(index, activeIndex) {
+    if (index === activeIndex) return { opacity: 1, transform: 'none', clipPath: 'none' };
+    if (index === activeIndex + 1) return { opacity: 0.18, transform: 'translateY(18px) scale(.985)', clipPath: 'none' };
+    if (index === activeIndex - 1) return { opacity: 0.12, transform: 'translateY(-14px) scale(.985)', clipPath: 'none' };
+    return { opacity: 0, transform: 'none', clipPath: 'none' };
+  }
+
   function goTo(index) {
     if (mobile) {
       if (index <= 0) {
@@ -145,12 +152,14 @@
     {@const t = getT(index)}
     {@const bridgeEntry = index === 0 ? Math.max(0, Math.min(1, (currentRatio - 0.075) / 0.025)) : 0}
     {@const firstSlideOpacity = currentRatio < 0.125 ? bridgeEntry : 0}
-    {@const style = mobile ? { opacity: 1, transform: 'none', clipPath: 'none' } : index === 0 ? { opacity: firstSlideOpacity, transform: 'none', clipPath: 'none' } : creativeStyle(index, t)}
+    {@const activeIndex = Math.min(phases.length - 1, Math.max(0, Math.floor(currentRatio * 10) - 1))}
+    {@const timelineActive = index === activeIndex}
+    {@const style = mobile ? { opacity: 1, transform: 'none', clipPath: 'none' } : index === 0 && currentRatio < 0.125 ? { opacity: firstSlideOpacity, transform: 'none', clipPath: 'none' } : timelineStyle(index, activeIndex)}
     <section
       id={`slide-${index + 2}`}
-      class={`slide redesign-slide theme-${slide.accent} motion-${index % 3} ${mobile ? 'mobile-slide' : ''} ${index === 0 ? (firstSlideOpacity > 0.35 ? 'is-active' : '') : Math.abs(t) < 0.7 ? 'is-active' : ''}`}
-      aria-hidden={index === 0 ? firstSlideOpacity < 0.35 : Math.abs(t) >= 0.9}
-      style={`opacity: ${style.opacity}; transform: ${style.transform}; clip-path: ${style.clipPath}; pointer-events: ${index === 0 ? (firstSlideOpacity > 0.35 ? 'auto' : 'none') : Math.abs(t) < 0.82 ? 'auto' : 'none'}; z-index: ${index === 0 ? (firstSlideOpacity > 0 ? 3 : 1) : Math.abs(t) < 0.9 ? 2 : 1};`}
+      class={`slide redesign-slide theme-${slide.accent} motion-${index % 3} ${mobile ? 'mobile-slide' : ''} ${index === 0 && currentRatio < 0.125 ? (firstSlideOpacity > 0.35 ? 'is-active' : '') : timelineActive ? 'is-active' : ''}`}
+      aria-hidden={style.opacity < 0.35}
+      style={`opacity: ${style.opacity}; transform: ${style.transform}; clip-path: ${style.clipPath}; pointer-events: ${timelineActive || (index === 0 && firstSlideOpacity > 0.35) ? 'auto' : 'none'}; z-index: ${timelineActive ? 2 : index === 0 && firstSlideOpacity > 0 ? 3 : 1};`}
     >
       <div class="slide-frame">
         <div class="slide-topline">
