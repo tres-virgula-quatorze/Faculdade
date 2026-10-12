@@ -144,12 +144,13 @@
   {#each phases as slide, index}
     {@const t = getT(index)}
     {@const bridgeEntry = index === 0 ? Math.max(0, Math.min(1, (currentRatio - 0.075) / 0.025)) : 0}
-    {@const style = mobile ? { opacity: 1, transform: 'none', clipPath: 'none' } : index === 0 ? { opacity: bridgeEntry, transform: 'none', clipPath: 'none' } : creativeStyle(index, t)}
+    {@const firstSlideOpacity = currentRatio < 0.125 ? bridgeEntry : 0}
+    {@const style = mobile ? { opacity: 1, transform: 'none', clipPath: 'none' } : index === 0 ? { opacity: firstSlideOpacity, transform: 'none', clipPath: 'none' } : creativeStyle(index, t)}
     <section
       id={`slide-${index + 2}`}
-      class={`slide redesign-slide theme-${slide.accent} motion-${index % 3} ${mobile ? 'mobile-slide' : ''} ${index === 0 ? (bridgeEntry > 0.35 ? 'is-active' : '') : Math.abs(t) < 0.7 ? 'is-active' : ''}`}
-      aria-hidden={index === 0 ? bridgeEntry < 0.35 : Math.abs(t) >= 0.9}
-      style={`opacity: ${style.opacity}; transform: ${style.transform}; clip-path: ${style.clipPath}; pointer-events: ${index === 0 ? (bridgeEntry > 0.35 ? 'auto' : 'none') : Math.abs(t) < 0.82 ? 'auto' : 'none'}; z-index: ${index === 0 ? 3 : Math.abs(t) < 0.9 ? 2 : 1};`}
+      class={`slide redesign-slide theme-${slide.accent} motion-${index % 3} ${mobile ? 'mobile-slide' : ''} ${index === 0 ? (firstSlideOpacity > 0.35 ? 'is-active' : '') : Math.abs(t) < 0.7 ? 'is-active' : ''}`}
+      aria-hidden={index === 0 ? firstSlideOpacity < 0.35 : Math.abs(t) >= 0.9}
+      style={`opacity: ${style.opacity}; transform: ${style.transform}; clip-path: ${style.clipPath}; pointer-events: ${index === 0 ? (firstSlideOpacity > 0.35 ? 'auto' : 'none') : Math.abs(t) < 0.82 ? 'auto' : 'none'}; z-index: ${index === 0 ? (firstSlideOpacity > 0 ? 3 : 1) : Math.abs(t) < 0.9 ? 2 : 1};`}
     >
       <div class="slide-frame">
         <div class="slide-topline">
