@@ -28,7 +28,8 @@
     if (!scrollTrackRef) return;
     const rect = scrollTrackRef.getBoundingClientRect();
     const maxScroll = scrollTrackRef.scrollHeight - window.innerHeight;
-    const targetY = window.scrollY + rect.top + (phaseIndex / 10) * maxScroll + 5; 
+    const ratio = presentationRatios[phaseIndex] ?? (phaseIndex / 10);
+    const targetY = window.scrollY + rect.top + ratio * maxScroll;
     window.scrollTo({ top: targetY, behavior: 'smooth' });
   }
 
@@ -39,14 +40,23 @@
 
   function togglePresentationMode() {
     if (!presentationMode) {
-      presentationIndex = Math.max(0, Math.min(9, Math.floor(currentScrollRatio * 10)));
+      let closestIdx = 0;
+      let minDiff = 999;
+      presentationRatios.forEach((r, idx) => {
+        const diff = Math.abs(currentScrollRatio - r);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closestIdx = idx;
+        }
+      });
+      presentationIndex = closestIdx;
       presentationMode = true;
       targetScrollRatio = presentationRatios[presentationIndex];
       document.body.style.overflow = 'hidden';
     } else {
       presentationMode = false;
-      targetScrollRatio = currentScrollRatio;
       document.body.style.overflow = '';
+      scrollToPhase(presentationIndex);
     }
   }
 
@@ -520,7 +530,7 @@
         {presentationMode ? 'Sair do modo apresentação' : 'Modo apresentação'}
       </button>
       {#if presentationMode}
-        <div class="presentation-hint">Espaço avança · Shift + Espaço volta</div>
+        <div class="presentation-hint">Espaço / Setas avança · Shift + Espaço / Setas volta</div>
       {/if}
       {#if isLoading}
         <div class="loading-state">
@@ -538,7 +548,7 @@
       
       <!-- ENFEITES DO SLIDE 1 (flat, lúdicos) — cada um com entrada, flutuação e saída própria -->
       <div class="s1-ornaments" style="opacity: {1 - clamp01((currentScrollRatio - EXIT_START) / (EXIT_END - EXIT_START))};
-          --exit-g: {exitG}; pointer-events: none;">
+          --exit-g: {exitG}; pointer-events: none; display: {currentScrollRatio >= EXIT_END ? 'none' : 'block'};">
         <div class="orn glow glow-1" style="transform: translate(-50%, -50%) scale({1 + exitG * 0.9}); opacity: {1 - exitG};"></div>
         <div class="orn glow glow-2" style="transform: translate(30%, 30%) scale({1 - exitG * 0.6}); opacity: {1 - exitG};"></div>
 
@@ -589,6 +599,7 @@
           opacity: {1 - clamp01((currentScrollRatio - EXIT_START) / (EXIT_END - EXIT_START))};
           --exit-g: {exitG};
           pointer-events: {currentScrollRatio < EXIT_END ? 'auto' : 'none'};
+          display: {currentScrollRatio >= EXIT_END ? 'none' : 'block'};
         "
       >
         <div 
@@ -712,9 +723,16 @@
   .presentation-dot { width: .48rem; height: .48rem; border-radius: 50%; background: #d7a95c; box-shadow: 0 0 0 4px rgba(215,169,92,.16); }
   .presentation-hint { position: absolute; top: 4.3rem; right: 1.6rem; z-index: 1200; color: rgba(255,255,255,.64); font-size: .64rem; letter-spacing: .06em; }
 
+  .lottie-wrapper {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+  }
+
   .lottie-fullscreen {
     position: relative;
-    z-index: 1;
+    z-index: 3;
     width: 100%;
     height: 100%;
     max-width: 100%;
@@ -740,8 +758,6 @@
     display: block !important;
   }
 
-  
-
   /* Título Slide 1 em Capslock (Tamanho Reduzido e Elegante) */
   .slide1-hero-title-box {
     position: absolute;
@@ -751,7 +767,7 @@
     width: 90%;
     max-width: 920px;
     text-align: center;
-    z-index: 10;
+    z-index: 4;
     pointer-events: none;
   }
 
@@ -792,7 +808,7 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    z-index: 0;
+    z-index: 2;
     overflow: hidden;
   }
   .orn { position: absolute; will-change: transform, opacity; }
@@ -881,94 +897,7 @@
     to { transform: rotate(360deg); }
   }
 
-  /* Seção de Detalhes Subsequente */
-  .about-details-section {
-    padding: 6rem 0;
-    background: #ffffff;
-    position: relative;
-    border-top: 1px solid rgba(22, 128, 58, 0.12);
-    z-index: 11;
-  }
-
-  .section-header {
-    text-align: center;
-    max-width: 680px;
-    margin: 0 auto 3.5rem;
-  }
-
-  .section-badge {
-    display: inline-block;
-    color: var(--color-primary);
-    font-weight: 700;
-    font-size: 0.88rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 0.6rem;
-  }
-
-  .section-title {
-    font-size: clamp(2rem, 3.5vw, 2.6rem);
-    font-weight: 800;
-    color: var(--color-text);
-    margin-bottom: 0.85rem;
-    letter-spacing: -0.02em;
-  }
-
-  .section-subtitle {
-    font-size: 1.05rem;
-    color: var(--color-text-muted);
-    line-height: 1.6;
-  }
-
-  .about-highlights {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.75rem;
-  }
-
-  .highlight-card {
-    background: var(--color-bg);
-    border: 1px solid rgba(22, 128, 58, 0.18);
-    border-radius: var(--radius-md);
-    padding: 1.85rem 1.6rem;
-    transition: all 0.25s ease;
-  }
-
-  .highlight-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
-    background: #edf8f1;
-  }
-
-  .highlight-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    background: var(--color-white);
-    color: var(--color-primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 1.1rem;
-    box-shadow: var(--shadow-sm);
-  }
-
-  .highlight-title {
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: var(--color-text);
-    margin-bottom: 0.5rem;
-  }
-
-  .highlight-desc {
-    font-size: 0.94rem;
-    color: var(--color-text-muted);
-    line-height: 1.6;
-  }
-
-
-
-  @media (max-width: 820px) {
+  @media (max-width: 900px) {
     .presentation-toggle,
     .presentation-hint {
       display: none;
@@ -1032,11 +961,6 @@
 
     .lottie-fullscreen :global(svg) {
       transform: translateY(2.5vh);
-    }
-
-    .about-highlights {
-      grid-template-columns: 1fr;
-      gap: 1.25rem;
     }
 
     .scroll-showcase-section {
