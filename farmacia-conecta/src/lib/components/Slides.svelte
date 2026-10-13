@@ -140,6 +140,11 @@
     };
   }
 
+  function backdropStyle(t) {
+    const distance = Math.abs(t);
+    return { opacity: Math.max(0, Math.min(1, 1 - Math.max(0, distance - 0.25) * 0.9)) };
+  }
+
   function goTo(index) {
     if (mobile) {
       if (index <= 0) {
@@ -159,15 +164,17 @@
     {@const bridgeEntry = index === 0 ? Math.max(0, Math.min(1, (currentRatio - 0.075) / 0.025)) : 0}
     {@const firstSlideOpacity = currentRatio < 0.125 ? bridgeEntry : 0}
     {@const style = mobile ? { opacity: 1, transform: 'none', clipPath: 'none' } : index === 0 && currentRatio < 0.125 ? { opacity: firstSlideOpacity, transform: 'none', clipPath: 'none' } : scrollStyle(index, t)}
+    {@const backdrop = mobile ? { opacity: 1 } : backdropStyle(t)}
     {@const visible = style.opacity > 0.02}
     {@const active = style.opacity > 0.45}
     <section
       id={`slide-${index + 2}`}
       class={`slide redesign-slide theme-${slide.accent} motion-${index % 3} ${mobile ? 'mobile-slide' : ''} ${active || (index === 0 && currentRatio < 0.125 && firstSlideOpacity > 0.35) ? 'is-active' : ''}`}
       aria-hidden={style.opacity < 0.35}
-      style={`opacity: ${style.opacity}; transform: ${style.transform}; clip-path: ${style.clipPath}; pointer-events: ${visible ? 'auto' : 'none'}; z-index: ${active ? 2 : index === 0 && firstSlideOpacity > 0 ? 3 : 1};`}
+      style={`opacity: 1; pointer-events: ${visible ? 'auto' : 'none'}; z-index: ${active ? 2 : index === 0 && firstSlideOpacity > 0 ? 3 : 1};`}
     >
-      <div class="slide-frame">
+      <div class={`slide-backdrop theme-${slide.accent}`} style={`opacity: ${backdrop.opacity};`} aria-hidden="true"></div>
+      <div class="slide-frame" style={`opacity: ${style.opacity}; transform: ${style.transform}; clip-path: ${style.clipPath};`}>
         <div class="slide-topline">
           <span class="slide-eyebrow">{slide.eyebrow}</span>
           <span class="slide-index">{String(index + 2).padStart(2, '0')} / 10</span>
@@ -267,11 +274,16 @@
 <style>
   .slides-wrap { position:absolute; inset:0; z-index:10; pointer-events:none; color:#17362d; }
   .slide { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:clamp(3.5rem,8vh,6rem) clamp(1.25rem,7vw,7.5rem); overflow:hidden; }
-  .slide::before { content:''; position:absolute; inset:0; background:radial-gradient(circle at 88% 18%, rgba(255,255,255,.7), transparent 32%), linear-gradient(135deg, rgba(255,255,255,.42), transparent 55%); pointer-events:none; }
-  .theme-green { background:#0d5b3e; color:#f8f6ed; }
-  .theme-light { background:#f2f1e9; color:#17362d; }
-  .theme-red { background:#f6eeea; color:#2f2523; }
-  .slide-frame { position:relative; width:min(1120px,100%); min-height:min(680px,86vh); display:flex; flex-direction:column; justify-content:space-between; gap:2rem; }
+  .slide { color:#17362d; }
+  .slide-backdrop { position:absolute; inset:0; z-index:0; overflow:hidden; }
+  .slide-backdrop::before { content:''; position:absolute; inset:0; background:radial-gradient(circle at 88% 18%, rgba(255,255,255,.7), transparent 32%), linear-gradient(135deg, rgba(255,255,255,.42), transparent 55%); pointer-events:none; }
+  .theme-green { color:#f8f6ed; }
+  .theme-light { color:#17362d; }
+  .theme-red { color:#2f2523; }
+  .slide-backdrop.theme-green { background:#0d5b3e; }
+  .slide-backdrop.theme-light { background:#f2f1e9; }
+  .slide-backdrop.theme-red { background:#f6eeea; }
+  .slide-frame { position:relative; z-index:1; width:min(1120px,100%); min-height:min(680px,86vh); display:flex; flex-direction:column; justify-content:space-between; gap:2rem; }
   .slide-topline,.slide-footer { display:flex; justify-content:space-between; align-items:center; gap:1rem; font-size:.7rem; letter-spacing:.12em; text-transform:uppercase; }
   .slide-topline { border-bottom:1px solid currentColor; padding-bottom:1rem; opacity:.72; }
   .slide-index { font-variant-numeric:tabular-nums; }
