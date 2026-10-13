@@ -127,11 +127,17 @@
     return { opacity, transform: 'none', clipPath: 'none' };
   }
 
-  function timelineStyle(index, activeIndex) {
-    if (index === activeIndex) return { opacity: 1, transform: 'none', clipPath: 'none' };
-    if (index === activeIndex + 1) return { opacity: 0, transform: 'translateY(18px) scale(.985)', clipPath: 'none' };
-    if (index === activeIndex - 1) return { opacity: 0, transform: 'translateY(-14px) scale(.985)', clipPath: 'none' };
-    return { opacity: 0, transform: 'none', clipPath: 'none' };
+  function scrollStyle(index, t) {
+    // No desktop, cada slide acompanha continuamente o scroll, como a abertura:
+    // o anterior sai enquanto o seguinte entra, sem trocar por saltos discretos.
+    const distance = Math.abs(t);
+    const opacity = Math.max(0, Math.min(1, 1 - Math.max(0, distance - 0.18) * 0.65));
+    const amount = Math.max(-1, Math.min(1, t));
+    return {
+      opacity,
+      transform: `translate3d(0, ${amount * 34}px, 0) scale(${1 - Math.min(.018, distance * .018)})`,
+      clipPath: 'none'
+    };
   }
 
   function goTo(index) {
@@ -152,14 +158,14 @@
     {@const t = getT(index)}
     {@const bridgeEntry = index === 0 ? Math.max(0, Math.min(1, (currentRatio - 0.075) / 0.025)) : 0}
     {@const firstSlideOpacity = currentRatio < 0.125 ? bridgeEntry : 0}
-    {@const activeIndex = Math.min(phases.length - 1, Math.max(0, Math.floor(currentRatio * 10) - 1))}
-    {@const timelineActive = index === activeIndex}
-    {@const style = mobile ? { opacity: 1, transform: 'none', clipPath: 'none' } : index === 0 && currentRatio < 0.125 ? { opacity: firstSlideOpacity, transform: 'none', clipPath: 'none' } : timelineStyle(index, activeIndex)}
+    {@const style = mobile ? { opacity: 1, transform: 'none', clipPath: 'none' } : index === 0 && currentRatio < 0.125 ? { opacity: firstSlideOpacity, transform: 'none', clipPath: 'none' } : scrollStyle(index, t)}
+    {@const visible = style.opacity > 0.02}
+    {@const active = style.opacity > 0.45}
     <section
       id={`slide-${index + 2}`}
-      class={`slide redesign-slide theme-${slide.accent} motion-${index % 3} ${mobile ? 'mobile-slide' : ''} ${index === 0 && currentRatio < 0.125 ? (firstSlideOpacity > 0.35 ? 'is-active' : '') : timelineActive ? 'is-active' : ''}`}
+      class={`slide redesign-slide theme-${slide.accent} motion-${index % 3} ${mobile ? 'mobile-slide' : ''} ${active || (index === 0 && currentRatio < 0.125 && firstSlideOpacity > 0.35) ? 'is-active' : ''}`}
       aria-hidden={style.opacity < 0.35}
-      style={`opacity: ${style.opacity}; transform: ${style.transform}; clip-path: ${style.clipPath}; pointer-events: ${timelineActive || (index === 0 && firstSlideOpacity > 0.35) ? 'auto' : 'none'}; z-index: ${timelineActive ? 2 : index === 0 && firstSlideOpacity > 0 ? 3 : 1};`}
+      style={`opacity: ${style.opacity}; transform: ${style.transform}; clip-path: ${style.clipPath}; pointer-events: ${visible ? 'auto' : 'none'}; z-index: ${active ? 2 : index === 0 && firstSlideOpacity > 0 ? 3 : 1};`}
     >
       <div class="slide-frame">
         <div class="slide-topline">
