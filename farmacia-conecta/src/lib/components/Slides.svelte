@@ -7,106 +7,125 @@
 
   const phases = [
     {
-      eyebrow: '02 · Conceito-chave',
+      eyebrow: '02 · Conceito-Chave',
+      badge: 'CLÍNICA vs. COMÉRCIO',
       title: 'Telefarmácia não é venda online.',
-      lead: 'É exercício clínico mediado por tecnologia — com escuta, registro e responsabilidade profissional.',
+      lead: 'É exercício clínico mediado por tecnologia — com escuta atenta, registro sistemático e responsabilidade técnica indelegável.',
       accent: 'green',
       family: 0,
-      points: [
-        ['Exercício clínico', 'Avaliar, orientar e acompanhar o paciente com método.'],
-        ['Mero comércio', 'Comprar e vender medicamentos sem cuidado clínico não caracteriza telefarmácia.']
+      divergence: {
+        tag: 'Mero Comércio',
+        desc: 'Comprar e vender medicamentos por aplicativo sem raciocínio nem cuidado clínico não caracteriza telefarmácia.'
+      },
+      pillars: [
+        ['Escuta Ativa', 'Acolher a queixa, histórico e contexto real do paciente.'],
+        ['Registro em Prontuário', 'Documentar condutas, orientações e parâmetros clínicos.'],
+        ['Responsabilidade Técnica', 'Ato privativo do profissional com método e ética.']
       ]
     },
     {
       eyebrow: '03 · Modalidades',
+      badge: 'ECOSSISTEMA DE CUIDADO',
       title: 'Quatro formas de levar o cuidado mais longe.',
-      lead: 'A tecnologia amplia o acesso sem substituir o raciocínio clínico do farmacêutico.',
+      lead: 'A tecnologia amplia o acesso geográfico sem substituir a soberania do raciocínio clínico farmacêutico.',
       accent: 'light',
       family: 1,
-      points: [
-        ['Teleconsulta', 'Atendimento direto e em tempo real para avaliação e orientação.'],
-        ['Teleinterconsulta', 'Discussão de caso entre profissionais da equipe de saúde.'],
-        ['Telemonitoramento', 'Acompanhamento de parâmetros, reações e adesão.'],
-        ['Teleorientação', 'Aconselhamento, triagem e encaminhamento responsável.']
+      modalities: [
+        { code: '01', name: 'Teleconsulta', desc: 'Atendimento síncrono direto para avaliação, conciliação e plano de cuidado.' },
+        { code: '02', name: 'Teleinterconsulta', desc: 'Discussão clínica estruturada entre o farmacêutico e outros membros da equipe.' },
+        { code: '03', name: 'Telemonitoramento', desc: 'Acompanhamento longitudinal de parâmetros, adesão e reações adversas.' },
+        { code: '04', name: 'Teleorientação', desc: 'Triagem ética, aconselhamento pontual e direcionamento responsável.' }
       ]
     },
     {
-      eyebrow: '04 · Arcabouço legal',
+      eyebrow: '04 · Arcabouço Legal',
+      badge: 'SEGURANÇA JURÍDICA',
       title: 'Inovação também precisa de limite.',
-      lead: 'O cuidado digital só é seguro quando respeita as normas que protegem paciente, profissional e serviço.',
+      lead: 'O cuidado digital só é sustentável quando respeita os marcos normativos que protegem o paciente, o profissional e o serviço.',
       accent: 'light',
       family: 2,
       laws: [
-        ['Lei Federal nº 14.510/2022', 'Disciplina a telessaúde no Brasil, incluindo o SUS.'],
-        ['Resolução CFF nº 10/2024', 'Regulamenta tecnologias, Saúde Digital e Inteligência Artificial na prática farmacêutica.']
+        { num: 'Lei Federal nº 14.510/2022', desc: 'Disciplina e autoriza a telessaúde em todo o território nacional, incluindo as diretrizes do SUS.' },
+        { num: 'Resolução CFF nº 10/2024', desc: 'Regulamenta o uso de tecnologias, Saúde Digital e Inteligência Artificial na prática farmacêutica.' }
       ],
-      warning: 'A responsabilidade técnica de farmácias não pode ser assumida de forma remota. A presença física do RT é obrigatória.'
+      warning: 'A responsabilidade técnica de estabelecimentos farmacêuticos não pode ser assumida de forma remota. A presença física do RT é mandatória por lei.'
     },
     {
-      eyebrow: '05 · Segurança da informação',
+      eyebrow: '05 · Segurança da Informação',
+      badge: 'LGPD & PRONTUÁRIO',
       title: 'O prontuário é parte do cuidado.',
-      lead: 'Privacidade não é detalhe operacional: é requisito clínico, ético e legal.',
+      lead: 'Privacidade não é detalhe burocrático: é requisito clínico, ético e legal que fundamenta o sigilo profissional.',
       accent: 'light',
       family: 3,
-      points: [
-        ['LGPD', 'Dados de saúde são dados pessoais sensíveis e exigem proteção reforçada.'],
-        ['Registro clínico', 'Todo atendimento deve ser documentado em prontuário seguro.'],
-        ['Assinatura digital', 'Prescrições precisam de certificação ICP-Brasil quando aplicável.']
+      securityPoints: [
+        { code: 'LGPD', title: 'Dados Sensíveis', desc: 'Informações de saúde exigem bases legais estritas e proteção reforçada.' },
+        { code: 'PEP', title: 'Registro Seguro', desc: 'Todo atendimento deve ser registrado com rastreabilidade e integridade.' },
+        { code: 'ICP', title: 'Assinatura Digital', desc: 'Prescrições e declarações exigem certificados digitais válidos ICP-Brasil.' }
       ],
       visual: 'shield'
     },
     {
-      eyebrow: '06 · Nosso protótipo',
+      eyebrow: '06 · Nosso Protótipo',
+      badge: 'JORNADA DO PACIENTE',
       title: 'Uma jornada simples para uma decisão segura.',
-      lead: 'O site organiza o primeiro contato e direciona cada pessoa para o próximo passo.',
+      lead: 'O fluxo organiza a chegada do paciente e direciona cada necessidade para o nível adequado de atenção à saúde.',
       accent: 'light',
       family: 0,
       steps: [
-        ['01', 'Acolhimento', 'Linguagem clara e humanizada.'],
-        ['02', 'Triagem', 'Identificação da necessidade principal.'],
-        ['03', 'Consentimento', 'Transparência, sigilo e LGPD.'],
-        ['04', 'Direcionamento', 'Teleconsulta ou encaminhamento presencial.']
+        { step: '01', title: 'Acolhimento', desc: 'Linguagem clara, humanizada e empática.' },
+        { step: '02', title: 'Triagem', desc: 'Identificação da necessidade principal e gravidade.' },
+        { step: '03', title: 'Consentimento', desc: 'Transparência, esclarecimento e aceite LGPD.' },
+        { step: '04', title: 'Direcionamento', desc: 'Teleconsulta clínica ou encaminhamento presencial.' }
       ]
     },
     {
-      eyebrow: '07 · Prática clínica',
+      eyebrow: '07 · Prática Clínica',
+      badge: 'TELECONSULTA AO VIVO',
       title: 'Tecnologia para acompanhar — não para automatizar o cuidado.',
-      lead: 'Na teleconsulta, o farmacêutico transforma informação em decisão compartilhada.',
+      lead: 'No encontro virtual, o farmacêutico transforma informações esparsas em decisões clínicas compartilhadas.',
       accent: 'light',
       family: 1,
-      points: [
-        ['Conciliação terapêutica', 'Conferência visual das caixas para evitar duplicidades.'],
-        ['Adesão ao tratamento', 'Investigação de esquecimentos, rotina e efeitos colaterais.'],
-        ['Educação em saúde', 'Orientação sobre armazenamento e horários de tomada.']
+      practicePoints: [
+        { num: '01', title: 'Conciliação Terapêutica', desc: 'Conferência visual das embalagens para evitar duplicidades e interações.' },
+        { num: '02', title: 'Adesão ao Tratamento', desc: 'Investigação profunda de esquecimentos, rotinas e manejo de efeitos adversos.' },
+        { num: '03', title: 'Educação em Saúde', desc: 'Orientações práticas de descarte, horários ideais e armazenamento seguro.' }
       ],
       visual: 'call'
     },
     {
-      eyebrow: '08 · Prescrição e escopo',
+      eyebrow: '08 · Prescrição e Escopo',
+      badge: 'CRITÉRIO TÉCNICO',
       title: 'Diferenciar orientação de prescrição é proteger o paciente.',
-      lead: 'O farmacêutico atua dentro do seu escopo, com critério técnico e limites bem definidos.',
+      lead: 'O farmacêutico atua estritamente dentro do seu escopo legal, com limites bem demarcados e responsabilidade ética.',
       accent: 'light',
       family: 2,
       compare: true
     },
     {
-      eyebrow: '09 · Red flags',
+      eyebrow: '09 · Red Flags',
+      badge: 'SINAIS DE ALARME',
       title: 'Quando a tela não basta, o encaminhamento é cuidado.',
-      lead: 'Reconhecer sinais de alarme é uma competência clínica — e uma responsabilidade ética.',
+      lead: 'Reconhecer a insuficiência do meio remoto é competência diagnóstica — e dever bioético essencial.',
       accent: 'red',
       family: 4,
-      points: [
-        ['Sintomas de emergência', 'Dor intensa, falta de ar, confusão ou piora súbita exigem serviço imediato.'],
-        ['Limite do exame físico', 'Se a avaliação remota for insuficiente, não se deve concluir o caso.'],
-        ['Conduta ética', 'Orientar, registrar e encaminhar sem atrasar o atendimento necessário.']
+      alerts: [
+        { num: '01', title: 'Sintomas de Emergência', desc: 'Dor precordial, dispneia súbita, confusão ou sinais focais exigem suporte médico imediato.' },
+        { num: '02', title: 'Limite do Exame Físico', desc: 'Se a palpação, ausculta ou inspeção direta forem indispensáveis, não se conclui caso à distância.' },
+        { num: '03', title: 'Conduta Ética e Registro', desc: 'Orientar com clareza, documentar a suspeita e encaminhar com relatório sem perda de tempo.' }
       ]
     },
     {
       eyebrow: '10 · Encerramento',
+      badge: 'SÍNTESE & COMPROMISSO',
       title: 'Telefarmácia: tecnologia a serviço do cuidado humano.',
-      lead: 'A proposta é ampliar acesso, fortalecer a formação e aproximar ciência da comunidade.',
+      lead: 'O objetivo é aproximar o conhecimento científico das comunidades, fortalecendo a formação acadêmica e o vínculo em saúde.',
       accent: 'green',
       family: 5,
+      closingPillars: [
+        { num: '01', title: 'Ampliação do Acesso', desc: 'Transpor barreiras geográficas com rigor técnico e humanização.' },
+        { num: '02', title: 'Sinergia Acadêmica', desc: 'Fortalecer o ensino prático conectado às demandas reais da população.' },
+        { num: '03', title: 'Cuidado Centrado', desc: 'Preservar a escuta empática e o compromisso ético como centro de tudo.' }
+      ],
       closing: true
     }
   ];
@@ -136,23 +155,18 @@
     return { pIn, pOut, opacity };
   }
 
-  // Fundo persistente por camadas contínuas:
-  // Slide 1 (esmeralda #0d8d4b) -> Slide 2 (floresta #0d5b3e): transição 0.07 a 0.12
-  // Slide 2 (floresta) -> Slide 3 (claro #f2f1e9): transição 0.165 a 0.215
-  // Slides 3 até 8: mantêm fundo claro 100% contínuo e estável
-  // Slide 8 (claro) -> Slide 9 (alerta vermelho #f6eeea): transição 0.765 a 0.815
-  // Slide 9 (alerta) -> Slide 10 (floresta #0d5b3e): transição 0.865 a 0.915
+  // Camadas de Fundo Contínuas (Desktop)
   const bgForestInS2 = $derived(clamp01((currentRatio - 0.07) / 0.05));
   const bgLightIn = $derived(clamp01((currentRatio - 0.165) / 0.05));
   const bgRedIn = $derived(clamp01((currentRatio - 0.765) / 0.05));
   const bgForestInS10 = $derived(clamp01((currentRatio - 0.865) / 0.05));
 
   function getCardStyle(tIn, tOut, family, cardIndex) {
-    const step = 0.08;
-    const inStart = Math.min(0.60, 0.25 + cardIndex * step);
-    const inEnd = Math.min(1.00, inStart + 0.45);
-    const outStart = Math.min(0.50, 0.10 + cardIndex * 0.06);
-    const outEnd = Math.min(1.00, outStart + 0.45);
+    const step = 0.07;
+    const inStart = Math.min(0.60, 0.22 + cardIndex * step);
+    const inEnd = Math.min(1.00, inStart + 0.42);
+    const outStart = Math.min(0.50, 0.08 + cardIndex * 0.05);
+    const outEnd = Math.min(1.00, outStart + 0.42);
 
     const layer = computeLayer(tIn, tOut, inStart, inEnd, outStart, outEnd);
     const pIn = layer.pIn;
@@ -160,34 +174,34 @@
 
     let transform = 'none';
     if (family === 0) {
-      const dxIn = -36 * (1 - pIn);
-      const dyIn = 16 * (1 - pIn);
-      const dxOut = -25 * pOut;
-      const dyOut = -16 * pOut;
+      const dxIn = -40 * (1 - pIn);
+      const dyIn = 14 * (1 - pIn);
+      const dxOut = -30 * pOut;
+      const dyOut = -14 * pOut;
       transform = `translate3d(${(dxIn + dxOut).toFixed(1)}px, ${(dyIn + dyOut).toFixed(1)}px, 0)`;
     } else if (family === 1) {
-      const dyIn = 55 * (1 - pIn);
-      const dyOut = -32 * pOut;
-      const scale = (0.94 + 0.06 * pIn) * (1 - 0.04 * pOut);
+      const dyIn = 50 * (1 - pIn);
+      const dyOut = -28 * pOut;
+      const scale = (0.95 + 0.05 * pIn) * (1 - 0.03 * pOut);
       transform = `translate3d(0, ${(dyIn + dyOut).toFixed(1)}px, 0) scale(${scale.toFixed(3)})`;
     } else if (family === 2) {
-      const scale = (0.92 + 0.08 * pIn) * (1 - 0.05 * pOut);
-      const rot = (1.5 * (1 - pIn)) - (1.0 * pOut);
-      const dyOut = -22 * pOut;
+      const scale = (0.93 + 0.07 * pIn) * (1 - 0.04 * pOut);
+      const rot = (1.2 * (1 - pIn)) - (0.8 * pOut);
+      const dyOut = -20 * pOut;
       transform = `translate3d(0, ${dyOut.toFixed(1)}px, 0) scale(${scale.toFixed(3)}) rotate(${rot.toFixed(2)}deg)`;
     } else if (family === 3) {
-      const dxIn = -30 * (1 - pIn);
-      const dyIn = 22 * (1 - pIn);
-      const dyOut = -26 * pOut;
+      const dxIn = -28 * (1 - pIn);
+      const dyIn = 20 * (1 - pIn);
+      const dyOut = -22 * pOut;
       transform = `translate3d(${dxIn.toFixed(1)}px, ${(dyIn + dyOut).toFixed(1)}px, 0)`;
     } else if (family === 4) {
-      const dyIn = 22 * (1 - pIn);
-      const dyOut = -16 * pOut;
+      const dyIn = 20 * (1 - pIn);
+      const dyOut = -14 * pOut;
       transform = `translate3d(0, ${(dyIn + dyOut).toFixed(1)}px, 0)`;
     } else if (family === 5) {
-      const dyIn = 30 * (1 - pIn);
-      const dyOut = -20 * pOut;
-      const scale = (0.92 + 0.08 * pIn) * (1 - 0.04 * pOut);
+      const dyIn = 26 * (1 - pIn);
+      const dyOut = -18 * pOut;
+      const scale = (0.94 + 0.06 * pIn) * (1 - 0.03 * pOut);
       transform = `translate3d(0, ${(dyIn + dyOut).toFixed(1)}px, 0) scale(${scale.toFixed(3)})`;
     }
 
@@ -250,18 +264,12 @@
       };
     }
 
-    // Camada Topline (Eyebrow entra primeiro)
-    const lTopline = computeLayer(tIn, tOut, 0.00, 0.45, 0.45, 0.95);
-    // Camada Título (depois da topline)
-    const lTitle = computeLayer(tIn, tOut, 0.10, 0.60, 0.35, 0.85);
-    // Camada Lead (depois do título)
-    const lLead = computeLayer(tIn, tOut, 0.20, 0.70, 0.25, 0.75);
-    // Camada Arte (timing visual próprio)
-    const lArt = computeLayer(tIn, tOut, 0.15, 0.75, 0.20, 0.80);
-    // Camada Rodapé (entra por último, sai mais cedo)
-    const lFooter = computeLayer(tIn, tOut, 0.60, 1.00, 0.05, 0.55);
-    // Camada Decorativa
-    const lDeco = computeLayer(tIn, tOut, 0.05, 0.65, 0.30, 0.90);
+    const lTopline = computeLayer(tIn, tOut, 0.00, 0.40, 0.50, 0.95);
+    const lTitle = computeLayer(tIn, tOut, 0.08, 0.55, 0.40, 0.88);
+    const lLead = computeLayer(tIn, tOut, 0.16, 0.65, 0.30, 0.80);
+    const lArt = computeLayer(tIn, tOut, 0.12, 0.70, 0.22, 0.82);
+    const lFooter = computeLayer(tIn, tOut, 0.55, 0.98, 0.05, 0.50);
+    const lDeco = computeLayer(tIn, tOut, 0.04, 0.60, 0.35, 0.90);
 
     let tTopline = 'none';
     let tTitle = 'none';
@@ -271,62 +279,56 @@
     let tDeco = 'none';
 
     if (family === 0) {
-      // Família 0: Conteúdo entrando pela esquerda e arte vindo da direita
-      tTopline = `translate3d(${((-45 * (1 - lTopline.pIn)) - (35 * lTopline.pOut)).toFixed(1)}px, 0, 0)`;
-      tTitle = `translate3d(${((-55 * (1 - lTitle.pIn)) - (40 * lTitle.pOut)).toFixed(1)}px, 0, 0)`;
-      tLead = `translate3d(${((-40 * (1 - lLead.pIn)) - (30 * lLead.pOut)).toFixed(1)}px, 0, 0)`;
-      const artScale = (0.92 + 0.08 * lArt.pIn) * (1 - 0.06 * lArt.pOut);
-      tArt = `translate3d(${((70 * (1 - lArt.pIn)) + (50 * lArt.pOut)).toFixed(1)}px, 0, 0) scale(${artScale.toFixed(3)})`;
-      tFooter = `translate3d(0, ${((16 * (1 - lFooter.pIn)) - (14 * lFooter.pOut)).toFixed(1)}px, 0)`;
-      tDeco = `translate3d(${((35 * (1 - lDeco.pIn)) - (35 * lDeco.pOut)).toFixed(1)}px, 0, 0) scale(${(0.8 + 0.2 * lDeco.pIn).toFixed(3)})`;
+      tTopline = `translate3d(${((-40 * (1 - lTopline.pIn)) - (30 * lTopline.pOut)).toFixed(1)}px, 0, 0)`;
+      tTitle = `translate3d(${((-50 * (1 - lTitle.pIn)) - (35 * lTitle.pOut)).toFixed(1)}px, 0, 0)`;
+      tLead = `translate3d(${((-35 * (1 - lLead.pIn)) - (25 * lLead.pOut)).toFixed(1)}px, 0, 0)`;
+      const artScale = (0.94 + 0.06 * lArt.pIn) * (1 - 0.05 * lArt.pOut);
+      tArt = `translate3d(${((60 * (1 - lArt.pIn)) + (40 * lArt.pOut)).toFixed(1)}px, 0, 0) scale(${artScale.toFixed(3)})`;
+      tFooter = `translate3d(0, ${((14 * (1 - lFooter.pIn)) - (12 * lFooter.pOut)).toFixed(1)}px, 0)`;
+      tDeco = `translate3d(${((30 * (1 - lDeco.pIn)) - (30 * lDeco.pOut)).toFixed(1)}px, 0, 0) scale(${(0.85 + 0.15 * lDeco.pIn).toFixed(3)})`;
     } else if (family === 1) {
-      // Família 1: Título subindo e cards entrando em sequência vertical
-      tTopline = `translate3d(0, ${((-24 * (1 - lTopline.pIn)) - (20 * lTopline.pOut)).toFixed(1)}px, 0)`;
-      tTitle = `translate3d(0, ${((50 * (1 - lTitle.pIn)) - (40 * lTitle.pOut)).toFixed(1)}px, 0) scale(${(0.96 + 0.04 * lTitle.pIn).toFixed(3)})`;
-      tLead = `translate3d(0, ${((38 * (1 - lLead.pIn)) - (30 * lLead.pOut)).toFixed(1)}px, 0)`;
-      const artScale = (0.92 + 0.08 * lArt.pIn) * (1 - 0.04 * lArt.pOut);
-      tArt = `translate3d(0, ${((55 * (1 - lArt.pIn)) - (38 * lArt.pOut)).toFixed(1)}px, 0) scale(${artScale.toFixed(3)})`;
-      tFooter = `translate3d(0, ${((20 * (1 - lFooter.pIn)) - (15 * lFooter.pOut)).toFixed(1)}px, 0)`;
-      tDeco = `translate3d(0, ${((-35 * (1 - lDeco.pIn)) + (35 * lDeco.pOut)).toFixed(1)}px, 0)`;
+      tTopline = `translate3d(0, ${((-20 * (1 - lTopline.pIn)) - (18 * lTopline.pOut)).toFixed(1)}px, 0)`;
+      tTitle = `translate3d(0, ${((45 * (1 - lTitle.pIn)) - (35 * lTitle.pOut)).toFixed(1)}px, 0) scale(${(0.97 + 0.03 * lTitle.pIn).toFixed(3)})`;
+      tLead = `translate3d(0, ${((32 * (1 - lLead.pIn)) - (25 * lLead.pOut)).toFixed(1)}px, 0)`;
+      const artScale = (0.93 + 0.07 * lArt.pIn) * (1 - 0.04 * lArt.pOut);
+      tArt = `translate3d(0, ${((48 * (1 - lArt.pIn)) - (32 * lArt.pOut)).toFixed(1)}px, 0) scale(${artScale.toFixed(3)})`;
+      tFooter = `translate3d(0, ${((16 * (1 - lFooter.pIn)) - (14 * lFooter.pOut)).toFixed(1)}px, 0)`;
+      tDeco = `translate3d(0, ${((-30 * (1 - lDeco.pIn)) + (30 * lDeco.pOut)).toFixed(1)}px, 0)`;
     } else if (family === 2) {
-      // Família 2: Elementos surgindo por escala e rotação suave
-      tTopline = `translate3d(0, ${((-16 * (1 - lTopline.pIn)) - (18 * lTopline.pOut)).toFixed(1)}px, 0) scale(${(0.96 + 0.04 * lTopline.pIn).toFixed(3)})`;
-      const titleScale = (0.93 + 0.07 * lTitle.pIn) * (1 + 0.03 * lTitle.pOut);
-      const titleRot = (-1.4 * (1 - lTitle.pIn)) + (0.9 * lTitle.pOut);
-      tTitle = `translate3d(0, ${((26 * (1 - lTitle.pIn)) - (26 * lTitle.pOut)).toFixed(1)}px, 0) scale(${titleScale.toFixed(3)}) rotate(${titleRot.toFixed(2)}deg)`;
-      tLead = `translate3d(0, ${((20 * (1 - lLead.pIn)) - (22 * lLead.pOut)).toFixed(1)}px, 0) scale(${(0.95 + 0.05 * lLead.pIn).toFixed(3)})`;
-      const artScale = (0.84 + 0.16 * lArt.pIn) * (1 - 0.1 * lArt.pOut);
-      const artRot = (-4.5 * (1 - lArt.pIn)) + (3 * lArt.pOut);
+      tTopline = `translate3d(0, ${((-14 * (1 - lTopline.pIn)) - (16 * lTopline.pOut)).toFixed(1)}px, 0) scale(${(0.97 + 0.03 * lTopline.pIn).toFixed(3)})`;
+      const titleScale = (0.94 + 0.06 * lTitle.pIn) * (1 + 0.02 * lTitle.pOut);
+      const titleRot = (-1.2 * (1 - lTitle.pIn)) + (0.8 * lTitle.pOut);
+      tTitle = `translate3d(0, ${((24 * (1 - lTitle.pIn)) - (24 * lTitle.pOut)).toFixed(1)}px, 0) scale(${titleScale.toFixed(3)}) rotate(${titleRot.toFixed(2)}deg)`;
+      tLead = `translate3d(0, ${((18 * (1 - lLead.pIn)) - (20 * lLead.pOut)).toFixed(1)}px, 0) scale(${(0.96 + 0.04 * lLead.pIn).toFixed(3)})`;
+      const artScale = (0.88 + 0.12 * lArt.pIn) * (1 - 0.08 * lArt.pOut);
+      const artRot = (-3.5 * (1 - lArt.pIn)) + (2.5 * lArt.pOut);
       tArt = `scale(${artScale.toFixed(3)}) rotate(${artRot.toFixed(2)}deg)`;
-      tFooter = `translate3d(0, ${((16 * (1 - lFooter.pIn)) - (14 * lFooter.pOut)).toFixed(1)}px, 0)`;
-      tDeco = `scale(${(0.8 + 0.2 * lDeco.pIn).toFixed(3)}) rotate(${((-20 * (1 - lDeco.pIn)) + (20 * lDeco.pOut)).toFixed(2)}deg)`;
+      tFooter = `translate3d(0, ${((14 * (1 - lFooter.pIn)) - (12 * lFooter.pOut)).toFixed(1)}px, 0)`;
+      tDeco = `scale(${(0.85 + 0.15 * lDeco.pIn).toFixed(3)}) rotate(${((-18 * (1 - lDeco.pIn)) + (18 * lDeco.pOut)).toFixed(2)}deg)`;
     } else if (family === 3) {
-      // Família 3: Conteúdo entrando em diagonal
-      tTopline = `translate3d(${((-26 * (1 - lTopline.pIn)) - (20 * lTopline.pOut)).toFixed(1)}px, ${((-16 * (1 - lTopline.pIn)) - (20 * lTopline.pOut)).toFixed(1)}px, 0)`;
-      tTitle = `translate3d(${((-46 * (1 - lTitle.pIn)) - (32 * lTitle.pOut)).toFixed(1)}px, ${((36 * (1 - lTitle.pIn)) - (32 * lTitle.pOut)).toFixed(1)}px, 0)`;
-      tLead = `translate3d(${((-36 * (1 - lLead.pIn)) - (24 * lLead.pOut)).toFixed(1)}px, ${((26 * (1 - lLead.pIn)) - (24 * lLead.pOut)).toFixed(1)}px, 0)`;
-      const artRot = (-3.5 * (1 - lArt.pIn)) + (4 * lArt.pOut);
-      tArt = `translate3d(${((52 * (1 - lArt.pIn)) + (36 * lArt.pOut)).toFixed(1)}px, ${((-38 * (1 - lArt.pIn)) + (30 * lArt.pOut)).toFixed(1)}px, 0) rotate(${artRot.toFixed(2)}deg)`;
-      tFooter = `translate3d(0, ${((16 * (1 - lFooter.pIn)) - (14 * lFooter.pOut)).toFixed(1)}px, 0)`;
-      tDeco = `translate3d(${((40 * (1 - lDeco.pIn)) - (40 * lDeco.pOut)).toFixed(1)}px, ${((40 * (1 - lDeco.pIn)) - (40 * lDeco.pOut)).toFixed(1)}px, 0)`;
+      tTopline = `translate3d(${((-22 * (1 - lTopline.pIn)) - (18 * lTopline.pOut)).toFixed(1)}px, ${((-14 * (1 - lTopline.pIn)) - (18 * lTopline.pOut)).toFixed(1)}px, 0)`;
+      tTitle = `translate3d(${((-40 * (1 - lTitle.pIn)) - (28 * lTitle.pOut)).toFixed(1)}px, ${((30 * (1 - lTitle.pIn)) - (28 * lTitle.pOut)).toFixed(1)}px, 0)`;
+      tLead = `translate3d(${((-30 * (1 - lLead.pIn)) - (20 * lLead.pOut)).toFixed(1)}px, ${((22 * (1 - lLead.pIn)) - (20 * lLead.pOut)).toFixed(1)}px, 0)`;
+      const artRot = (-3 * (1 - lArt.pIn)) + (3.5 * lArt.pOut);
+      tArt = `translate3d(${((45 * (1 - lArt.pIn)) + (30 * lArt.pOut)).toFixed(1)}px, ${((-32 * (1 - lArt.pIn)) + (26 * lArt.pOut)).toFixed(1)}px, 0) rotate(${artRot.toFixed(2)}deg)`;
+      tFooter = `translate3d(0, ${((14 * (1 - lFooter.pIn)) - (12 * lFooter.pOut)).toFixed(1)}px, 0)`;
+      tDeco = `translate3d(${((35 * (1 - lDeco.pIn)) - (35 * lDeco.pOut)).toFixed(1)}px, ${((35 * (1 - lDeco.pIn)) - (35 * lDeco.pOut)).toFixed(1)}px, 0)`;
     } else if (family === 4) {
-      // Família 4: Slide de alerta com movimento mais contido e direto
-      tTopline = `translate3d(0, ${((-14 * (1 - lTopline.pIn)) - (14 * lTopline.pOut)).toFixed(1)}px, 0)`;
-      tTitle = `translate3d(0, ${((24 * (1 - lTitle.pIn)) - (18 * lTitle.pOut)).toFixed(1)}px, 0)`;
-      tLead = `translate3d(0, ${((18 * (1 - lLead.pIn)) - (14 * lLead.pOut)).toFixed(1)}px, 0)`;
-      tArt = `translate3d(0, ${(-16 * lArt.pOut).toFixed(1)}px, 0) scale(${(0.94 + 0.06 * lArt.pIn).toFixed(3)})`;
-      tFooter = `translate3d(0, ${((12 * (1 - lFooter.pIn)) - (12 * lFooter.pOut)).toFixed(1)}px, 0)`;
-      tDeco = `scale(${(0.9 + 0.1 * lDeco.pIn).toFixed(3)})`;
+      tTopline = `translate3d(0, ${((-12 * (1 - lTopline.pIn)) - (12 * lTopline.pOut)).toFixed(1)}px, 0)`;
+      tTitle = `translate3d(0, ${((20 * (1 - lTitle.pIn)) - (16 * lTitle.pOut)).toFixed(1)}px, 0)`;
+      tLead = `translate3d(0, ${((15 * (1 - lLead.pIn)) - (12 * lLead.pOut)).toFixed(1)}px, 0)`;
+      tArt = `translate3d(0, ${(-14 * lArt.pOut).toFixed(1)}px, 0) scale(${(0.95 + 0.05 * lArt.pIn).toFixed(3)})`;
+      tFooter = `translate3d(0, ${((10 * (1 - lFooter.pIn)) - (10 * lFooter.pOut)).toFixed(1)}px, 0)`;
+      tDeco = `scale(${(0.92 + 0.08 * lDeco.pIn).toFixed(3)})`;
     } else if (family === 5) {
-      // Família 5: Slide final com composição mais lenta e centralizada
-      tTopline = `translate3d(0, ${((-22 * (1 - lTopline.pIn)) - (18 * lTopline.pOut)).toFixed(1)}px, 0)`;
-      tTitle = `translate3d(0, ${((38 * (1 - lTitle.pIn)) - (28 * lTitle.pOut)).toFixed(1)}px, 0) scale(${(0.96 + 0.04 * lTitle.pIn).toFixed(3)})`;
-      tLead = `translate3d(0, ${((26 * (1 - lLead.pIn)) - (20 * lLead.pOut)).toFixed(1)}px, 0)`;
-      const artScale = (0.84 + 0.16 * lArt.pIn) * (1 + 0.05 * lArt.pOut);
-      const artRot = -6 * (1 - lArt.pIn);
-      tArt = `translate3d(0, ${(-25 * lArt.pOut).toFixed(1)}px, 0) scale(${artScale.toFixed(3)}) rotate(${artRot.toFixed(2)}deg)`;
-      tFooter = `translate3d(0, ${((18 * (1 - lFooter.pIn)) - (15 * lFooter.pOut)).toFixed(1)}px, 0)`;
-      tDeco = `scale(${((0.8 + 0.2 * lDeco.pIn) * (1 + 0.15 * lDeco.pOut)).toFixed(3)})`;
+      tTopline = `translate3d(0, ${((-18 * (1 - lTopline.pIn)) - (16 * lTopline.pOut)).toFixed(1)}px, 0)`;
+      tTitle = `translate3d(0, ${((32 * (1 - lTitle.pIn)) - (24 * lTitle.pOut)).toFixed(1)}px, 0) scale(${(0.97 + 0.03 * lTitle.pIn).toFixed(3)})`;
+      tLead = `translate3d(0, ${((22 * (1 - lLead.pIn)) - (18 * lLead.pOut)).toFixed(1)}px, 0)`;
+      const artScale = (0.88 + 0.12 * lArt.pIn) * (1 + 0.04 * lArt.pOut);
+      const artRot = -5 * (1 - lArt.pIn);
+      tArt = `translate3d(0, ${(-20 * lArt.pOut).toFixed(1)}px, 0) scale(${artScale.toFixed(3)}) rotate(${artRot.toFixed(2)}deg)`;
+      tFooter = `translate3d(0, ${((16 * (1 - lFooter.pIn)) - (14 * lFooter.pOut)).toFixed(1)}px, 0)`;
+      tDeco = `scale(${((0.85 + 0.15 * lDeco.pIn) * (1 + 0.12 * lDeco.pOut)).toFixed(3)})`;
     }
 
     return {
@@ -364,7 +366,7 @@
 </script>
 
 {#if !mobile}
-  <!-- Palco de fundos persistente desktop: estabilidade absoluta, zero piscadas -->
+  <!-- Palco de fundos persistente desktop -->
   <div class="stage-backgrounds" aria-hidden="true">
     <div class="stage-bg-layer bg-forest" style={`opacity: ${bgForestInS2.toFixed(3)};`}></div>
     <div class="stage-bg-layer bg-light" style={`opacity: ${bgLightIn.toFixed(3)};`}></div>
@@ -382,23 +384,41 @@
       aria-hidden={!st.isCentered}
       style={mobile ? '' : `visibility: ${st.visibility}; pointer-events: ${st.pointerEvents}; z-index: ${st.isCentered ? 3 : 2};`}
     >
-      <!-- Camada Decorativa de Ambientação -->
+      <!-- Camada Decorativa de Ambientação com Micro-Elementos Científicos (Igual ao Slide 1) -->
       <div class="slide-deco" style={mobile ? '' : `opacity: ${st.deco.opacity}; transform: ${st.deco.transform};`} aria-hidden="true">
         {#if slide.accent === 'green'}
           <div class="deco-mesh mesh-green"></div>
-          <div class="deco-symbol deco-cross">
-            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <!-- Anel tracejado flutuante igual Slide 1 -->
+          <svg class="deco-ring" width="140" height="140" viewBox="0 0 100 100" fill="none" stroke="currentColor">
+            <circle cx="50" cy="50" r="42" stroke-dasharray="4 6" stroke-width="1.2" opacity="0.22" />
+            <circle cx="50" cy="50" r="18" stroke-width="0.8" opacity="0.14" />
+          </svg>
+          <div class="deco-cross-clean">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <path d="M12 4v16M4 12h16" />
             </svg>
           </div>
         {:else if slide.accent === 'red'}
           <div class="deco-mesh mesh-red"></div>
-          <div class="deco-symbol deco-alert-badge">
-            <span>ALERTA CLÍNICO</span>
+          <svg class="deco-radar" width="180" height="180" viewBox="0 0 100 100" fill="none" stroke="#b94d39">
+            <circle cx="50" cy="50" r="45" stroke-dasharray="2 4" stroke-width="1" opacity="0.3" />
+            <circle cx="50" cy="50" r="28" stroke-width="0.8" opacity="0.2" />
+            <path d="M50 5v90M5 50h90" stroke-width="0.6" opacity="0.15" />
+          </svg>
+          <div class="deco-alert-badge">
+            <span class="pulse-point"></span>
+            <span>PROTOCOLO DE URGÊNCIA</span>
           </div>
         {:else}
           <div class="deco-mesh mesh-light"></div>
-          <div class="deco-symbol deco-dots">
+          <!-- Ornamentos editoriais finos em lâmina clara -->
+          <svg class="deco-arc" width="160" height="90" viewBox="0 0 160 90" fill="none" stroke="currentColor">
+            <path d="M10 80 A70 70 0 0 1 150 80" stroke-width="1" stroke-dasharray="3 5" opacity="0.25" />
+          </svg>
+          <div class="deco-stamp">
+            <span>SEC. 0{index + 2} // CLINICAL METHOD</span>
+          </div>
+          <div class="deco-dots-trio">
             <span></span><span></span><span></span>
           </div>
         {/if}
@@ -406,148 +426,335 @@
 
       <!-- Palco Estável do Conteúdo -->
       <div class="slide-frame">
-        <!-- Camada Cabeçalho / Eyebrow -->
+        <!-- Topline Editorial com Badge de Alta Precisão -->
         <div class="slide-topline" style={mobile ? '' : `opacity: ${st.topline.opacity}; transform: ${st.topline.transform};`}>
-          <span class="slide-eyebrow">{slide.eyebrow}</span>
+          <div class="topline-left">
+            <span class="slide-eyebrow">{slide.eyebrow}</span>
+            <span class="topline-tag">{slide.badge}</span>
+          </div>
           <span class="slide-index">{String(index + 2).padStart(2, '0')} / 10</span>
         </div>
 
         <div class="slide-content">
           <div class="slide-main-grid">
             <div class="slide-main">
-              <!-- Camada de Texto: Título e Lead com animações independentes -->
+              <!-- Cabeçalho Tipográfico com Respiração Cinética -->
               <header class="slide-copy">
-                <h2 style={mobile ? '' : `opacity: ${st.title.opacity}; transform: ${st.title.transform};`}>{slide.title}</h2>
-                <p class="slide-lead" style={mobile ? '' : `opacity: ${st.lead.opacity}; transform: ${st.lead.transform};`}>{slide.lead}</p>
+                <h2 style={mobile ? '' : `opacity: ${st.title.opacity}; transform: ${st.title.transform};`}>
+                  {slide.title}
+                </h2>
+                <p class="slide-lead" style={mobile ? '' : `opacity: ${st.lead.opacity}; transform: ${st.lead.transform};`}>
+                  {slide.lead}
+                </p>
               </header>
 
-              <!-- Camada de Cards / Conteúdo Principal (cada elemento com delay próprio) -->
-              {#if slide.points}
-                <div class={`point-grid ${slide.points.length === 2 ? 'two' : ''}`}>
-                  {#each slide.points as point, pointIndex}
+              <!-- CONTEÚDO ESPECÍFICO REFINADO POR SLIDE -->
+
+              <!-- SLIDE 2: Ruptura Editorial (Comércio vs. Exercício Clínico) -->
+              {#if slide.divergence}
+                <div class="editorial-duo">
+                  <!-- Lado Não-Clínico Riscado -->
+                  <div
+                    class="duo-side duo-negated"
+                    style={mobile ? '' : `opacity: ${st.cards[0].opacity}; transform: ${st.cards[0].transform};`}
+                  >
+                    <div class="duo-tag">
+                      <span class="strike-bar"></span>
+                      <strong>{slide.divergence.tag}</strong>
+                    </div>
+                    <p>{slide.divergence.desc}</p>
+                  </div>
+
+                  <!-- Lado Clínico em Destaque com 3 Nós Conectados -->
+                  <div
+                    class="duo-side duo-clinical"
+                    style={mobile ? '' : `opacity: ${st.cards[1].opacity}; transform: ${st.cards[1].transform};`}
+                  >
+                    <div class="clinical-head">
+                      <span class="clinical-beacon"></span>
+                      <strong>Cuidado Clínico Estruturado</strong>
+                    </div>
+                    <div class="clinical-pillars">
+                      {#each slide.pillars as pillar, pIdx}
+                        <div class="pillar-row">
+                          <span class="pillar-idx">0{pIdx + 1}</span>
+                          <div>
+                            <h4>{pillar[0]}</h4>
+                            <small>{pillar[1]}</small>
+                          </div>
+                        </div>
+                      {/each}
+                    </div>
+                  </div>
+                </div>
+
+              <!-- SLIDE 3: Matriz de 4 Modalidades em Rede -->
+              {:else if slide.modalities}
+                <div class="modalities-net">
+                  {#each slide.modalities as mod, mIdx}
                     <article
-                      class={`point ${slide.accent === 'red' ? 'point-alert' : ''}`}
-                      style={mobile ? '' : `opacity: ${st.cards[pointIndex].opacity}; transform: ${st.cards[pointIndex].transform};`}
+                      class="mod-station"
+                      style={mobile ? '' : `opacity: ${st.cards[mIdx].opacity}; transform: ${st.cards[mIdx].transform};`}
                     >
-                      <span class="point-number">0{pointIndex + 1}</span>
-                      <div>
-                        <h3>{point[0]}</h3>
-                        <p>{point[1]}</p>
+                      <div class="station-meta">
+                        <span class="station-code">{mod.code}</span>
+                        <span class="station-line"></span>
+                      </div>
+                      <h3>{mod.name}</h3>
+                      <p>{mod.desc}</p>
+                    </article>
+                  {/each}
+                </div>
+
+              <!-- SLIDE 4: Arcabouço Legal e Selo de RT Presencial -->
+              {:else if slide.laws}
+                <div class="legal-framework">
+                  <div class="laws-duo">
+                    {#each slide.laws as law, lIdx}
+                      <article
+                        class="law-plaque"
+                        style={mobile ? '' : `opacity: ${st.cards[lIdx].opacity}; transform: ${st.cards[lIdx].transform};`}
+                      >
+                        <span class="law-symbol">§</span>
+                        <div>
+                          <h3>{law.num}</h3>
+                          <p>{law.desc}</p>
+                        </div>
+                      </article>
+                    {/each}
+                  </div>
+                  <aside
+                    class="solemn-warning"
+                    style={mobile ? '' : `opacity: ${st.cards[2].opacity}; transform: ${st.cards[2].transform};`}
+                  >
+                    <div class="warning-anchor">
+                      <span class="anchor-bullet"></span>
+                      <strong>PRESENÇA FÍSICA DO RT</strong>
+                    </div>
+                    <p>{slide.warning}</p>
+                  </aside>
+                </div>
+
+              <!-- SLIDE 5: Nós Criptográficos de Segurança e LGPD -->
+              {:else if slide.securityPoints}
+                <div class="security-cluster">
+                  {#each slide.securityPoints as sec, sIdx}
+                    <article
+                      class="sec-card"
+                      style={mobile ? '' : `opacity: ${st.cards[sIdx].opacity}; transform: ${st.cards[sIdx].transform};`}
+                    >
+                      <div class="sec-badge-row">
+                        <span class="sec-code">{sec.code}</span>
+                        <span class="sec-pip"></span>
+                      </div>
+                      <h3>{sec.title}</h3>
+                      <p>{sec.desc}</p>
+                    </article>
+                  {/each}
+                </div>
+
+              <!-- SLIDE 6: Trilho Contínuo da Jornada Clínica -->
+              {:else if slide.steps}
+                <div class="journey-track">
+                  <div class="track-spine" aria-hidden="true"></div>
+                  {#each slide.steps as stp, stpIdx}
+                    <button
+                      class:journey-active={stpIdx <= 2}
+                      class="track-station"
+                      type="button"
+                      onclick={() => goTo(stpIdx + 5)}
+                      style={mobile ? '' : `opacity: ${st.cards[stpIdx].opacity}; transform: ${st.cards[stpIdx].transform};`}
+                    >
+                      <div class="station-node">
+                        <span class="node-num">{stp.step}</span>
+                      </div>
+                      <div class="station-text">
+                        <strong>{stp.title}</strong>
+                        <small>{stp.desc}</small>
+                      </div>
+                    </button>
+                  {/each}
+                </div>
+
+              <!-- SLIDE 7: Prática Clínica na Teleconsulta -->
+              {:else if slide.practicePoints}
+                <div class="practice-stream">
+                  {#each slide.practicePoints as prc, prIdx}
+                    <article
+                      class="practice-card"
+                      style={mobile ? '' : `opacity: ${st.cards[prIdx].opacity}; transform: ${st.cards[prIdx].transform};`}
+                    >
+                      <div class="practice-left">
+                        <span class="practice-code">{prc.num}</span>
+                      </div>
+                      <div class="practice-right">
+                        <h3>{prc.title}</h3>
+                        <p>{prc.desc}</p>
                       </div>
                     </article>
                   {/each}
                 </div>
-              {:else if slide.laws}
-                <div class="law-grid">
-                  {#each slide.laws as law, lawIndex}
+
+              <!-- SLIDE 8: Escopo Clínico e Balança de Decisão -->
+              {:else if slide.compare}
+                <div class="scope-comparison">
+                  <div class="scope-nav">
+                    <span class="scope-prompt">Enquadramento Regulatório</span>
+                    <div class="scope-tabs">
+                      <button class:chosen={compareMode === 'sup'} type="button" onclick={() => compareMode = 'sup'}>
+                        Suplementos Alimentares
+                      </button>
+                      <button class:chosen={compareMode === 'med'} type="button" onclick={() => compareMode = 'med'}>
+                        Medicamentos e Prescrição
+                      </button>
+                    </div>
+                  </div>
+                  <div class="scope-panes">
                     <article
-                      class="law-item"
-                      style={mobile ? '' : `opacity: ${st.cards[lawIndex].opacity}; transform: ${st.cards[lawIndex].transform};`}
+                      class:dimmed={compareMode === 'med'}
+                      class="scope-pane pane-supp"
+                      style={mobile ? '' : `opacity: ${st.cards[1].opacity}; transform: ${st.cards[1].transform};`}
                     >
-                      <span class="law-mark">§</span>
-                      <div><h3>{law[0]}</h3><p>{law[1]}</p></div>
+                      <span class="pane-badge">ORIENTAÇÃO FARMACÊUTICA</span>
+                      <h3>Comunicação e Educação</h3>
+                      <p>Esclarecer composição, dosagens adequadas, interações alimentares e limites éticos sem indução comercial.</p>
+                    </article>
+                    <article
+                      class:dimmed={compareMode === 'sup'}
+                      class="scope-pane pane-med"
+                      style={mobile ? '' : `opacity: ${st.cards[2].opacity}; transform: ${st.cards[2].transform};`}
+                    >
+                      <span class="pane-badge alert-color">ATO PRESCRITIVO</span>
+                      <h3>Prescrição Farmacêutica</h3>
+                      <p>Exige anamnese, raciocínio clínico formal, registro em prontuário e respeito integral às resoluções do CFF.</p>
+                    </article>
+                  </div>
+                </div>
+
+              <!-- SLIDE 9: Red Flags e Parâmetros de Urgência -->
+              {:else if slide.alerts}
+                <div class="red-flag-cluster">
+                  {#each slide.alerts as al, aIdx}
+                    <article
+                      class="alert-entry"
+                      style={mobile ? '' : `opacity: ${st.cards[aIdx].opacity}; transform: ${st.cards[aIdx].transform};`}
+                    >
+                      <span class="alert-mark">!</span>
+                      <div>
+                        <h3>{al.title}</h3>
+                        <p>{al.desc}</p>
+                      </div>
                     </article>
                   {/each}
                 </div>
-                <aside
-                  class="warning-strip"
-                  style={mobile ? '' : `opacity: ${st.cards[2].opacity}; transform: ${st.cards[2].transform};`}
-                >
-                  <strong>Limite essencial</strong><span>{slide.warning}</span>
-                </aside>
-              {:else if slide.steps}
-                <div class="journey">
-                  {#each slide.steps as step, stepIndex}
-                    <button
-                      class:journey-active={stepIndex <= 2}
-                      class="journey-step"
-                      type="button"
-                      onclick={() => goTo(stepIndex + 5)}
-                      style={mobile ? '' : `opacity: ${st.cards[stepIndex].opacity}; transform: ${st.cards[stepIndex].transform};`}
+
+              <!-- SLIDE 10: Síntese e Compromisso Humanizado -->
+              {:else if slide.closingPillars}
+                <div class="closing-triptych">
+                  {#each slide.closingPillars as pil, pIdx}
+                    <div
+                      class="triptych-column"
+                      style={mobile ? '' : `opacity: ${st.cards[pIdx].opacity}; transform: ${st.cards[pIdx].transform};`}
                     >
-                      <span class="journey-number">{step[0]}</span>
-                      <span><strong>{step[1]}</strong><small>{step[2]}</small></span>
-                    </button>
+                      <span class="triptych-idx">0{pIdx + 1}</span>
+                      <h3>{pil.title}</h3>
+                      <p>{pil.desc}</p>
+                    </div>
                   {/each}
-                </div>
-              {:else if slide.compare}
-                <div
-                  class="compare-header"
-                  style={mobile ? '' : `opacity: ${st.cards[0].opacity}; transform: ${st.cards[0].transform};`}
-                >
-                  <span>Escolha o enquadramento para comparar</span>
-                  <div class="compare-tabs">
-                    <button class:chosen={compareMode === 'sup'} type="button" onclick={() => compareMode = 'sup'}>Suplemento</button>
-                    <button class:chosen={compareMode === 'med'} type="button" onclick={() => compareMode = 'med'}>Medicamento</button>
-                  </div>
-                </div>
-                <div class="compare-grid">
-                  <article
-                    class:dimmed={compareMode === 'med'}
-                    class="compare-item supplement"
-                    style={mobile ? '' : `opacity: ${st.cards[1].opacity}; transform: ${st.cards[1].transform};`}
-                  >
-                    <span class="compare-label">SUPLEMENTOS</span>
-                    <h3>Orientação responsável</h3>
-                    <p>Informar composição, uso adequado e limites da comunicação ao paciente.</p>
-                  </article>
-                  <article
-                    class:dimmed={compareMode === 'sup'}
-                    class="compare-item medicine"
-                    style={mobile ? '' : `opacity: ${st.cards[2].opacity}; transform: ${st.cards[2].transform};`}
-                  >
-                    <span class="compare-label">MEDICAMENTOS</span>
-                    <h3>Prescrição farmacêutica</h3>
-                    <p>Exige avaliação clínica, indicação, registro e respeito às normas profissionais.</p>
-                  </article>
-                </div>
-              {:else if slide.closing}
-                <div class="closing-grid">
-                  <div style={mobile ? '' : `opacity: ${st.cards[0].opacity}; transform: ${st.cards[0].transform};`}>
-                    <span>01</span><strong>Ampliação do acesso</strong><p>Mais proximidade entre serviço e comunidade.</p>
-                  </div>
-                  <div style={mobile ? '' : `opacity: ${st.cards[1].opacity}; transform: ${st.cards[1].transform};`}>
-                    <span>02</span><strong>Sinergia acadêmica</strong><p>Aprendizagem aplicada à realidade local.</p>
-                  </div>
-                  <div style={mobile ? '' : `opacity: ${st.cards[2].opacity}; transform: ${st.cards[2].transform};`}>
-                    <span>03</span><strong>Cuidado humano</strong><p>Tecnologia com escuta e responsabilidade.</p>
-                  </div>
                 </div>
               {/if}
             </div>
 
-            <!-- Camada Ilustração Lateral (timing e transform específicos) -->
+            <!-- Camada de Ilustração Lateral Vetorial e Dinâmica -->
             <aside
               class={`slide-art art-${slide.visual || (index % 3)}`}
               style={mobile ? '' : `opacity: ${st.art.opacity}; transform: ${st.art.transform};`}
               aria-hidden="true"
             >
               {#if slide.visual === 'shield'}
-                <div class="art-orbit orbit-a"></div><div class="art-orbit orbit-b"></div>
-                <div class="official-brand"><img src="/assets/anpd-symbol-official.png" alt="" /><strong>ANPD</strong><span>Autoridade Nacional<br>de Proteção de Dados</span></div>
-                <div class="art-caption">MARCA OFICIAL<br><strong>ANPD</strong></div>
+                <!-- Escudo de Privacidade com Marca Oficial da ANPD -->
+                <div class="art-orbit orbit-a"></div>
+                <div class="art-orbit orbit-b"></div>
+                <div class="official-brand">
+                  <img src="/assets/anpd-symbol-official.png" alt="" />
+                  <strong>ANPD</strong>
+                  <span>Autoridade Nacional<br>de Proteção de Dados</span>
+                </div>
+                <div class="art-caption">COMPLIANCE LGPD<br><strong>SAÚDE DIGITAL</strong></div>
+
               {:else if slide.visual === 'call'}
-                <div class="art-window"><div class="window-bar"><i></i><i></i><i></i><span>teleconsulta</span></div><div class="window-body"><div class="art-avatar"></div><div class="art-lines"><b></b><b></b><b></b></div></div><div class="window-footer"><span>● AO VIVO</span><span>12:45</span></div></div>
-                <div class="art-pulse"></div>
-              {:else if slide.warning}
-                <div class="art-law">§<span>REGRA<br><strong>ANTES DA<br>INOVAÇÃO</strong></span></div>
+                <!-- Janela de Teleconsulta com Osciloscópio Vital -->
+                <div class="art-window">
+                  <div class="window-bar">
+                    <i></i><i></i><i></i>
+                    <span>TELECONSULTA CLÍNICA</span>
+                  </div>
+                  <div class="window-body">
+                    <div class="art-avatar"></div>
+                    <div class="clinical-waves">
+                      <span></span><span></span><span></span><span></span>
+                    </div>
+                  </div>
+                  <div class="window-footer">
+                    <span>● AO VIVO</span>
+                    <span>SALA CRIPTOGRAFADA</span>
+                  </div>
+                </div>
+
               {:else if slide.compare}
-                <div class="art-scale"><div class="scale-pan pan-left">ORIENTAR</div><div class="scale-pan pan-right">PRESCREVER</div><div class="scale-beam"></div><div class="scale-post"></div></div>
-              {:else if slide.steps}
-                <div class="art-route"><span>ACOLHER</span><i></i><span>AVALIAR</span><i></i><span>CUIDAR</span></div>
+                <!-- Balança de Precisão Farmacêutica Dinâmica -->
+                <div class="art-scale" class:tilt-right={compareMode === 'med'}>
+                  <div class="scale-post"></div>
+                  <div class="scale-beam"></div>
+                  <div class="scale-pan pan-left">ORIENTAR</div>
+                  <div class="scale-pan pan-right">PRESCREVER</div>
+                  <div class="scale-fulcrum"></div>
+                </div>
+
+              {:else if slide.accent === 'red'}
+                <!-- Radar de Atenção Clínica -->
+                <div class="art-emergency-radar">
+                  <div class="radar-circle ring-outer"></div>
+                  <div class="radar-circle ring-mid"></div>
+                  <div class="radar-pulse-core"></div>
+                  <div class="radar-label">TRIAGEM<br><strong>IMEDIATA</strong></div>
+                </div>
+
               {:else if slide.closing}
-                <div class="art-sun"><div></div><span>CIÊNCIA<br><strong>+ CUIDADO</strong></span></div>
+                <!-- Aurora Solar Poética da Ciência e Cuidado -->
+                <div class="art-sun">
+                  <div class="sun-core"></div>
+                  <div class="sun-orbit"></div>
+                  <span>CIÊNCIA<br><strong>+ CUIDADO</strong></span>
+                </div>
+
               {:else}
-                <div class="art-number">{String(index + 2).padStart(2, '0')}</div><div class="art-line line-one"></div><div class="art-line line-two"></div><div class="art-dot"></div>
+                <!-- Escultura Vetorial Editorial com Coordenadas -->
+                <div class="art-number">{String(index + 2).padStart(2, '0')}</div>
+                <div class="art-line line-one"></div>
+                <div class="art-line line-two"></div>
+                <div class="art-dot"></div>
+                <div class="art-compass">
+                  <svg width="60" height="60" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="0.8" opacity="0.35">
+                    <circle cx="20" cy="20" r="16" stroke-dasharray="2 3"/>
+                    <path d="M20 4v32M4 20h32"/>
+                  </svg>
+                </div>
               {/if}
             </aside>
           </div>
         </div>
 
-        <!-- Camada Rodapé -->
+        <!-- Rodapé Editorial -->
         <div class="slide-footer" style={mobile ? '' : `opacity: ${st.footer.opacity}; transform: ${st.footer.transform};`}>
-          <span>Telefarmácia & Serviços Digitais Farmacêuticos</span>
-          <button type="button" onclick={() => goTo(index)}>{index === 0 ? 'Voltar ao início' : 'Anterior'}</button>
+          <div class="footer-left">
+            <span>Telefarmácia & Serviços Digitais Farmacêuticos</span>
+            <span class="footer-pipe">|</span>
+            <span class="footer-spec">Bacharelado em Farmácia · UNIGRANDE</span>
+          </div>
+          <button type="button" onclick={() => goTo(index)}>
+            {index === 0 ? 'Voltar ao início' : '← Slide Anterior'}
+          </button>
         </div>
       </div>
     </section>
@@ -591,23 +798,22 @@
     color: #17362d;
   }
 
-  /* Container do Slide (estável no Desktop) */
+  /* Palco de Slide Estável */
   .slide {
     position: absolute;
     inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: clamp(3.5rem, 8vh, 6rem) clamp(1.25rem, 7vw, 7.5rem);
+    padding: clamp(3rem, 7vh, 5.5rem) clamp(1.25rem, 6.5vw, 6.8rem);
     overflow: hidden;
-    /* Container estável: sem transform ou opacity no bloco geral */
   }
 
   .theme-green { color: #f8f6ed; }
   .theme-light { color: #17362d; }
   .theme-red { color: #2f2523; }
 
-  /* Camada Decorativa */
+  /* Camada Decorativa de Precisão (Igual ao Slide 1) */
   .slide-deco {
     position: absolute;
     inset: 0;
@@ -629,50 +835,91 @@
   .mesh-green { background: #16a34a; opacity: 0.16; }
   .mesh-light { background: #0d5b3e; opacity: 0.05; }
   .mesh-red { background: #b94d39; opacity: 0.14; }
-  .deco-symbol {
+
+  .deco-ring {
     position: absolute;
-    top: 3.5rem;
-    left: 4.5rem;
-    opacity: 0.18;
-    pointer-events: none;
+    top: 10%;
+    right: 12%;
+    opacity: 0.8;
+    animation: slowSpin 35s linear infinite;
+  }
+  .deco-cross-clean {
+    position: absolute;
+    top: 25%;
+    left: 8%;
+    opacity: 0.22;
+  }
+  .deco-radar {
+    position: absolute;
+    top: 8%;
+    right: 15%;
+    opacity: 0.6;
   }
   .deco-alert-badge {
+    position: absolute;
     top: 3.2rem;
-    left: auto;
-    right: 4.5rem;
-    font-size: 0.65rem;
-    font-weight: 800;
-    letter-spacing: 0.18em;
-    padding: 0.35rem 0.75rem;
-    border: 1px solid currentColor;
+    right: 5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .35rem .75rem;
+    border: 1px solid rgba(185, 77, 57, 0.4);
     border-radius: 999px;
-    opacity: 0.35;
+    font-size: .65rem;
+    font-weight: 800;
+    letter-spacing: .16em;
+    color: #b94d39;
+    background: rgba(185, 77, 57, 0.08);
   }
-  .deco-dots {
-    display: flex;
-    gap: 8px;
-    top: auto;
-    bottom: 3.2rem;
-    left: 4.5rem;
-  }
-  .deco-dots span {
+  .pulse-point {
     width: 6px;
     height: 6px;
+    border-radius: 50%;
+    background: #b94d39;
+    box-shadow: 0 0 0 4px rgba(185, 77, 57, 0.2);
+  }
+  .deco-arc {
+    position: absolute;
+    bottom: 12%;
+    left: 7%;
+    opacity: 0.6;
+  }
+  .deco-stamp {
+    position: absolute;
+    bottom: 3rem;
+    left: 5rem;
+    font-size: .62rem;
+    font-family: monospace;
+    letter-spacing: .15em;
+    opacity: 0.35;
+  }
+  .deco-dots-trio {
+    position: absolute;
+    top: 3.5rem;
+    left: 5rem;
+    display: flex;
+    gap: 8px;
+  }
+  .deco-dots-trio span {
+    width: 5px;
+    height: 5px;
     border-radius: 50%;
     background: currentColor;
     opacity: 0.35;
   }
 
-  /* Palco de Conteúdo Estável */
+  @keyframes slowSpin { to { transform: rotate(360deg); } }
+
+  /* Frame Principal */
   .slide-frame {
     position: relative;
     z-index: 1;
-    width: min(1120px, 100%);
-    min-height: min(680px, 86vh);
+    width: min(1140px, 100%);
+    min-height: min(670px, 86vh);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    gap: 2rem;
+    gap: 1.8rem;
   }
 
   .slide-topline, .slide-footer {
@@ -680,126 +927,276 @@
     justify-content: space-between;
     align-items: center;
     gap: 1rem;
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     will-change: transform, opacity;
   }
   .slide-topline {
     border-bottom: 1px solid currentColor;
-    padding-bottom: 1rem;
-    opacity: 0.72;
+    padding-bottom: 0.85rem;
+    opacity: 0.75;
   }
-  .slide-index { font-variant-numeric: tabular-nums; }
+  .topline-left {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  .slide-eyebrow { font-weight: 800; }
+  .topline-tag {
+    padding: 0.2rem 0.55rem;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    font-size: 0.58rem;
+    opacity: 0.75;
+    letter-spacing: 0.1em;
+  }
+  .slide-index { font-variant-numeric: tabular-nums; opacity: 0.65; }
+
   .slide-content {
     display: flex;
     flex-direction: column;
-    gap: clamp(2rem, 5vh, 3.8rem);
+    gap: clamp(1.8rem, 4vh, 3.2rem);
     flex: 1;
     justify-content: center;
-    padding: clamp(1.5rem, 3vh, 2.5rem) 0;
+    padding: clamp(1rem, 2vh, 2rem) 0;
   }
   .slide-main-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.35fr) minmax(250px, 0.65fr);
+    grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.6fr);
     align-items: center;
-    gap: clamp(2rem, 7vw, 7rem);
+    gap: clamp(2rem, 6vw, 6.5rem);
   }
   .slide-main { min-width: 0; }
   .slide-copy { max-width: 780px; }
-  .slide-eyebrow { font-weight: 800; }
   .slide-copy h2 {
-    margin: 0.8rem 0 1.2rem;
-    max-width: 840px;
-    font-size: clamp(2.3rem, 5vw, 5rem);
-    line-height: 0.97;
-    letter-spacing: -0.055em;
+    margin: 0.6rem 0 1rem;
+    max-width: 820px;
+    font-size: clamp(2.2rem, 4.8vw, 4.6rem);
+    line-height: 0.98;
+    letter-spacing: -0.05em;
     font-weight: 800;
     will-change: transform, opacity;
   }
   .slide-lead {
-    max-width: 680px;
-    font-size: clamp(1rem, 1.5vw, 1.35rem);
+    max-width: 660px;
+    font-size: clamp(0.98rem, 1.4vw, 1.25rem);
     line-height: 1.45;
-    opacity: 0.78;
+    opacity: 0.8;
     will-change: transform, opacity;
   }
 
-  /* Cards e Itens Principais */
-  .point-grid, .law-grid, .closing-grid {
+  /* =========================================================================
+     SLIDE 2: Ruptura Editorial (Mero Comércio vs. Cuidado Clínico)
+     ========================================================================= */
+  .editorial-duo {
+    display: grid;
+    grid-template-columns: 0.85fr 1.15fr;
+    gap: 1.25rem;
+    margin-top: 1.2rem;
+  }
+  .duo-side {
+    padding: 1.35rem 1.4rem;
+    border-top: 2px solid currentColor;
+    background: rgba(255, 255, 255, 0.08);
+    position: relative;
+    will-change: transform, opacity;
+  }
+  .duo-negated {
+    opacity: 0.75;
+    background: rgba(0, 0, 0, 0.08);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+  .duo-tag {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 0.6rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .strike-bar {
+    position: absolute;
+    left: -4px;
+    right: -4px;
+    top: 50%;
+    height: 2px;
+    background: #b94d39;
+    transform: rotate(-3deg);
+  }
+  .duo-negated p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    opacity: 0.65;
+  }
+  .duo-clinical {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: #d7a95c;
+  }
+  .clinical-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #d7a95c;
+    margin-bottom: 0.85rem;
+  }
+  .clinical-beacon {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #d7a95c;
+    box-shadow: 0 0 0 4px rgba(215, 169, 92, 0.25);
+  }
+  .clinical-pillars {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+  .pillar-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .pillar-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .pillar-idx { font-size: 0.7rem; font-weight: 800; opacity: 0.5; font-family: monospace; }
+  .pillar-row h4 { margin: 0 0 0.15rem; font-size: 0.92rem; font-weight: 700; }
+  .pillar-row small { font-size: 0.82rem; opacity: 0.75; line-height: 1.35; display: block; }
+
+  /* =========================================================================
+     SLIDE 3: Matriz de 4 Modalidades
+     ========================================================================= */
+  .modalities-net {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.85rem;
+    margin-top: 1rem;
+    position: relative;
+  }
+  .mod-station {
+    padding: 1.25rem 1.15rem;
+    border-top: 2px solid currentColor;
+    background: rgba(255, 255, 255, 0.55);
+    min-height: 145px;
+    position: relative;
+    will-change: transform, opacity;
+  }
+  .station-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .station-code { font-size: 0.75rem; font-weight: 800; opacity: 0.55; font-family: monospace; }
+  .station-line { flex: 1; height: 1px; background: currentColor; opacity: 0.2; }
+  .mod-station h3 { margin: 0 0 0.4rem; font-size: 1.05rem; line-height: 1.15; }
+  .mod-station p { margin: 0; font-size: 0.86rem; line-height: 1.45; opacity: 0.72; }
+
+  /* =========================================================================
+     SLIDE 4: Arcabouço Legal
+     ========================================================================= */
+  .legal-framework { margin-top: 1rem; display: flex; flex-direction: column; gap: 1rem; }
+  .laws-duo { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .law-plaque {
+    display: flex;
+    gap: 1rem;
+    padding: 1.25rem 1.4rem;
+    border-top: 2px solid currentColor;
+    background: rgba(255, 255, 255, 0.55);
+    will-change: transform, opacity;
+  }
+  .law-symbol { font-size: 1.8rem; font-weight: 800; line-height: 1; opacity: 0.35; }
+  .law-plaque h3 { margin: 0 0 0.35rem; font-size: 1.05rem; }
+  .law-plaque p { margin: 0; font-size: 0.88rem; line-height: 1.45; opacity: 0.72; }
+  .solemn-warning {
+    display: flex;
+    gap: 1.2rem;
+    align-items: baseline;
+    padding: 1rem 1.3rem;
+    border-left: 4px solid #b94d39;
+    background: rgba(185, 77, 57, 0.08);
+    color: #713126;
+    will-change: transform, opacity;
+  }
+  .warning-anchor {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    white-space: nowrap;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    color: #b94d39;
+  }
+  .anchor-bullet { width: 6px; height: 6px; border-radius: 50%; background: #b94d39; }
+  .solemn-warning p { margin: 0; font-size: 0.92rem; line-height: 1.45; }
+
+  /* =========================================================================
+     SLIDE 5: Segurança e LGPD
+     ========================================================================= */
+  .security-cluster {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
+    margin-top: 1rem;
   }
-  .point-grid.two, .law-grid { grid-template-columns: repeat(2, 1fr); }
-  .point, .law-item, .compare-item, .closing-grid > div {
-    position: relative;
-    display: flex;
-    gap: 1rem;
+  .sec-card {
     padding: 1.35rem 1.4rem;
     border-top: 2px solid currentColor;
-    background: rgba(255, 255, 255, 0.5);
-    min-height: 150px;
+    background: rgba(255, 255, 255, 0.55);
     will-change: transform, opacity;
   }
-  .theme-green .point, .theme-green .closing-grid > div { background: rgba(255, 255, 255, 0.08); }
-  .point-number, .law-mark, .closing-grid span {
-    font-size: 0.78rem;
+  .sec-badge-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+  .sec-code {
+    font-size: 0.75rem;
     font-weight: 800;
     letter-spacing: 0.12em;
-    opacity: 0.55;
+    padding: 0.2rem 0.5rem;
+    background: rgba(13, 91, 62, 0.1);
+    color: #0d5b3e;
+    border-radius: 4px;
   }
-  .point h3, .law-item h3, .compare-item h3, .closing-grid strong {
-    margin: 0 0 0.45rem;
-    font-size: 1.1rem;
-    line-height: 1.15;
-  }
-  .point p, .law-item p, .compare-item p, .closing-grid p {
-    margin: 0;
-    font-size: 0.94rem;
-    line-height: 1.5;
-    opacity: 0.72;
-  }
-  .warning-strip {
-    display: flex;
-    gap: 1rem;
-    align-items: baseline;
-    padding: 1.1rem 1.3rem;
-    border-left: 4px solid #b94d39;
-    background: rgba(185, 77, 57, 0.1);
-    color: #713126;
-    margin-top: 1rem;
-    will-change: transform, opacity;
-  }
-  .warning-strip span { font-size: 0.95rem; line-height: 1.45; }
+  .sec-pip { width: 5px; height: 5px; border-radius: 50%; background: #d7a95c; }
+  .sec-card h3 { margin: 0 0 0.35rem; font-size: 1.08rem; }
+  .sec-card p { margin: 0; font-size: 0.88rem; line-height: 1.45; opacity: 0.72; }
 
-  /* Protótipo: Jornada */
-  .journey {
+  /* =========================================================================
+     SLIDE 6: Jornada Clínica Contínua
+     ========================================================================= */
+  .journey-track {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
+    gap: 0.85rem;
     position: relative;
+    margin-top: 1.2rem;
   }
-  .journey::before {
-    content: '';
+  .track-spine {
     position: absolute;
     top: 2rem;
-    left: 7%;
-    right: 7%;
+    left: 8%;
+    right: 8%;
     height: 1px;
-    background: #4e8c73;
-    opacity: 0.45;
+    background: currentColor;
+    opacity: 0.25;
   }
-  .journey-step {
+  .track-station {
     position: relative;
     z-index: 1;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.85rem;
     align-items: flex-start;
     text-align: left;
     border: 0;
-    border-radius: 0;
     padding: 0;
     background: none;
     box-shadow: none;
@@ -807,75 +1204,147 @@
     cursor: pointer;
     will-change: transform, opacity;
   }
-  .journey-number {
+  .station-node {
     display: grid;
     place-items: center;
-    width: 4rem;
-    height: 4rem;
+    width: 3.8rem;
+    height: 3.8rem;
     border: 1px solid currentColor;
     border-radius: 50%;
     background: #f2f1e9;
     color: #0d5b3e;
     font-weight: 800;
+    font-size: 1.05rem;
+    transition: all 0.2s ease;
   }
-  .journey-active .journey-number { background: #0d5b3e; color: #f8f6ed; }
-  .journey-step strong, .journey-step small { display: block; }
-  .journey-step small { margin-top: 0.45rem; font-size: 0.85rem; line-height: 1.4; opacity: 0.7; }
+  .journey-active .station-node {
+    background: #0d5b3e;
+    color: #f8f6ed;
+    box-shadow: 0 0 0 6px rgba(13, 91, 62, 0.12);
+  }
+  .station-text strong { display: block; font-size: 0.98rem; }
+  .station-text small { display: block; margin-top: 0.3rem; font-size: 0.82rem; line-height: 1.35; opacity: 0.7; }
 
-  /* Comparativo: Suplemento vs Medicamento */
-  .compare-header {
+  /* =========================================================================
+     SLIDE 7: Prática Clínica
+     ========================================================================= */
+  .practice-stream {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+  .practice-card {
+    display: flex;
+    align-items: baseline;
+    gap: 1.2rem;
+    padding: 1.1rem 1.35rem;
+    border-left: 2px solid currentColor;
+    background: rgba(255, 255, 255, 0.55);
+    will-change: transform, opacity;
+  }
+  .practice-code { font-size: 0.8rem; font-weight: 800; opacity: 0.55; font-family: monospace; }
+  .practice-right h3 { margin: 0 0 0.25rem; font-size: 1.05rem; }
+  .practice-right p { margin: 0; font-size: 0.88rem; line-height: 1.45; opacity: 0.72; }
+
+  /* =========================================================================
+     SLIDE 8: Escopo e Comparativo de Balança
+     ========================================================================= */
+  .scope-comparison { margin-top: 1rem; }
+  .scope-nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 1rem;
     flex-wrap: wrap;
-    font-size: 0.9rem;
-    opacity: 0.8;
-    margin-bottom: 0.8rem;
-    will-change: transform, opacity;
+    margin-bottom: 0.85rem;
   }
-  .compare-tabs { display: flex; border: 1px solid currentColor; padding: 0.25rem; }
-  .compare-tabs button {
+  .scope-prompt { font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.65; }
+  .scope-tabs { display: flex; border: 1px solid currentColor; padding: 0.2rem; border-radius: 999px; }
+  .scope-tabs button {
     border: 0;
-    border-radius: 0;
-    padding: 0.65rem 0.9rem;
-    box-shadow: none;
-    color: inherit;
+    border-radius: 999px;
+    padding: 0.45rem 0.85rem;
     background: transparent;
-    font-size: 0.8rem;
-    cursor: pointer;
-  }
-  .compare-tabs button.chosen { background: #0d5b3e; color: #f8f6ed; }
-  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-  .compare-item { min-height: 180px; }
-  .compare-item.dimmed { opacity: 0.35 !important; }
-  .compare-label { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em; }
-  .medicine { border-color: #b94d39; }
-  .medicine .compare-label { color: #a44332; }
-
-  .closing-grid { grid-template-columns: repeat(3, 1fr); }
-  .closing-grid > div { flex-direction: column; min-height: 135px; }
-
-  .slide-footer {
-    border-top: 1px solid currentColor;
-    padding-top: 1rem;
-    opacity: 0.58;
-  }
-  .slide-footer button {
-    border: 0;
-    padding: 0;
-    border-radius: 0;
-    box-shadow: none;
-    background: none;
     color: inherit;
     font: inherit;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
+    font-size: 0.74rem;
+    letter-spacing: 0.05em;
     cursor: pointer;
+    transition: all 0.2s ease;
   }
-  .slide-footer button:hover { transform: none; box-shadow: none; opacity: 0.7; }
+  .scope-tabs button.chosen { background: #0d5b3e; color: #f8f6ed; }
+  .scope-panes { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .scope-pane {
+    padding: 1.4rem;
+    border-top: 2px solid currentColor;
+    background: rgba(255, 255, 255, 0.55);
+    min-height: 165px;
+    transition: opacity 0.25s ease;
+    will-change: transform, opacity;
+  }
+  .scope-pane.dimmed { opacity: 0.35 !important; }
+  .pane-badge { font-size: 0.68rem; font-weight: 800; letter-spacing: 0.12em; display: block; margin-bottom: 0.45rem; }
+  .alert-color { color: #a44332; }
+  .pane-med { border-color: #b94d39; }
+  .scope-pane h3 { margin: 0 0 0.35rem; font-size: 1.1rem; }
+  .scope-pane p { margin: 0; font-size: 0.88rem; line-height: 1.45; opacity: 0.72; }
 
-  /* Camada de Ilustração Lateral */
+  /* =========================================================================
+     SLIDE 9: Red Flags
+     ========================================================================= */
+  .red-flag-cluster {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .alert-entry {
+    padding: 1.35rem 1.4rem;
+    border-top: 2px solid #b94d39;
+    background: rgba(255, 255, 255, 0.65);
+    position: relative;
+    will-change: transform, opacity;
+  }
+  .alert-mark {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #b94d39;
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.75rem;
+    margin-bottom: 0.6rem;
+  }
+  .alert-entry h3 { margin: 0 0 0.35rem; font-size: 1.05rem; color: #713126; }
+  .alert-entry p { margin: 0; font-size: 0.88rem; line-height: 1.45; opacity: 0.75; }
+
+  /* =========================================================================
+     SLIDE 10: Tríptico de Encerramento
+     ========================================================================= */
+  .closing-triptych {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .triptych-column {
+    padding: 1.4rem 1.4rem;
+    border-top: 2px solid #d7a95c;
+    background: rgba(255, 255, 255, 0.08);
+    display: flex;
+    flex-direction: column;
+    will-change: transform, opacity;
+  }
+  .triptych-idx { font-size: 0.75rem; font-weight: 800; color: #d7a95c; font-family: monospace; margin-bottom: 0.4rem; }
+  .triptych-column h3 { margin: 0 0 0.45rem; font-size: 1.15rem; line-height: 1.15; }
+  .triptych-column p { margin: 0; font-size: 0.9rem; line-height: 1.5; opacity: 0.75; }
+
+  /* =========================================================================
+     ILUSTRAÇÃO LATERAL (Camada Art)
+     ========================================================================= */
   .slide-art {
     min-height: 330px;
     position: relative;
@@ -920,6 +1389,12 @@
     top: 31%;
     left: 72%;
   }
+  .art-compass {
+    position: absolute;
+    bottom: 15%;
+    left: 12%;
+  }
+
   .art-orbit {
     position: absolute;
     width: 240px;
@@ -940,8 +1415,8 @@
     text-align: center;
     transform: rotate(-4deg);
   }
-  .official-brand img { width: 180px; height: 135px; object-fit: contain; }
-  .official-brand strong { font-size: 2.3rem; line-height: 0.8; letter-spacing: 0.08em; }
+  .official-brand img { width: 175px; height: 130px; object-fit: contain; }
+  .official-brand strong { font-size: 2.2rem; line-height: 0.8; letter-spacing: 0.08em; }
   .official-brand span {
     font-size: 0.58rem;
     line-height: 1.15;
@@ -951,7 +1426,7 @@
   }
   .art-caption {
     position: absolute;
-    bottom: 24%;
+    bottom: 22%;
     right: 0;
     font-size: 0.65rem;
     line-height: 1.1;
@@ -959,11 +1434,12 @@
     opacity: 0.65;
   }
   .art-caption strong { font-size: 0.9rem; }
+
   .art-window {
     width: min(310px, 100%);
     background: #fff;
     color: #17362d;
-    box-shadow: 18px 18px 0 rgba(13, 91, 62, 0.12);
+    box-shadow: 16px 16px 0 rgba(13, 91, 62, 0.12);
     border: 1px solid rgba(13, 91, 62, 0.2);
     transform: rotate(3deg);
   }
@@ -981,69 +1457,54 @@
   .window-bar span { margin-left: auto; opacity: 0.55; }
   .window-body {
     height: 150px;
-    display: grid;
-    place-items: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
     background: linear-gradient(135deg, #dfe9df, #f7f6ef);
   }
   .art-avatar {
-    width: 75px;
-    height: 75px;
+    width: 65px;
+    height: 65px;
     border-radius: 50%;
     background: #0d5b3e;
-    box-shadow: 0 0 0 14px rgba(13, 91, 62, 0.12);
+    box-shadow: 0 0 0 10px rgba(13, 91, 62, 0.12);
   }
-  .art-lines { position: absolute; margin: 90px 0 0 150px; }
-  .art-lines b {
-    display: block;
-    width: 46px;
-    height: 5px;
-    margin: 6px;
-    background: #8db9a1;
+  .clinical-waves {
+    display: flex;
+    gap: 4px;
+    align-items: flex-end;
+    height: 16px;
   }
+  .clinical-waves span {
+    width: 3px;
+    height: 12px;
+    background: #0d5b3e;
+    border-radius: 999px;
+    opacity: 0.5;
+    animation: waveBob 1.2s ease-in-out infinite alternate;
+  }
+  .clinical-waves span:nth-child(2) { height: 16px; animation-delay: 0.2s; opacity: 0.8; }
+  .clinical-waves span:nth-child(3) { height: 8px; animation-delay: 0.4s; }
+  .clinical-waves span:nth-child(4) { height: 14px; animation-delay: 0.6s; opacity: 0.6; }
+  @keyframes waveBob { to { transform: scaleY(0.4); } }
   .window-footer { justify-content: space-between; color: #0d5b3e; }
-  .art-pulse {
-    position: absolute;
-    width: 200px;
-    height: 200px;
-    border: 1px solid #d7a95c;
-    border-radius: 50%;
-    opacity: 0.45;
+
+  /* Balança de Decisão Analítica */
+  .art-scale {
+    position: relative;
+    width: 270px;
+    height: 220px;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .art-law {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    font-size: 9rem;
-    line-height: 0.8;
-    color: #b94d39;
-    transform: rotate(-8deg);
-  }
-  .art-law span { font-size: 0.8rem; line-height: 1.15; letter-spacing: 0.14em; }
-  .art-law strong { font-size: 1.25rem; }
-  .art-route {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1.2rem;
-    font-size: 1rem;
-    font-weight: 800;
-    letter-spacing: 0.1em;
-  }
-  .art-route i {
-    display: block;
-    width: 1px;
-    height: 42px;
-    background: currentColor;
-    margin-left: 7px;
-    opacity: 0.4;
-  }
-  .art-scale { position: relative; width: 270px; height: 220px; }
   .scale-post {
     position: absolute;
-    width: 10px;
-    height: 180px;
+    width: 8px;
+    height: 175px;
     bottom: 0;
     left: 50%;
+    transform: translateX(-50%);
     background: currentColor;
     opacity: 0.6;
   }
@@ -1051,21 +1512,72 @@
     position: absolute;
     width: 220px;
     height: 4px;
-    top: 50px;
+    top: 55px;
     left: 25px;
     background: currentColor;
     transform: rotate(-7deg);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .scale-pan {
     position: absolute;
     top: 85px;
     border: 1px solid currentColor;
-    padding: 1.2rem 0.8rem;
+    padding: 1.1rem 0.8rem;
     font-size: 0.65rem;
     letter-spacing: 0.1em;
+    background: rgba(255, 255, 255, 0.3);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .pan-left { left: 12px; transform: rotate(-7deg); }
   .pan-right { right: 12px; transform: rotate(7deg); }
+  .scale-fulcrum {
+    position: absolute;
+    top: 47px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 20px;
+    border: 2px solid currentColor;
+    border-radius: 50%;
+    background: #d7a95c;
+  }
+  .art-scale.tilt-right .scale-beam { transform: rotate(7deg); }
+  .art-scale.tilt-right .pan-left { transform: translateY(18px) rotate(-7deg); }
+  .art-scale.tilt-right .pan-right { transform: translateY(-18px) rotate(7deg); }
+
+  /* Radar de Emergência */
+  .art-emergency-radar {
+    position: relative;
+    width: 220px;
+    height: 220px;
+    display: grid;
+    place-items: center;
+  }
+  .radar-circle {
+    position: absolute;
+    border: 1px solid #b94d39;
+    border-radius: 50%;
+    opacity: 0.35;
+  }
+  .ring-outer { width: 210px; height: 210px; border-style: dashed; }
+  .ring-mid { width: 140px; height: 140px; }
+  .radar-pulse-core {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #b94d39;
+    box-shadow: 0 0 0 12px rgba(185, 77, 57, 0.2);
+  }
+  .radar-label {
+    position: absolute;
+    bottom: -15px;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    color: #b94d39;
+    text-align: center;
+  }
+
+  /* Aurora Solar do Encerramento */
   .art-sun {
     width: 230px;
     height: 230px;
@@ -1079,38 +1591,52 @@
     line-height: 1.1;
     letter-spacing: 0.12em;
   }
-  .art-sun::before, .art-sun::after {
-    content: '';
+  .sun-core {
     position: absolute;
-    inset: -18px;
-    border: 1px solid #d7a95c;
-    border-radius: 50%;
-    opacity: 0.35;
-  }
-  .art-sun::after { inset: -38px; opacity: 0.18; }
-  .art-sun div {
-    position: absolute;
-    inset: 36%;
+    inset: 34%;
     background: #d7a95c;
     border-radius: 50%;
-    opacity: 0.55;
+    opacity: 0.5;
+  }
+  .sun-orbit {
+    position: absolute;
+    inset: -20px;
+    border: 1px solid #d7a95c;
+    border-radius: 50%;
+    opacity: 0.3;
   }
   .art-sun span { position: relative; z-index: 1; }
   .art-sun strong { font-size: 1.25rem; }
 
-  /* =====================================================================
-     MOBILE (Fluxo Vertical Normal sem Absolute Stacking)
-     ===================================================================== */
+  /* Rodapé */
+  .slide-footer {
+    border-top: 1px solid currentColor;
+    padding-top: 0.85rem;
+    opacity: 0.6;
+  }
+  .footer-left { display: flex; align-items: center; gap: 0.6rem; }
+  .footer-pipe { opacity: 0.4; }
+  .footer-spec { opacity: 0.75; font-size: 0.62rem; }
+  .slide-footer button {
+    border: 0;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    cursor: pointer;
+  }
+  .slide-footer button:hover { transform: none; box-shadow: none; opacity: 0.85; }
+
+  /* =========================================================================
+     MOBILE (Fluxo Vertical Limpo e Responsivo)
+     ========================================================================= */
   @media (max-width: 900px) {
-    .stage-backgrounds {
-      display: none !important;
-    }
-    .slides-wrap {
-      position: relative;
-      inset: auto;
-      pointer-events: auto;
-      display: block;
-    }
+    .stage-backgrounds { display: none !important; }
+    .slides-wrap { position: relative; inset: auto; pointer-events: auto; display: block; }
     .slide {
       position: relative !important;
       inset: auto !important;
@@ -1125,7 +1651,6 @@
       align-items: flex-start;
     }
 
-    /* Cores de fundo nativas por bloco no fluxo mobile */
     .slide.theme-green {
       background: radial-gradient(circle at 88% 18%, rgba(255,255,255,0.15), transparent 32%), #0d5b3e !important;
     }
@@ -1136,60 +1661,38 @@
       background: radial-gradient(circle at 88% 18%, rgba(255,255,255,0.6), transparent 32%), #f6eeea !important;
     }
 
-    .slide-deco {
-      display: none !important;
-    }
-    .slide-frame {
-      min-height: calc(100svh - 6.5rem);
-      gap: 1.4rem;
-    }
-    .slide-content {
-      justify-content: flex-start;
-      gap: 1.6rem;
-      padding: 1.2rem 0;
-    }
-    .slide-main-grid {
-      grid-template-columns: 1fr;
-      gap: 1.8rem;
-    }
-    .slide-art {
-      min-height: 170px;
-      order: -1;
-    }
+    .slide-deco { display: none !important; }
+    .slide-frame { min-height: calc(100svh - 6.5rem); gap: 1.4rem; }
+    .slide-content { justify-content: flex-start; gap: 1.6rem; padding: 1.2rem 0; }
+    .slide-main-grid { grid-template-columns: 1fr; gap: 1.8rem; }
+    .slide-art { min-height: 170px; order: -1; }
     .slide-art::before { inset: 5% 22%; }
     .art-number { font-size: 7rem; }
     .official-brand { transform: scale(0.8) rotate(-4deg); }
-    .art-orbit { transform: scale(0.72); }
-    .art-law { transform: scale(0.72) rotate(-8deg); }
-    .art-scale { transform: scale(0.72); }
+    .art-scale { transform: scale(0.75); }
     .slide-copy h2 { font-size: clamp(2rem, 8.5vw, 3.2rem); }
     .slide-lead { font-size: 1rem; }
-    .point-grid, .point-grid.two, .law-grid, .closing-grid, .compare-grid {
-      grid-template-columns: 1fr;
-    }
-    .journey {
-      grid-template-columns: 1fr;
-      gap: 1rem;
-    }
-    .journey::before {
-      top: 2rem;
-      bottom: 2rem;
-      left: 2rem;
-      right: auto;
-      width: 1px;
-      height: auto;
-    }
-    .journey-step {
-      flex-direction: row;
-      align-items: flex-start;
-      width: 100%;
-    }
-    .journey-step span:last-child { padding-top: 0.45rem; }
+
+    .editorial-duo { grid-template-columns: 1fr; gap: 1rem; }
+    .modalities-net { grid-template-columns: 1fr; gap: 0.85rem; }
+    .laws-duo { grid-template-columns: 1fr; gap: 0.85rem; }
+    .security-cluster { grid-template-columns: 1fr; gap: 0.85rem; }
+    .journey-track { grid-template-columns: 1fr; gap: 1rem; }
+    .track-spine { display: none; }
+    .track-station { flex-direction: row; align-items: flex-start; width: 100%; }
+    .track-station small { margin-top: 0.25rem; }
+    .scope-panes { grid-template-columns: 1fr; gap: 0.85rem; }
+    .red-flag-cluster { grid-template-columns: 1fr; gap: 0.85rem; }
+    .closing-triptych { grid-template-columns: 1fr; gap: 0.85rem; }
+
     .slide-footer { font-size: 0.6rem; }
+    .footer-spec { display: none; }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .slide-topline, .slide-copy h2, .slide-lead, .point, .law-item, .compare-item, .closing-grid > div, .slide-art, .slide-footer, .slide-deco {
+    .slide-topline, .slide-copy h2, .slide-lead, .slide-art, .slide-footer, .slide-deco,
+    .duo-side, .mod-station, .law-plaque, .solemn-warning, .sec-card, .track-station,
+    .practice-card, .scope-pane, .alert-entry, .triptych-column {
       transform: none !important;
       transition: none !important;
     }

@@ -17,6 +17,19 @@
   let currentScrollRatio = $state(0);
   let activePhase = $derived(Math.min(9, Math.floor(currentScrollRatio * 10)));
   
+  const slideTitles = [
+    '01 · Abertura Institucional',
+    '02 · Conceito-Chave Clínico',
+    '03 · Modalidades de Cuidado',
+    '04 · Arcabouço Legal e Limites',
+    '05 · Segurança e LGPD em Saúde',
+    '06 · Protótipo e Jornada Clínica',
+    '07 · Prática Clínica na Teleconsulta',
+    '08 · Prescrição vs. Orientação',
+    '09 · Red Flags e Encaminhamento',
+    '10 · Encerramento e Síntese'
+  ];
+
   // ===== SAÍDA INDIVIDUAL DO SLIDE 1 =====
   // Cada grupo sai para sua própria direção de forma coordenada, com crossfade para o Slide 2.
   const EXIT_START = 0.05;
@@ -36,6 +49,9 @@
   function setPresentationSlide(nextIndex) {
     presentationIndex = Math.max(0, Math.min(9, nextIndex));
     targetScrollRatio = presentationRatios[presentationIndex];
+    if (typeof document !== 'undefined' && document.activeElement && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur();
+    }
   }
 
   function togglePresentationMode() {
@@ -57,6 +73,9 @@
       presentationMode = false;
       document.body.style.overflow = '';
       scrollToPhase(presentationIndex);
+    }
+    if (typeof document !== 'undefined' && document.activeElement && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur();
     }
   }
 
@@ -462,15 +481,37 @@
 
     const handlePresentationKey = (event) => {
       if (!presentationMode || isMobile) return;
-      if (event.code === 'Space') {
+      const isSpace = event.code === 'Space' || event.key === ' ' || event.keyCode === 32;
+      const isNext = isSpace || event.code === 'PageDown' || event.key === 'ArrowRight' || event.key === 'ArrowDown';
+      const isPrev = event.code === 'PageUp' || event.key === 'ArrowLeft' || event.key === 'ArrowUp';
+      const isEscape = event.key === 'Escape' || event.code === 'Escape';
+
+      if (isEscape) {
         event.preventDefault();
-        setPresentationSlide(presentationIndex + (event.shiftKey ? -1 : 1));
-      } else if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+        event.stopPropagation();
+        togglePresentationMode();
+        return;
+      }
+
+      if (isSpace && event.shiftKey) {
         event.preventDefault();
-        setPresentationSlide(presentationIndex + 1);
-      } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
-        event.preventDefault();
+        event.stopPropagation();
         setPresentationSlide(presentationIndex - 1);
+        return;
+      }
+
+      if (isNext) {
+        event.preventDefault();
+        event.stopPropagation();
+        setPresentationSlide(presentationIndex + 1);
+        return;
+      }
+
+      if (isPrev) {
+        event.preventDefault();
+        event.stopPropagation();
+        setPresentationSlide(presentationIndex - 1);
+        return;
       }
     };
 
@@ -496,7 +537,7 @@
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', handleResize, { passive: true });
-    window.addEventListener('keydown', handlePresentationKey);
+    window.addEventListener('keydown', handlePresentationKey, { capture: true });
     handleScroll();
     rafId = requestAnimationFrame(tick);
 
@@ -505,7 +546,7 @@
       clearTimeout(resizeTimer);
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleResize);
-      window.removeEventListener('keydown', handlePresentationKey);
+      window.removeEventListener('keydown', handlePresentationKey, { capture: true });
       mobileQuery.removeEventListener?.('change', updateMobileMode);
       document.body.style.overflow = '';
       if (rafId) cancelAnimationFrame(rafId);
@@ -525,13 +566,67 @@
 
     <!-- Palco Principal: Animação original do JSON em tela cheia verde -->
     <div class="stage-container">
-      <button class:active={presentationMode} class="presentation-toggle" type="button" onclick={togglePresentationMode} aria-pressed={presentationMode}>
-        <span class="presentation-dot"></span>
-        {presentationMode ? 'Sair do modo apresentação' : 'Modo apresentação'}
-      </button>
-      {#if presentationMode}
-        <div class="presentation-hint">Espaço / Setas avança · Shift + Espaço / Setas volta</div>
-      {/if}
+      <!-- Suite do Modo Apresentação -->
+      <div class="presentation-suite">
+        <button
+          class:active={presentationMode}
+          class="presentation-toggle"
+          type="button"
+          onclick={(e) => { e.currentTarget?.blur(); togglePresentationMode(); }}
+          onkeydown={(e) => { if (e.code === 'Space' || e.key === ' ') e.preventDefault(); }}
+          aria-pressed={presentationMode}
+        >
+          <span class="presentation-dot"></span>
+          {presentationMode ? 'Sair da Apresentação [ESC]' : 'Modo Apresentação'}
+        </button>
+
+        {#if presentationMode}
+          <!-- Barra flutuante de navegação rápida com feedback tátil e visual -->
+          <div class="presentation-hud" role="toolbar" aria-label="Controles de apresentação">
+            <button
+              class="hud-btn hud-prev"
+              type="button"
+              disabled={presentationIndex <= 0}
+              onclick={(e) => { e.currentTarget?.blur(); setPresentationSlide(presentationIndex - 1); }}
+              title="Slide anterior (Seta esquerda / Shift+Espaço)"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+              <span>Anterior</span>
+            </button>
+
+            <div class="hud-indicator">
+              <span class="hud-current">{String(presentationIndex + 1).padStart(2, '0')}</span>
+              <span class="hud-sep">/</span>
+              <span class="hud-total">10</span>
+              <span class="hud-badge">{slideTitles[presentationIndex]}</span>
+            </div>
+
+            <button
+              class="hud-btn hud-next"
+              type="button"
+              disabled={presentationIndex >= 9}
+              onclick={(e) => { e.currentTarget?.blur(); setPresentationSlide(presentationIndex + 1); }}
+              title="Próximo slide (Espaço / Seta direita)"
+            >
+              <span>Próximo</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          </div>
+
+          <!-- Barra de progresso segmentada no topo -->
+          <div class="presentation-progress-bar" aria-label="Progresso da apresentação">
+            {#each presentationRatios as _, i}
+              <button
+                class="progress-seg"
+                class:done={i <= presentationIndex}
+                class:active={i === presentationIndex}
+                onclick={(e) => { e.currentTarget?.blur(); setPresentationSlide(i); }}
+                title={`Ir para ${slideTitles[i]}`}
+              ></button>
+            {/each}
+          </div>
+        {/if}
+      </div>
       {#if isLoading}
         <div class="loading-state">
           <div class="spinner"></div>
@@ -698,19 +793,26 @@
     overflow: hidden;
   }
 
+  .presentation-suite {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1200;
+  }
+
   .presentation-toggle {
     position: absolute;
     top: 1.35rem;
     right: 1.5rem;
-    z-index: 1200;
+    pointer-events: auto;
     display: inline-flex;
     align-items: center;
     gap: .55rem;
-    padding: .65rem .85rem;
+    padding: .65rem .95rem;
     border: 1px solid rgba(255,255,255,.35);
     border-radius: 999px;
-    background: rgba(7,55,38,.3);
-    color: rgba(255,255,255,.85);
+    background: rgba(7,55,38,.45);
+    color: rgba(255,255,255,.95);
     box-shadow: none;
     font: inherit;
     font-size: .68rem;
@@ -718,10 +820,108 @@
     text-transform: uppercase;
     backdrop-filter: blur(12px);
     cursor: pointer;
+    transition: all .2s ease;
   }
-  .presentation-toggle:hover,.presentation-toggle.active { background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.7); }
-  .presentation-dot { width: .48rem; height: .48rem; border-radius: 50%; background: #d7a95c; box-shadow: 0 0 0 4px rgba(215,169,92,.16); }
-  .presentation-hint { position: absolute; top: 4.3rem; right: 1.6rem; z-index: 1200; color: rgba(255,255,255,.64); font-size: .64rem; letter-spacing: .06em; }
+  .presentation-toggle:hover,.presentation-toggle.active {
+    background: rgba(255,255,255,.2);
+    border-color: rgba(255,255,255,.8);
+  }
+  .presentation-dot {
+    width: .48rem;
+    height: .48rem;
+    border-radius: 50%;
+    background: #d7a95c;
+    box-shadow: 0 0 0 4px rgba(215,169,92,.22);
+  }
+
+  .presentation-hud {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: .65rem;
+    padding: .45rem .75rem;
+    border: 1px solid rgba(255,255,255,.3);
+    border-radius: 999px;
+    background: rgba(7,55,38,.82);
+    color: #fff;
+    backdrop-filter: blur(16px);
+    box-shadow: 0 10px 32px rgba(0,0,0,.3);
+    z-index: 1250;
+  }
+  .hud-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .45rem .85rem;
+    border: 1px solid rgba(255,255,255,.22);
+    border-radius: 999px;
+    background: rgba(255,255,255,.12);
+    color: #fff;
+    font: inherit;
+    font-size: .72rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .hud-btn:hover:not(:disabled) {
+    background: rgba(255,255,255,.26);
+    border-color: rgba(255,255,255,.6);
+  }
+  .hud-btn:disabled {
+    opacity: .35;
+    cursor: not-allowed;
+  }
+  .hud-indicator {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    padding: 0 .4rem;
+    font-size: .75rem;
+    letter-spacing: .05em;
+  }
+  .hud-current { font-weight: 800; color: #d7a95c; }
+  .hud-sep { opacity: .4; }
+  .hud-total { opacity: .6; }
+  .hud-badge {
+    margin-left: .45rem;
+    padding-left: .65rem;
+    border-left: 1px solid rgba(255,255,255,.2);
+    opacity: .9;
+    font-size: .7rem;
+    white-space: nowrap;
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .presentation-progress-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    display: flex;
+    gap: 4px;
+    padding: 0 1rem;
+    pointer-events: auto;
+    z-index: 1250;
+    background: rgba(0,0,0,.25);
+  }
+  .progress-seg {
+    flex: 1;
+    height: 100%;
+    border: 0;
+    padding: 0;
+    background: rgba(255,255,255,.22);
+    cursor: pointer;
+    transition: background .2s ease;
+  }
+  .progress-seg.done { background: rgba(215,169,92,.65); }
+  .progress-seg.active { background: #d7a95c; box-shadow: 0 0 8px rgba(215,169,92,.8); }
 
   .lottie-wrapper {
     position: absolute;
@@ -898,8 +1098,7 @@
   }
 
   @media (max-width: 900px) {
-    .presentation-toggle,
-    .presentation-hint {
+    .presentation-suite {
       display: none;
     }
 
