@@ -155,6 +155,129 @@
     return { pIn, pOut, opacity };
   }
 
+  // Helper para sub-intervalos cinéticos com curva cúbica
+  function subProg(p, start, end) {
+    if (p <= start) return 0;
+    if (p >= end) return 1;
+    const t = (p - start) / (end - start);
+    return 1 - Math.pow(1 - t, 3);
+  }
+
+  // Progresso de entrada do Slide 2:
+  // Janela: 0.050 (quando o Slide 1 inicia a separação física) até 0.130 (quando o Slide 2 estabiliza)
+  const s2InProg = $derived(clamp01((currentRatio - 0.050) / (0.130 - 0.050)));
+  const s2IsVisible = $derived(currentRatio >= 0.048 && currentRatio <= 0.230);
+  const s2IsActive = $derived(currentRatio >= 0.125 && currentRatio <= 0.165);
+
+  const s2Anim = $derived.by(() => {
+    const p = s2InProg;
+
+    // Fundo sólido sem esmaecer: expansão circular sólida a partir da arte/número 02
+    const pBg = subProg(p, 0.00, 0.70);
+    const bgClip = p >= 1 ? 'none' : `circle(${(pBg * 165).toFixed(1)}% at 82% 44%)`;
+
+    // Barra superior e cabeçalho editorial
+    const pTopBar = subProg(p, 0.10, 0.60);
+    const pTopText = subProg(p, 0.15, 0.65);
+    const topBarScale = pTopBar.toFixed(3);
+    const topTextTrans = `translate3d(0, ${((1 - pTopText) * -45).toFixed(1)}px, 0)`;
+    const topBadgeScale = (0.7 + 0.3 * pTopText).toFixed(3);
+    const topIndexTrans = `translate3d(${((1 - pTopText) * 60).toFixed(1)}px, 0, 0)`;
+
+    // Título cinético (2 linhas cortadas por máscaras overflow: hidden)
+    const pTitle1 = subProg(p, 0.18, 0.68);
+    const pTitle2 = subProg(p, 0.26, 0.76);
+    const titleLine1Trans = `translate3d(0, ${((1 - pTitle1) * 115).toFixed(1)}%, 0)`;
+    const titleLine2Trans = `translate3d(0, ${((1 - pTitle2) * 115).toFixed(1)}%, 0)`;
+
+    // Lead text
+    const pLead = subProg(p, 0.32, 0.80);
+    const leadTrans = `translate3d(${((1 - pLead) * -65).toFixed(1)}px, 0, 0)`;
+
+    // Card esquerdo: "Mero Comércio"
+    const pCard0 = subProg(p, 0.30, 0.78);
+    const card0Trans = `translate3d(${((1 - pCard0) * -120).toFixed(1)}px, 0, 0) scale(${(0.88 + 0.12 * pCard0).toFixed(3)})`;
+
+    // Barra de risco vermelha: corta a palavra fisicamente em tempo real
+    const pStrike = subProg(p, 0.55, 0.90);
+    const strikeScale = `scaleX(${pStrike.toFixed(3)}) rotate(-3deg)`;
+
+    // Card direito: "Cuidado Clínico Estruturado"
+    const pCard1 = subProg(p, 0.38, 0.85);
+    const card1Trans = `translate3d(${((1 - pCard1) * 85).toFixed(1)}px, ${((1 - pCard1) * 30).toFixed(1)}px, 0) scale(${(0.90 + 0.10 * pCard1).toFixed(3)})`;
+
+    // Beacon de pulso verde
+    const pBeacon = subProg(p, 0.45, 0.80);
+    const beaconScale = `scale(${pBeacon < 1 ? (pBeacon * 1.35).toFixed(3) : '1.0'})`;
+
+    // 3 Pilares com número saltando, linha esticando e texto deslizando
+    const pP1 = subProg(p, 0.45, 0.82);
+    const pillar1 = {
+      idxScale: `scale(${pP1 < 1 ? (pP1 * 1.4).toFixed(3) : '1.0'})`,
+      lineScale: `scaleX(${pP1.toFixed(3)})`,
+      textTrans: `translate3d(${((1 - pP1) * 40).toFixed(1)}px, 0, 0)`
+    };
+
+    const pP2 = subProg(p, 0.58, 0.90);
+    const pillar2 = {
+      idxScale: `scale(${pP2 < 1 ? (pP2 * 1.4).toFixed(3) : '1.0'})`,
+      lineScale: `scaleX(${pP2.toFixed(3)})`,
+      textTrans: `translate3d(${((1 - pP2) * 40).toFixed(1)}px, 0, 0)`
+    };
+
+    const pP3 = subProg(p, 0.70, 0.98);
+    const pillar3 = {
+      idxScale: `scale(${pP3 < 1 ? (pP3 * 1.4).toFixed(3) : '1.0'})`,
+      lineScale: `scaleX(${pP3.toFixed(3)})`,
+      textTrans: `translate3d(${((1 - pP3) * 40).toFixed(1)}px, 0, 0)`
+    };
+
+    // Arte Lateral: Número 02, Bússola e Linhas
+    const pArt = subProg(p, 0.05, 0.75);
+    const artNumberTrans = `translate3d(${((1 - pArt) * 160).toFixed(1)}px, 0, 0) scale(${(1 + (1 - pArt) * 1.15).toFixed(3)})`;
+    const artCompassTrans = `rotate(${((1 - pArt) * -180).toFixed(1)}deg) scale(${pArt.toFixed(3)})`;
+    const artLineOne = `scaleX(${subProg(p, 0.15, 0.80).toFixed(3)})`;
+    const artLineTwo = `scaleX(${subProg(p, 0.25, 0.85).toFixed(3)})`;
+    const pDot = subProg(p, 0.35, 0.80);
+    const artDot = `scale(${pDot < 1 ? (pDot * 1.35).toFixed(3) : '1.0'})`;
+
+    // Micro-ornamentos (anel e cruz médica)
+    const pRing = subProg(p, 0.10, 0.75);
+    const decoRing = `rotate(${(pRing * 180).toFixed(1)}deg) scale(${pRing.toFixed(3)})`;
+    const pCross = subProg(p, 0.25, 0.82);
+    const decoCross = `rotate(${((1 - pCross) * 90).toFixed(1)}deg) scale(${pCross.toFixed(3)})`;
+
+    // Rodapé
+    const pFooter = subProg(p, 0.40, 0.85);
+    const footerTrans = `translate3d(0, ${((1 - pFooter) * 25).toFixed(1)}px, 0)`;
+
+    return {
+      bgClip,
+      topBarScale,
+      topTextTrans,
+      topBadgeScale,
+      topIndexTrans,
+      titleLine1Trans,
+      titleLine2Trans,
+      leadTrans,
+      card0Trans,
+      strikeScale,
+      card1Trans,
+      beaconScale,
+      pillar1,
+      pillar2,
+      pillar3,
+      artNumberTrans,
+      artCompassTrans,
+      artLineOne,
+      artLineTwo,
+      artDot,
+      decoRing,
+      decoCross,
+      footerTrans
+    };
+  });
+
   // Camadas de Fundo Contínuas (Desktop)
   const bgForestInS2 = $derived(clamp01((currentRatio - 0.07) / 0.05));
   const bgLightIn = $derived(clamp01((currentRatio - 0.165) / 0.05));
@@ -382,18 +505,44 @@
       id={`slide-${index + 2}`}
       class={`slide redesign-slide theme-${slide.accent} family-${slide.family} ${mobile ? 'mobile-slide' : ''}`}
       aria-hidden={!st.isCentered}
-      style={mobile ? '' : `visibility: ${st.visibility}; pointer-events: ${st.pointerEvents}; z-index: ${st.isCentered ? 3 : 2};`}
+      style={mobile ? '' : (index === 0
+        ? `visibility: ${s2IsVisible ? 'visible' : 'hidden'}; pointer-events: ${s2IsActive ? 'auto' : 'none'}; z-index: ${s2IsVisible ? 4 : 2}; opacity: 1;`
+        : `visibility: ${st.visibility}; pointer-events: ${st.pointerEvents}; z-index: ${st.isCentered ? 3 : 2};`
+      )}
     >
+      {#if index === 0 && !mobile}
+        <!-- Canvas sólido do Slide 2: expande de forma sólida sem esmaecer em nada -->
+        <div class="slide-solid-canvas" style={`clip-path: ${s2Anim.bgClip};`} aria-hidden="true"></div>
+      {/if}
+
       <!-- Camada Decorativa de Ambientação com Micro-Elementos Científicos (Igual ao Slide 1) -->
-      <div class="slide-deco" style={mobile ? '' : `opacity: ${st.deco.opacity}; transform: ${st.deco.transform};`} aria-hidden="true">
+      <div
+        class="slide-deco"
+        style={index === 0 && !mobile ? 'opacity: 1; transform: none;' : (mobile ? '' : `opacity: ${st.deco.opacity}; transform: ${st.deco.transform};`)}
+        aria-hidden="true"
+      >
         {#if slide.accent === 'green'}
-          <div class="deco-mesh mesh-green"></div>
-          <!-- Anel tracejado flutuante igual Slide 1 -->
-          <svg class="deco-ring" width="140" height="140" viewBox="0 0 100 100" fill="none" stroke="currentColor">
+          <div
+            class="deco-mesh mesh-green"
+            style={index === 0 && !mobile ? `transform: scale(${(0.8 + 0.2 * s2InProg).toFixed(3)});` : ''}
+          ></div>
+          <!-- Anel tracejado flutuante igual Slide 1 com expansão e rotação -->
+          <svg
+            class="deco-ring"
+            width="140"
+            height="140"
+            viewBox="0 0 100 100"
+            fill="none"
+            stroke="currentColor"
+            style={index === 0 && !mobile ? `transform: ${s2Anim.decoRing};` : ''}
+          >
             <circle cx="50" cy="50" r="42" stroke-dasharray="4 6" stroke-width="1.2" opacity="0.22" />
             <circle cx="50" cy="50" r="18" stroke-width="0.8" opacity="0.14" />
           </svg>
-          <div class="deco-cross-clean">
+          <div
+            class="deco-cross-clean"
+            style={index === 0 && !mobile ? `transform: ${s2Anim.decoCross};` : ''}
+          >
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <path d="M12 4v16M4 12h16" />
             </svg>
@@ -427,23 +576,56 @@
       <!-- Palco Estável do Conteúdo -->
       <div class="slide-frame">
         <!-- Topline Editorial com Badge de Alta Precisão -->
-        <div class="slide-topline" style={mobile ? '' : `opacity: ${st.topline.opacity}; transform: ${st.topline.transform};`}>
+        <div
+          class="slide-topline"
+          style={index === 0 && !mobile
+            ? `opacity: 1; transform: ${s2Anim.topTextTrans}; border-bottom: none;`
+            : (mobile ? '' : `opacity: ${st.topline.opacity}; transform: ${st.topline.transform};`)}
+        >
           <div class="topline-left">
             <span class="slide-eyebrow">{slide.eyebrow}</span>
-            <span class="topline-tag">{slide.badge}</span>
+            <span
+              class="topline-tag"
+              style={index === 0 && !mobile ? `transform: scale(${s2Anim.topBadgeScale}); display: inline-block;` : ''}
+            >{slide.badge}</span>
           </div>
-          <span class="slide-index">{String(index + 2).padStart(2, '0')} / 10</span>
+          <span
+            class="slide-index"
+            style={index === 0 && !mobile ? `transform: ${s2Anim.topIndexTrans};` : ''}
+          >{String(index + 2).padStart(2, '0')} / 10</span>
+
+          {#if index === 0 && !mobile}
+            <div class="topline-rail-line" style={`transform: scaleX(${s2Anim.topBarScale});`}></div>
+          {/if}
         </div>
 
         <div class="slide-content">
           <div class="slide-main-grid">
             <div class="slide-main">
-              <!-- Cabeçalho Tipográfico com Respiração Cinética -->
+              <!-- Cabeçalho Tipográfico com Respiração Cinética e Corte Sólido -->
               <header class="slide-copy">
-                <h2 style={mobile ? '' : `opacity: ${st.title.opacity}; transform: ${st.title.transform};`}>
-                  {slide.title}
-                </h2>
-                <p class="slide-lead" style={mobile ? '' : `opacity: ${st.lead.opacity}; transform: ${st.lead.transform};`}>
+                {#if index === 0 && !mobile}
+                  <h2 class="kinetic-title">
+                    <span class="kinetic-line-mask">
+                      <span class="kinetic-line" style={`transform: ${s2Anim.titleLine1Trans};`}>
+                        Telefarmácia não é
+                      </span>
+                    </span>
+                    <span class="kinetic-line-mask">
+                      <span class="kinetic-line line-highlight" style={`transform: ${s2Anim.titleLine2Trans};`}>
+                        venda online.
+                      </span>
+                    </span>
+                  </h2>
+                {:else}
+                  <h2 style={mobile ? '' : `opacity: ${st.title.opacity}; transform: ${st.title.transform};`}>
+                    {slide.title}
+                  </h2>
+                {/if}
+                <p
+                  class="slide-lead"
+                  style={index === 0 && !mobile ? `opacity: 1; transform: ${s2Anim.leadTrans};` : (mobile ? '' : `opacity: ${st.lead.opacity}; transform: ${st.lead.transform};`)}
+                >
                   {slide.lead}
                 </p>
               </header>
@@ -456,10 +638,13 @@
                   <!-- Lado Não-Clínico Riscado -->
                   <div
                     class="duo-side duo-negated"
-                    style={mobile ? '' : `opacity: ${st.cards[0].opacity}; transform: ${st.cards[0].transform};`}
+                    style={index === 0 && !mobile ? `opacity: 1; transform: ${s2Anim.card0Trans};` : (mobile ? '' : `opacity: ${st.cards[0].opacity}; transform: ${st.cards[0].transform};`)}
                   >
                     <div class="duo-tag">
-                      <span class="strike-bar"></span>
+                      <span
+                        class="strike-bar"
+                        style={index === 0 && !mobile ? `transform: ${s2Anim.strikeScale}; transform-origin: left;` : ''}
+                      ></span>
                       <strong>{slide.divergence.tag}</strong>
                     </div>
                     <p>{slide.divergence.desc}</p>
@@ -468,20 +653,33 @@
                   <!-- Lado Clínico em Destaque com 3 Nós Conectados -->
                   <div
                     class="duo-side duo-clinical"
-                    style={mobile ? '' : `opacity: ${st.cards[1].opacity}; transform: ${st.cards[1].transform};`}
+                    style={index === 0 && !mobile ? `opacity: 1; transform: ${s2Anim.card1Trans};` : (mobile ? '' : `opacity: ${st.cards[1].opacity}; transform: ${st.cards[1].transform};`)}
                   >
                     <div class="clinical-head">
-                      <span class="clinical-beacon"></span>
+                      <span
+                        class="clinical-beacon"
+                        style={index === 0 && !mobile ? `transform: ${s2Anim.beaconScale};` : ''}
+                      ></span>
                       <strong>Cuidado Clínico Estruturado</strong>
                     </div>
                     <div class="clinical-pillars">
                       {#each slide.pillars as pillar, pIdx}
+                        {@const pAnim = pIdx === 0 ? s2Anim.pillar1 : pIdx === 1 ? s2Anim.pillar2 : s2Anim.pillar3}
                         <div class="pillar-row">
-                          <span class="pillar-idx">0{pIdx + 1}</span>
-                          <div>
+                          <span
+                            class="pillar-idx"
+                            style={index === 0 && !mobile ? `transform: ${pAnim.idxScale}; display: inline-block;` : ''}
+                          >0{pIdx + 1}</span>
+                          <div
+                            class="pillar-body"
+                            style={index === 0 && !mobile ? `transform: ${pAnim.textTrans};` : ''}
+                          >
                             <h4>{pillar[0]}</h4>
                             <small>{pillar[1]}</small>
                           </div>
+                          {#if index === 0 && !mobile}
+                            <div class="pillar-divider-line" style={`transform: ${pAnim.lineScale};`}></div>
+                          {/if}
                         </div>
                       {/each}
                     </div>
@@ -730,11 +928,13 @@
 
               {:else}
                 <!-- Escultura Vetorial Editorial com Coordenadas -->
-                <div class="art-number">{String(index + 2).padStart(2, '0')}</div>
-                <div class="art-line line-one"></div>
-                <div class="art-line line-two"></div>
-                <div class="art-dot"></div>
-                <div class="art-compass">
+                <div class="art-number" style={index === 0 && !mobile ? `transform: ${s2Anim.artNumberTrans};` : ''}>
+                  {String(index + 2).padStart(2, '0')}
+                </div>
+                <div class="art-line line-one" style={index === 0 && !mobile ? `transform: ${s2Anim.artLineOne}; transform-origin: left;` : ''}></div>
+                <div class="art-line line-two" style={index === 0 && !mobile ? `transform: ${s2Anim.artLineTwo}; transform-origin: left;` : ''}></div>
+                <div class="art-dot" style={index === 0 && !mobile ? `transform: ${s2Anim.artDot};` : ''}></div>
+                <div class="art-compass" style={index === 0 && !mobile ? `transform: ${s2Anim.artCompassTrans};` : ''}>
                   <svg width="60" height="60" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="0.8" opacity="0.35">
                     <circle cx="20" cy="20" r="16" stroke-dasharray="2 3"/>
                     <path d="M20 4v32M4 20h32"/>
@@ -746,7 +946,12 @@
         </div>
 
         <!-- Rodapé Editorial -->
-        <div class="slide-footer" style={mobile ? '' : `opacity: ${st.footer.opacity}; transform: ${st.footer.transform};`}>
+        <div
+          class="slide-footer"
+          style={index === 0 && !mobile
+            ? `opacity: 1; transform: ${s2Anim.footerTrans};`
+            : (mobile ? '' : `opacity: ${st.footer.opacity}; transform: ${st.footer.transform};`)}
+        >
           <div class="footer-left">
             <span>Telefarmácia & Serviços Digitais Farmacêuticos</span>
             <span class="footer-pipe">|</span>
@@ -812,6 +1017,16 @@
   .theme-green { color: #f8f6ed; }
   .theme-light { color: #17362d; }
   .theme-red { color: #2f2523; }
+
+  /* Canvas sólido exclusivo para entrada do Slide 2 sem esmaecer */
+  .slide-solid-canvas {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: radial-gradient(circle at 82% 44%, rgba(255, 255, 255, 0.14), transparent 38%), #0d5b3e;
+    pointer-events: none;
+    will-change: clip-path;
+  }
 
   /* Camada Decorativa de Precisão (Igual ao Slide 1) */
   .slide-deco {
@@ -933,8 +1148,20 @@
     will-change: transform, opacity;
   }
   .slide-topline {
+    position: relative;
     border-bottom: 1px solid currentColor;
     padding-bottom: 0.85rem;
+    opacity: 0.75;
+  }
+  .topline-rail-line {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: currentColor;
+    transform-origin: left;
+    will-change: transform;
     opacity: 0.75;
   }
   .topline-left {
@@ -977,6 +1204,27 @@
     letter-spacing: -0.05em;
     font-weight: 800;
     will-change: transform, opacity;
+  }
+  .kinetic-title {
+    margin: 0.6rem 0 1rem;
+    max-width: 820px;
+    font-size: clamp(2.2rem, 4.8vw, 4.6rem);
+    line-height: 0.98;
+    letter-spacing: -0.05em;
+    font-weight: 800;
+  }
+  .kinetic-line-mask {
+    display: block;
+    overflow: hidden;
+    padding-bottom: 0.08em;
+  }
+  .kinetic-line {
+    display: block;
+    will-change: transform;
+    color: inherit;
+  }
+  .kinetic-line.line-highlight {
+    color: #f8f6ed;
   }
   .slide-lead {
     max-width: 660px;
@@ -1057,6 +1305,7 @@
     gap: 0.65rem;
   }
   .pillar-row {
+    position: relative;
     display: flex;
     align-items: flex-start;
     gap: 0.75rem;
@@ -1064,7 +1313,28 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   }
   .pillar-row:last-child { border-bottom: none; padding-bottom: 0; }
-  .pillar-idx { font-size: 0.7rem; font-weight: 800; opacity: 0.5; font-family: monospace; }
+  .pillar-idx {
+    font-size: 0.7rem;
+    font-weight: 800;
+    opacity: 0.5;
+    font-family: monospace;
+    will-change: transform;
+    transform-origin: center;
+  }
+  .pillar-body {
+    flex: 1;
+    will-change: transform;
+  }
+  .pillar-divider-line {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.12);
+    transform-origin: left;
+    will-change: transform;
+  }
   .pillar-row h4 { margin: 0 0 0.15rem; font-size: 0.92rem; font-weight: 700; }
   .pillar-row small { font-size: 0.82rem; opacity: 0.75; line-height: 1.35; display: block; }
 
