@@ -630,6 +630,176 @@
     };
   });
 
+  // Progresso de entrada e saída do Slide 5:
+  // Entrada ativa ao transitar de Slide 4 (0.340) para Slide 5 (0.440)
+  const s5InProg = $derived(clamp01((currentRatio - 0.345) / (0.438 - 0.345)));
+  // Saída ativa ao transitar de Slide 5 (0.440) para Slide 6 (0.540)
+  const s5OutProg = $derived(clamp01((currentRatio - 0.445) / (0.538 - 0.445)));
+  const s5IsVisible = $derived(currentRatio >= 0.342 && currentRatio <= 0.540);
+  const s5IsActive = $derived(currentRatio >= 0.420 && currentRatio <= 0.465);
+
+  const s5Anim = $derived.by(() => {
+    const p = s5InProg;
+    const pOut = s5OutProg;
+
+    // FASE 1: ABERTURA DO COFRE / ESCUDO CRIPTOGRÁFICO HEXAGONAL (0.00 a 0.40)
+    // Sincronizado perfeitamente com a saída do Slide 4
+    const pBgIn = subProg(p, 0.00, 0.40);
+    const r = (pBgIn * 115).toFixed(1);
+    const rNum = parseFloat(r);
+    const rCos = (rNum * 0.866).toFixed(1);
+    const rHalf = (rNum * 0.5).toFixed(1);
+
+    // SAÍDA DO FUNDO DO SLIDE 5 (0.35 a 0.90 de pOut)
+    const pBgOut = subProg(pOut, 0.35, 0.90);
+    let bgClip = 'none';
+    if (pBgIn < 1) {
+      bgClip = `polygon(50% calc(50% - ${r}%), calc(50% + ${rCos}%) calc(50% - ${rHalf}%), calc(50% + ${rCos}%) calc(50% + ${rHalf}%), 50% calc(50% + ${r}%), calc(50% - ${rCos}%) calc(50% + ${rHalf}%), calc(50% - ${rCos}%) calc(50% - ${rHalf}%))`;
+    } else if (pBgOut > 0) {
+      const outH = (pBgOut * 105).toFixed(1);
+      bgClip = `polygon(0 0, 100% 0, 100% calc(100% - ${outH}%), 0 calc(100% - ${outH}%))`;
+    }
+
+    // FASE 2: ENTRADA SINCRONIZADA E PROGRESSIVA DOS ELEMENTOS (0.40 a 1.00)
+    const elementsReady = p >= 0.40;
+    const pElem = subProg(p, 0.40, 1.00);
+
+    // SAÍDA ATIVA DOS ELEMENTOS DO SLIDE 5 (0.00 a 0.55 de pOut)
+    const pExit = subProg(pOut, 0.00, 0.55);
+    const exitOpacity = (1 - pExit);
+
+    // Container frame parallax sutil
+    const outFrameTrans = `translate3d(${(-35 * pOut).toFixed(1)}px, 0, 0)`;
+    const outFrameOpacity = (1 - pOut * 0.9).toFixed(3);
+
+    // Topline: barra de barramento de segurança que abre a partir do centro
+    const pTopBar = subProg(pElem, 0.00, 0.35);
+    const pTopText = subProg(pElem, 0.04, 0.40);
+    const topBarScale = (pTopBar * exitOpacity).toFixed(3);
+    const topTextTrans = `translate3d(0, ${(((1 - pTopText) * -22) - (pExit * 20)).toFixed(1)}px, 0)`;
+    const topTextOpacity = (pTopText * exitOpacity).toFixed(3);
+    const topBadgeScale = ((0.75 + 0.25 * pTopText) * (1 - 0.15 * pExit)).toFixed(3);
+    const topIndexTrans = `translate3d(${(((1 - pTopText) * 35) + (pExit * 25)).toFixed(1)}px, 0, 0)`;
+
+    // Título cinético (TRAVA CRIPTOGRÁFICA / VAULT LOCK)
+    const pTitle1 = subProg(pElem, 0.08, 0.48);
+    const pTitle2 = subProg(pElem, 0.16, 0.56);
+    const titleLine1Trans = `translate3d(0, ${(((1 - pTitle1) * -110) - (pExit * 25)).toFixed(1)}%, 0)`;
+    const titleLine2Trans = `translate3d(0, ${(((1 - pTitle2) * 110) + (pExit * 25)).toFixed(1)}%, 0)`;
+    const titleOpacity = (Math.max(pTitle1, pTitle2) * exitOpacity).toFixed(3);
+
+    // Lead text
+    const pLead = subProg(pElem, 0.20, 0.60);
+    const leadTrans = `translate3d(${(((1 - pLead) * -30) - (pExit * 35)).toFixed(1)}px, 0, 0)`;
+    const leadOpacity = (pLead * exitOpacity).toFixed(3);
+
+    // Os 3 Blocos de Segurança (Tríptico Criptográfico)
+    // Card 1: LGPD (Dados Sensíveis) - entra da esquerda
+    const pSec1 = subProg(pElem, 0.22, 0.65);
+    const sec1 = {
+      cardTrans: `translate3d(${(((1 - pSec1) * -45) - (pExit * 50)).toFixed(1)}px, ${((1 - pSec1) * 20).toFixed(1)}px, 0) scale(${((0.93 + 0.07 * pSec1) * (1 - 0.06 * pExit)).toFixed(3)})`,
+      opacity: (pSec1 * exitOpacity).toFixed(3),
+      codeScale: `scale(${(pSec1 < 1 ? pSec1 * 1.35 : 1.0).toFixed(3)})`,
+      lineScale: `scaleX(${(pSec1 * exitOpacity).toFixed(3)})`,
+      lineOrigin: 'left'
+    };
+
+    // Card 2: PEP (Registro Seguro) - sobe do centro
+    const pSec2 = subProg(pElem, 0.32, 0.75);
+    const sec2 = {
+      cardTrans: `translate3d(0, ${(((1 - pSec2) * 45) + (pExit * 40)).toFixed(1)}px, 0) scale(${((0.93 + 0.07 * pSec2) * (1 - 0.06 * pExit)).toFixed(3)})`,
+      opacity: (pSec2 * exitOpacity).toFixed(3),
+      codeScale: `scale(${(pSec2 < 1 ? pSec2 * 1.35 : 1.0).toFixed(3)})`,
+      lineScale: `scaleX(${(pSec2 * exitOpacity).toFixed(3)})`,
+      lineOrigin: 'center'
+    };
+
+    // Card 3: ICP (Assinatura Digital) - entra da direita
+    const pSec3 = subProg(pElem, 0.42, 0.85);
+    const sec3 = {
+      cardTrans: `translate3d(${(((1 - pSec3) * 45) + (pExit * 50)).toFixed(1)}px, ${((1 - pSec3) * 20).toFixed(1)}px, 0) scale(${((0.93 + 0.07 * pSec3) * (1 - 0.06 * pExit)).toFixed(3)})`,
+      opacity: (pSec3 * exitOpacity).toFixed(3),
+      codeScale: `scale(${(pSec3 < 1 ? pSec3 * 1.35 : 1.0).toFixed(3)})`,
+      lineScale: `scaleX(${(pSec3 * exitOpacity).toFixed(3)})`,
+      lineOrigin: 'right'
+    };
+
+    // Pips de status criptográfico
+    const pPip = subProg(pElem, 0.40, 0.80);
+    const pipScale = (pPip < 1 ? (pPip * 1.45).toFixed(3) : '1.0');
+
+    // Arte Lateral: Escudo com Órbitas Criptográficas e Chancela Oficial ANPD
+    const pArt = subProg(pElem, 0.12, 0.65);
+    const artOpacity = (pArt * exitOpacity).toFixed(3);
+    const artNumberTrans = `translate3d(0, ${(((1 - pArt) * -65) - (pExit * 30)).toFixed(1)}px, 0) scale(${((1 + (1 - pArt) * 0.35) * (1 - 0.12 * pExit)).toFixed(3)})`;
+    const orbitScale = ((0.80 + 0.20 * pArt) * (1 - 0.15 * pExit)).toFixed(3);
+    const orbitRotA = ((pArt * 120) + (pExit * 90)).toFixed(1);
+    const orbitRotB = ((-pArt * 120) - (pExit * 90)).toFixed(1);
+    const brandTrans = `scale(${((0.85 + 0.15 * pArt) * (1 - 0.10 * pExit)).toFixed(3)}) translate3d(0, ${(((1 - pArt) * 25) - (pExit * 20)).toFixed(1)}px, 0)`;
+    const brandOpacity = (pArt * exitOpacity).toFixed(3);
+    const captionTrans = `translate3d(0, ${(((1 - pArt) * 20) + (pExit * 20)).toFixed(1)}px, 0)`;
+    const captionOpacity = (pArt * exitOpacity).toFixed(3);
+    const scannerY = ((subProg(pElem, 0.35, 0.90) * 100) % 100).toFixed(1);
+    const scannerOpacity = (subProg(pElem, 0.35, 0.80) * (1 - pExit)).toFixed(3);
+    const artLineOne = `scaleX(${(subProg(pElem, 0.18, 0.68) * exitOpacity).toFixed(3)})`;
+    const artLineTwo = `scaleY(${(subProg(pElem, 0.26, 0.74) * exitOpacity).toFixed(3)})`;
+    const pDot = subProg(pElem, 0.30, 0.70);
+    const artDot = `scale(${(pDot < 1 ? pDot * 1.35 : 1.0).toFixed(3)})`;
+
+    // Micro-ornamentos Editoriais (Deco)
+    const pStamp = subProg(pElem, 0.25, 0.70);
+    const decoStampTrans = `scale(${pStamp < 1 ? (0.6 + 0.4 * pStamp * 1.25).toFixed(3) : (1 - 0.15 * pExit).toFixed(3)}) rotate(${(((1 - pStamp) * -6) + (pExit * 8)).toFixed(1)}deg)`;
+    const pGrid = subProg(pElem, 0.10, 0.60);
+    const decoGridScale = ((0.4 + 0.6 * pGrid) * (1 - 0.2 * pExit)).toFixed(3);
+    const pPipsTrio = subProg(pElem, 0.30, 0.75);
+    const decoPipsTrioScale = (pPipsTrio < 1 ? pPipsTrio * 1.3 : (1 - 0.25 * pExit)).toFixed(3);
+
+    // Rodapé
+    const pFooter = subProg(pElem, 0.32, 0.76);
+    const footerTrans = `translate3d(0, ${(((1 - pFooter) * 20) + (pExit * 20)).toFixed(1)}px, 0)`;
+    const footerOpacity = (pFooter * exitOpacity).toFixed(3);
+
+    return {
+      bgClip,
+      elementsReady,
+      outFrameTrans,
+      outFrameOpacity,
+      topBarScale,
+      topTextTrans,
+      topTextOpacity,
+      topBadgeScale,
+      topIndexTrans,
+      titleLine1Trans,
+      titleLine2Trans,
+      titleOpacity,
+      leadTrans,
+      leadOpacity,
+      sec1,
+      sec2,
+      sec3,
+      pipScale,
+      artOpacity,
+      artNumberTrans,
+      orbitScale,
+      orbitRotA,
+      orbitRotB,
+      brandTrans,
+      brandOpacity,
+      captionTrans,
+      captionOpacity,
+      scannerY,
+      scannerOpacity,
+      artLineOne,
+      artLineTwo,
+      artDot,
+      decoStampTrans,
+      decoGridScale,
+      decoPipsTrioScale,
+      footerTrans,
+      footerOpacity
+    };
+  });
+
   // Camadas de Fundo Contínuas (Desktop)
   const bgForestInS2 = $derived(clamp01((currentRatio - 0.07) / 0.05));
   const bgLightIn = $derived(clamp01((currentRatio - 0.165) / 0.05));
@@ -864,7 +1034,10 @@
             ? `visibility: ${s3IsVisible ? 'visible' : 'hidden'}; pointer-events: ${s3IsActive ? 'auto' : 'none'}; z-index: ${s3IsVisible ? 5 : 2}; opacity: 1; clip-path: ${s3Anim.bgClip}; background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.7), transparent 45%), linear-gradient(135deg, rgba(255, 255, 255, 0.42), transparent 55%), #f2f1e9;`
             : (index === 2
               ? `visibility: ${s4IsVisible ? 'visible' : 'hidden'}; pointer-events: ${s4IsActive ? 'auto' : 'none'}; z-index: ${s4IsVisible ? 6 : 2}; opacity: 1; clip-path: ${s4Anim.bgClip}; background: radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.85), transparent 60%), linear-gradient(180deg, #f7f6f0 0%, #ebe8dc 100%);`
-              : `visibility: ${st.visibility}; pointer-events: ${st.pointerEvents}; z-index: ${st.isCentered ? 3 : 2};`
+              : (index === 3
+                ? `visibility: ${s5IsVisible ? 'visible' : 'hidden'}; pointer-events: ${s5IsActive ? 'auto' : 'none'}; z-index: ${s5IsVisible ? 7 : 2}; opacity: 1; clip-path: ${s5Anim.bgClip}; background: radial-gradient(circle at 50% 40%, rgba(255, 255, 255, 0.95), transparent 65%), linear-gradient(160deg, #f8fafc 0%, #edf2f7 50%, #e2e8f0 100%);`
+                : `visibility: ${st.visibility}; pointer-events: ${st.pointerEvents}; z-index: ${st.isCentered ? 3 : 2};`
+              )
             )
           )
       )}
@@ -878,7 +1051,10 @@
             ? (s3Anim.elementsReady ? `opacity: ${s3Anim.artOpacity}; transform: none;` : 'visibility: hidden; pointer-events: none; opacity: 0;')
             : (index === 2 && !mobile
               ? (s4Anim.elementsReady ? `opacity: ${s4Anim.artOpacity}; transform: none;` : 'visibility: hidden; pointer-events: none; opacity: 0;')
-              : (mobile ? '' : `opacity: ${st.deco.opacity}; transform: ${st.deco.transform};`)
+              : (index === 3 && !mobile
+                ? (s5Anim.elementsReady ? `opacity: ${s5Anim.artOpacity}; transform: none;` : 'visibility: hidden; pointer-events: none; opacity: 0;')
+                : (mobile ? '' : `opacity: ${st.deco.opacity}; transform: ${st.deco.transform};`)
+              )
             )
           )}
         aria-hidden="true"
@@ -945,6 +1121,33 @@
           >
             <span></span><span></span><span></span>
           </div>
+        {:else if index === 3 && !mobile}
+          <div class="deco-mesh mesh-light"></div>
+          <div
+            class="deco-stamp"
+            style={`transform: ${s5Anim.decoStampTrans};`}
+          >
+            <span>SEC. 05 // COMPLIANCE LGPD & CRIPTOGRAFIA</span>
+          </div>
+          <svg
+            class="deco-grid-shield"
+            width="140"
+            height="140"
+            viewBox="0 0 100 100"
+            fill="none"
+            stroke="currentColor"
+            style={`transform: scale(${s5Anim.decoGridScale}); transform-origin: center;`}
+          >
+            <polygon points="50,5 90,25 90,65 50,95 10,65 10,25" stroke-width="1" stroke-dasharray="3 4" opacity="0.25" />
+            <line x1="50" y1="5" x2="50" y2="95" stroke-width="0.8" opacity="0.15" />
+            <line x1="10" y1="45" x2="90" y2="45" stroke-width="0.8" opacity="0.15" />
+          </svg>
+          <div
+            class="deco-dots-trio"
+            style={`transform: scale(${s5Anim.decoPipsTrioScale});`}
+          >
+            <span></span><span></span><span></span>
+          </div>
         {:else}
           <div class="deco-mesh mesh-light"></div>
           <!-- Ornamentos editoriais finos em lâmina clara -->
@@ -983,7 +1186,10 @@
             ? (s3Anim.elementsReady ? `transform: ${s3Anim.outFrameTrans}; opacity: ${s3Anim.outFrameOpacity};` : 'visibility: hidden; pointer-events: none; opacity: 0;')
             : (index === 2 && !mobile
               ? (s4Anim.elementsReady ? `transform: ${s4Anim.outFrameTrans}; opacity: ${s4Anim.outFrameOpacity};` : 'visibility: hidden; pointer-events: none; opacity: 0;')
-              : '')
+              : (index === 3 && !mobile
+                ? (s5Anim.elementsReady ? `transform: ${s5Anim.outFrameTrans}; opacity: ${s5Anim.outFrameOpacity};` : 'visibility: hidden; pointer-events: none; opacity: 0;')
+                : '')
+              )
             )}
       >
         <!-- Topline Editorial com Badge de Alta Precisão -->
@@ -995,7 +1201,10 @@
               ? `opacity: ${s3Anim.topTextOpacity}; transform: ${s3Anim.topTextTrans}; border-bottom: none;`
               : (index === 2 && !mobile
                 ? `opacity: ${s4Anim.topTextOpacity}; transform: ${s4Anim.topTextTrans}; border-bottom: none;`
-                : (mobile ? '' : `opacity: ${st.topline.opacity}; transform: ${st.topline.transform};`)
+                : (index === 3 && !mobile
+                  ? `opacity: ${s5Anim.topTextOpacity}; transform: ${s5Anim.topTextTrans}; border-bottom: none;`
+                  : (mobile ? '' : `opacity: ${st.topline.opacity}; transform: ${st.topline.transform};`)
+                )
               )
             )}
         >
@@ -1009,7 +1218,10 @@
                   ? `transform: scale(${s3Anim.topBadgeScale}); display: inline-block;`
                   : (index === 2 && !mobile
                     ? `transform: scale(${s4Anim.topBadgeScale}); display: inline-block;`
-                    : ''
+                    : (index === 3 && !mobile
+                      ? `transform: scale(${s5Anim.topBadgeScale}); display: inline-block;`
+                      : ''
+                    )
                   )
                 )}
             >{slide.badge}</span>
@@ -1022,7 +1234,10 @@
                 ? `transform: ${s3Anim.topIndexTrans};`
                 : (index === 2 && !mobile
                   ? `transform: ${s4Anim.topIndexTrans};`
-                  : ''
+                  : (index === 3 && !mobile
+                    ? `transform: ${s5Anim.topIndexTrans};`
+                    : ''
+                  )
                 )
               )}
           >{String(index + 2).padStart(2, '0')} / 10</span>
@@ -1033,6 +1248,8 @@
             <div class="topline-rail-line" style={`transform: scaleX(${s3Anim.topBarScale}); transform-origin: center;`}></div>
           {:else if index === 2 && !mobile}
             <div class="topline-rail-line" style={`transform: scaleX(${s4Anim.topBarScale}); transform-origin: left;`}></div>
+          {:else if index === 3 && !mobile}
+            <div class="topline-rail-line" style={`transform: scaleX(${s5Anim.topBarScale}); transform-origin: center;`}></div>
           {/if}
         </div>
 
@@ -1080,6 +1297,19 @@
                       </span>
                     </span>
                   </h2>
+                {:else if index === 3 && !mobile}
+                  <h2 class="kinetic-title" style={`opacity: ${s5Anim.titleOpacity};`}>
+                    <span class="kinetic-line-mask">
+                      <span class="kinetic-line" style={`transform: ${s5Anim.titleLine1Trans};`}>
+                        O prontuário é
+                      </span>
+                    </span>
+                    <span class="kinetic-line-mask">
+                      <span class="kinetic-line line-highlight vault-highlight" style={`transform: ${s5Anim.titleLine2Trans};`}>
+                        parte do cuidado.
+                      </span>
+                    </span>
+                  </h2>
                 {:else}
                   <h2 style={mobile ? '' : `opacity: ${st.title.opacity}; transform: ${st.title.transform};`}>
                     {slide.title}
@@ -1093,7 +1323,10 @@
                       ? `opacity: ${s3Anim.leadOpacity}; transform: ${s3Anim.leadTrans};`
                       : (index === 2 && !mobile
                         ? `opacity: ${s4Anim.leadOpacity}; transform: ${s4Anim.leadTrans};`
-                        : (mobile ? '' : `opacity: ${st.lead.opacity}; transform: ${st.lead.transform};`)
+                        : (index === 3 && !mobile
+                          ? `opacity: ${s5Anim.leadOpacity}; transform: ${s5Anim.leadTrans};`
+                          : (mobile ? '' : `opacity: ${st.lead.opacity}; transform: ${st.lead.transform};`)
+                        )
                       )
                     )}
                 >
@@ -1236,16 +1469,36 @@
               {:else if slide.securityPoints}
                 <div class="security-cluster">
                   {#each slide.securityPoints as sec, sIdx}
+                    {@const sAnim = sIdx === 0 ? s5Anim.sec1 : sIdx === 1 ? s5Anim.sec2 : s5Anim.sec3}
+                    {@const techCode = sIdx === 0 ? 'AES-256 GCM' : sIdx === 1 ? 'HL7 / FHIR' : 'ICP-BRASIL A3'}
                     <article
                       class="sec-card"
-                      style={mobile ? '' : `opacity: ${st.cards[sIdx].opacity}; transform: ${st.cards[sIdx].transform};`}
+                      style={index === 3 && !mobile
+                        ? `opacity: ${sAnim.opacity}; transform: ${sAnim.cardTrans};`
+                        : (mobile ? '' : `opacity: ${st.cards[sIdx].opacity}; transform: ${st.cards[sIdx].transform};`)}
                     >
                       <div class="sec-badge-row">
-                        <span class="sec-code">{sec.code}</span>
-                        <span class="sec-pip"></span>
+                        <span
+                          class="sec-code"
+                          style={index === 3 && !mobile ? `transform: ${sAnim.codeScale}; display: inline-block;` : ''}
+                        >{sec.code}</span>
+                        <div class="sec-status-wrap">
+                          <span
+                            class="sec-pip"
+                            style={index === 3 && !mobile ? `transform: scale(${s5Anim.pipScale});` : ''}
+                          ></span>
+                          <span class="sec-status-label">ATIVO</span>
+                        </div>
                       </div>
                       <h3>{sec.title}</h3>
                       <p>{sec.desc}</p>
+                      <div class="sec-tech-footer">
+                        <span class="tech-code">{techCode}</span>
+                        <span class="tech-verified">✓ CONFORME</span>
+                      </div>
+                      {#if index === 3 && !mobile}
+                        <div class="sec-bus-line" style={`transform: ${sAnim.lineScale}; transform-origin: ${sAnim.lineOrigin};`}></div>
+                      {/if}
                     </article>
                   {/each}
                 </div>
@@ -1372,7 +1625,10 @@
                     ? `opacity: ${s3Anim.artOpacity}; transform: none;`
                     : (index === 2
                       ? `opacity: ${s4Anim.artOpacity}; transform: none;`
-                      : `opacity: ${st.art.opacity}; transform: ${st.art.transform};`
+                      : (index === 3
+                        ? `opacity: ${s5Anim.artOpacity}; transform: none;`
+                        : `opacity: ${st.art.opacity}; transform: ${st.art.transform};`
+                      )
                     )
                   )
               )}
@@ -1380,14 +1636,31 @@
             >
               {#if slide.visual === 'shield'}
                 <!-- Escudo de Privacidade com Marca Oficial da ANPD -->
-                <div class="art-orbit orbit-a"></div>
-                <div class="art-orbit orbit-b"></div>
-                <div class="official-brand">
+                {#if index === 3 && !mobile}
+                  <div class="art-number" style={`transform: ${s5Anim.artNumberTrans};`}>
+                    05
+                  </div>
+                  <div class="art-line line-one" style={`transform: ${s5Anim.artLineOne}; transform-origin: left;`}></div>
+                  <div class="art-line line-two" style={`transform: ${s5Anim.artLineTwo}; transform-origin: top;`}></div>
+                  <div class="art-dot" style={`transform: ${s5Anim.artDot};`}></div>
+                {/if}
+                <div class="art-orbit orbit-a" style={index === 3 && !mobile ? `transform: scale(${s5Anim.orbitScale}) rotate(${s5Anim.orbitRotA}deg);` : ''}></div>
+                <div class="art-orbit orbit-b" style={index === 3 && !mobile ? `transform: scale(${s5Anim.orbitScale}) rotate(${s5Anim.orbitRotB}deg);` : ''}></div>
+                <div
+                  class="official-brand"
+                  style={index === 3 && !mobile ? `transform: ${s5Anim.brandTrans}; opacity: ${s5Anim.brandOpacity};` : ''}
+                >
                   <img src="/assets/anpd-symbol-official.png" alt="" />
                   <strong>ANPD</strong>
                   <span>Autoridade Nacional<br>de Proteção de Dados</span>
+                  {#if index === 3 && !mobile}
+                    <div class="shield-scanner-beam" style={`transform: translateY(${s5Anim.scannerY}%); opacity: ${s5Anim.scannerOpacity};`}></div>
+                  {/if}
                 </div>
-                <div class="art-caption">COMPLIANCE LGPD<br><strong>SAÚDE DIGITAL</strong></div>
+                <div
+                  class="art-caption"
+                  style={index === 3 && !mobile ? `transform: ${s5Anim.captionTrans}; opacity: ${s5Anim.captionOpacity};` : ''}
+                >COMPLIANCE LGPD<br><strong>SAÚDE DIGITAL</strong></div>
 
               {:else if slide.visual === 'call'}
                 <!-- Janela de Teleconsulta com Osciloscópio Vital -->
@@ -1539,7 +1812,10 @@
               ? `opacity: ${s3Anim.footerOpacity}; transform: ${s3Anim.footerTrans};`
               : (index === 2 && !mobile
                 ? `opacity: ${s4Anim.footerOpacity}; transform: ${s4Anim.footerTrans};`
-                : (mobile ? '' : `opacity: ${st.footer.opacity}; transform: ${st.footer.transform};`)
+                : (index === 3 && !mobile
+                  ? `opacity: ${s5Anim.footerOpacity}; transform: ${s5Anim.footerTrans};`
+                  : (mobile ? '' : `opacity: ${st.footer.opacity}; transform: ${st.footer.transform};`)
+                )
               )
             )}
         >
@@ -2073,10 +2349,21 @@
     margin-top: 1rem;
   }
   .sec-card {
+    position: relative;
+    overflow: hidden;
     padding: 1.35rem 1.4rem;
-    border-top: 2px solid currentColor;
-    background: rgba(255, 255, 255, 0.55);
+    border-top: 2px solid transparent;
+    background: rgba(255, 255, 255, 0.6);
     will-change: transform, opacity;
+  }
+  .sec-bus-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #0d5b3e, #0e7490);
+    will-change: transform;
   }
   .sec-badge-row {
     display: flex;
@@ -2092,10 +2379,65 @@
     background: rgba(13, 91, 62, 0.1);
     color: #0d5b3e;
     border-radius: 4px;
+    will-change: transform;
   }
-  .sec-pip { width: 5px; height: 5px; border-radius: 50%; background: #d7a95c; }
+  .sec-status-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .sec-status-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: #0d5b3e;
+    opacity: 0.85;
+  }
+  .sec-pip {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #0d5b3e;
+    box-shadow: 0 0 6px rgba(13, 91, 62, 0.45);
+    will-change: transform;
+  }
   .sec-card h3 { margin: 0 0 0.35rem; font-size: 1.08rem; }
   .sec-card p { margin: 0; font-size: 0.88rem; line-height: 1.45; opacity: 0.72; }
+  .sec-tech-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    padding-top: 0.55rem;
+    border-top: 1px dashed rgba(0, 0, 0, 0.1);
+    font-family: var(--font-mono, monospace);
+    font-size: 0.66rem;
+    color: #475569;
+  }
+  .tech-code {
+    background: rgba(0, 0, 0, 0.05);
+    padding: 0.15rem 0.35rem;
+    border-radius: 2px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+  .tech-verified {
+    color: #0d5b3e;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+  .vault-highlight { color: #0d5b3e; font-weight: 700; }
+  .shield-scanner-beam {
+    position: absolute;
+    top: 0;
+    left: -10%;
+    right: -10%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #0d5b3e 30%, #0e7490 70%, transparent);
+    box-shadow: 0 0 8px rgba(14, 116, 144, 0.6);
+    pointer-events: none;
+    will-change: transform, opacity;
+  }
 
   /* =========================================================================
      SLIDE 6: Jornada Clínica Contínua
