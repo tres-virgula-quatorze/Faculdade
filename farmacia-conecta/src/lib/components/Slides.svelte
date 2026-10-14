@@ -482,6 +482,154 @@
     };
   });
 
+  // Progresso de entrada e saída do Slide 4:
+  // Entrada ativa ao transitar de Slide 3 (0.240) para Slide 4 (0.340)
+  const s4InProg = $derived(clamp01((currentRatio - 0.245) / (0.338 - 0.245)));
+  // Saída ativa ao transitar de Slide 4 (0.340) para Slide 5 (0.440)
+  const s4OutProg = $derived(clamp01((currentRatio - 0.345) / (0.438 - 0.345)));
+  const s4IsVisible = $derived(currentRatio >= 0.242 && currentRatio <= 0.440);
+  const s4IsActive = $derived(currentRatio >= 0.320 && currentRatio <= 0.365);
+
+  const s4Anim = $derived.by(() => {
+    const p = s4InProg;
+    const pOut = s4OutProg;
+
+    // FASE 1: OS PORTAIS ARQUITETÔNICOS MONUMENTAIS DA LEI SE ABREM A PARTIR DO CENTRO (0.00 a 0.40)
+    // Sincronizado perfeitamente com a saída do Slide 3
+    const pBgIn = subProg(p, 0.00, 0.40);
+    const halfW = (pBgIn * 55).toFixed(1);
+
+    // SAÍDA DO FUNDO DO SLIDE 4 (0.35 a 0.90 de pOut)
+    const pBgOut = subProg(pOut, 0.35, 0.90);
+    let bgClip = 'none';
+    if (pBgIn < 1) {
+      bgClip = `polygon(calc(50% - ${halfW}%) 0, calc(50% + ${halfW}%) 0, calc(50% + ${halfW}%) 100%, calc(50% - ${halfW}%) 100%)`;
+    } else if (pBgOut > 0) {
+      const outH = (pBgOut * 105).toFixed(1);
+      bgClip = `polygon(0 ${outH}%, 100% ${outH}%, 100% 100%, 0 100%)`;
+    }
+
+    // FASE 2: ENTRADA SINCRONIZADA E PROGRESSIVA DOS ELEMENTOS (0.40 a 1.00)
+    const elementsReady = p >= 0.40;
+    const pElem = subProg(p, 0.40, 1.00);
+
+    // SAÍDA ATIVA DOS ELEMENTOS DO SLIDE 4 (0.00 a 0.55 de pOut)
+    const pExit = subProg(pOut, 0.00, 0.55);
+    const exitOpacity = (1 - pExit);
+
+    // Container frame parallax sutil
+    const outFrameTrans = `translate3d(${(-35 * pOut).toFixed(1)}px, 0, 0)`;
+    const outFrameOpacity = (1 - pOut * 0.9).toFixed(3);
+
+    // Topline: linha dupla arquitetônica que desenha a partir da esquerda
+    const pTopBar = subProg(pElem, 0.00, 0.35);
+    const pTopText = subProg(pElem, 0.04, 0.40);
+    const topBarScale = (pTopBar * exitOpacity).toFixed(3);
+    const topTextTrans = `translate3d(0, ${(((1 - pTopText) * -25) - (pExit * 20)).toFixed(1)}px, 0)`;
+    const topTextOpacity = (pTopText * exitOpacity).toFixed(3);
+    const topBadgeScale = ((0.75 + 0.25 * pTopText) * (1 - 0.15 * pExit)).toFixed(3);
+    const topIndexTrans = `translate3d(${(((1 - pTopText) * 35) + (pExit * 25)).toFixed(1)}px, 0, 0)`;
+
+    // Título cinético (DIVISÃO MONOLÍTICA VERTICAL: Linha 1 desce do topo, Linha 2 sobe da base)
+    const pTitle1 = subProg(pElem, 0.08, 0.48);
+    const pTitle2 = subProg(pElem, 0.16, 0.56);
+    const titleLine1Trans = `translate3d(${(-40 * pExit).toFixed(1)}px, ${(((1 - pTitle1) * -115) - (pExit * 25)).toFixed(1)}%, 0)`;
+    const titleLine2Trans = `translate3d(${(-40 * pExit).toFixed(1)}px, ${(((1 - pTitle2) * 115) + (pExit * 25)).toFixed(1)}%, 0)`;
+    const titleOpacity = (Math.max(pTitle1, pTitle2) * exitOpacity).toFixed(3);
+
+    // Lead text: emerge suavemente
+    const pLead = subProg(pElem, 0.20, 0.60);
+    const leadTrans = `translate3d(${(((1 - pLead) * -30) - (pExit * 35)).toFixed(1)}px, 0, 0)`;
+    const leadOpacity = (pLead * exitOpacity).toFixed(3);
+
+    // As 2 Placas Jurídicas (Marco Normativo)
+    // Placa 1: Lei Federal nº 14.510/2022
+    const pL1 = subProg(pElem, 0.22, 0.64);
+    const law1 = {
+      cardTrans: `translate3d(${(((1 - pL1) * -45) - (pExit * 50)).toFixed(1)}px, ${((1 - pL1) * -18).toFixed(1)}px, 0) scale(${((0.93 + 0.07 * pL1) * (1 - 0.06 * pExit)).toFixed(3)})`,
+      opacity: (pL1 * exitOpacity).toFixed(3),
+      symbolTrans: `scale(${(pL1 < 1 ? pL1 * 1.45 : 1.0).toFixed(3)}) rotate(${(((1 - pL1) * -15) - (pExit * 15)).toFixed(1)}deg)`,
+      lineScale: `scaleX(${(pL1 * exitOpacity).toFixed(3)})`
+    };
+
+    // Placa 2: Resolução CFF nº 10/2024
+    const pL2 = subProg(pElem, 0.32, 0.74);
+    const law2 = {
+      cardTrans: `translate3d(${(((1 - pL2) * 45) + (pExit * 50)).toFixed(1)}px, ${((1 - pL2) * -18).toFixed(1)}px, 0) scale(${((0.93 + 0.07 * pL2) * (1 - 0.06 * pExit)).toFixed(3)})`,
+      opacity: (pL2 * exitOpacity).toFixed(3),
+      symbolTrans: `scale(${(pL2 < 1 ? pL2 * 1.45 : 1.0).toFixed(3)}) rotate(${(((1 - pL2) * 15) + (pExit * 15)).toFixed(1)}deg)`,
+      lineScale: `scaleX(${(pL2 * exitOpacity).toFixed(3)})`
+    };
+
+    // O Selo e Banner Solene de RT (PRESENÇA FÍSICA DO RT)
+    const pWarn = subProg(pElem, 0.44, 0.86);
+    const warning = {
+      trans: `translate3d(0, ${(((1 - pWarn) * 35) + (pExit * 35)).toFixed(1)}px, 0) scale(${((0.95 + 0.05 * pWarn) * (1 - 0.05 * pExit)).toFixed(3)})`,
+      opacity: (pWarn * exitOpacity).toFixed(3),
+      plumbScale: `scaleY(${(pWarn * exitOpacity).toFixed(3)})`,
+      bulletScale: `scale(${(pWarn < 1 ? pWarn * 1.5 : 1.0).toFixed(3)})`,
+      anchorScale: `scale(${(0.8 + 0.2 * pWarn).toFixed(3)})`
+    };
+
+    // Arte Lateral: Balança Farmacêutica de Precisão & Selo Normativo
+    const pArt = subProg(pElem, 0.12, 0.65);
+    const artOpacity = (pArt * exitOpacity).toFixed(3);
+    const artNumberTrans = `translate3d(0, ${(((1 - pArt) * -65) - (pExit * 30)).toFixed(1)}px, 0) scale(${((1 + (1 - pArt) * 0.35) * (1 - 0.12 * pExit)).toFixed(3)})`;
+    const balanceTrans = `scale(${(pArt * (1 - 0.15 * pExit)).toFixed(3)})`;
+    const beamRotate = `rotate(${(((1 - pArt) * -10) + (pExit * 10)).toFixed(1)}deg)`;
+    const sealScale = `scale(${(pArt < 1 ? pArt * 1.3 : (1 - 0.15 * pExit)).toFixed(3)}) rotate(${(((1 - pArt) * -20) + (pExit * 20)).toFixed(1)}deg)`;
+    const artLineOne = `scaleX(${(subProg(pElem, 0.18, 0.68) * exitOpacity).toFixed(3)})`;
+    const artLineTwo = `scaleX(${(subProg(pElem, 0.26, 0.74) * exitOpacity).toFixed(3)})`;
+    const pDot = subProg(pElem, 0.30, 0.70);
+    const artDot = `scale(${pDot < 1 ? (pDot * 1.35).toFixed(3) : '1.0'})`;
+
+    // Micro-ornamentos Editoriais (Deco)
+    const pStamp = subProg(pElem, 0.25, 0.70);
+    const decoStampTrans = `scale(${pStamp < 1 ? (0.6 + 0.4 * pStamp * 1.25).toFixed(3) : (1 - 0.15 * pExit).toFixed(3)}) rotate(${(((1 - pStamp) * -6) + (pExit * 8)).toFixed(1)}deg)`;
+    const pArch = subProg(pElem, 0.10, 0.60);
+    const decoArchScale = ((0.3 + 0.7 * pArch) * (1 - 0.2 * pExit)).toFixed(3);
+    const pPillars = subProg(pElem, 0.30, 0.75);
+    const decoPillarsScale = (pPillars < 1 ? pPillars * 1.3 : (1 - 0.25 * pExit)).toFixed(3);
+
+    // Rodapé
+    const pFooter = subProg(pElem, 0.32, 0.76);
+    const footerTrans = `translate3d(0, ${(((1 - pFooter) * 20) + (pExit * 20)).toFixed(1)}px, 0)`;
+    const footerOpacity = (pFooter * exitOpacity).toFixed(3);
+
+    return {
+      bgClip,
+      elementsReady,
+      outFrameTrans,
+      outFrameOpacity,
+      topBarScale,
+      topTextTrans,
+      topTextOpacity,
+      topBadgeScale,
+      topIndexTrans,
+      titleLine1Trans,
+      titleLine2Trans,
+      titleOpacity,
+      leadTrans,
+      leadOpacity,
+      law1,
+      law2,
+      warning,
+      artOpacity,
+      artNumberTrans,
+      balanceTrans,
+      beamRotate,
+      sealScale,
+      artLineOne,
+      artLineTwo,
+      artDot,
+      decoStampTrans,
+      decoArchScale,
+      decoPillarsScale,
+      footerTrans,
+      footerOpacity
+    };
+  });
+
   // Camadas de Fundo Contínuas (Desktop)
   const bgForestInS2 = $derived(clamp01((currentRatio - 0.07) / 0.05));
   const bgLightIn = $derived(clamp01((currentRatio - 0.165) / 0.05));
@@ -714,7 +862,10 @@
           ? `visibility: ${s2IsVisible ? 'visible' : 'hidden'}; pointer-events: ${s2IsActive ? 'auto' : 'none'}; z-index: ${s2IsVisible ? 4 : 2}; opacity: 1; clip-path: ${s2Anim.bgClip}; background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.14), transparent 45%), #0d5b3e;`
           : (index === 1
             ? `visibility: ${s3IsVisible ? 'visible' : 'hidden'}; pointer-events: ${s3IsActive ? 'auto' : 'none'}; z-index: ${s3IsVisible ? 5 : 2}; opacity: 1; clip-path: ${s3Anim.bgClip}; background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.7), transparent 45%), linear-gradient(135deg, rgba(255, 255, 255, 0.42), transparent 55%), #f2f1e9;`
-            : `visibility: ${st.visibility}; pointer-events: ${st.pointerEvents}; z-index: ${st.isCentered ? 3 : 2};`
+            : (index === 2
+              ? `visibility: ${s4IsVisible ? 'visible' : 'hidden'}; pointer-events: ${s4IsActive ? 'auto' : 'none'}; z-index: ${s4IsVisible ? 6 : 2}; opacity: 1; clip-path: ${s4Anim.bgClip}; background: radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.85), transparent 60%), linear-gradient(180deg, #f7f6f0 0%, #ebe8dc 100%);`
+              : `visibility: ${st.visibility}; pointer-events: ${st.pointerEvents}; z-index: ${st.isCentered ? 3 : 2};`
+            )
           )
       )}
     >
@@ -725,7 +876,10 @@
           ? (s2Anim.elementsReady ? `opacity: ${s2Anim.artOpacity}; transform: none;` : 'visibility: hidden; pointer-events: none; opacity: 0;')
           : (index === 1 && !mobile
             ? (s3Anim.elementsReady ? `opacity: ${s3Anim.artOpacity}; transform: none;` : 'visibility: hidden; pointer-events: none; opacity: 0;')
-            : (mobile ? '' : `opacity: ${st.deco.opacity}; transform: ${st.deco.transform};`)
+            : (index === 2 && !mobile
+              ? (s4Anim.elementsReady ? `opacity: ${s4Anim.artOpacity}; transform: none;` : 'visibility: hidden; pointer-events: none; opacity: 0;')
+              : (mobile ? '' : `opacity: ${st.deco.opacity}; transform: ${st.deco.transform};`)
+            )
           )}
         aria-hidden="true"
       >
@@ -766,6 +920,31 @@
             <span class="pulse-point"></span>
             <span>PROTOCOLO DE URGÊNCIA</span>
           </div>
+        {:else if index === 2 && !mobile}
+          <div class="deco-mesh mesh-light"></div>
+          <div
+            class="deco-stamp"
+            style={`transform: ${s4Anim.decoStampTrans};`}
+          >
+            <span>ART. 04 // MARCO NORMATIVO FEDERAL</span>
+          </div>
+          <svg
+            class="deco-arc"
+            width="160"
+            height="90"
+            viewBox="0 0 160 90"
+            fill="none"
+            stroke="currentColor"
+            style={`transform: scale(${s4Anim.decoArchScale}); transform-origin: bottom left;`}
+          >
+            <path d="M10 80 A70 70 0 0 1 150 80" stroke-width="1.5" stroke-dasharray="4 6" opacity="0.25" />
+          </svg>
+          <div
+            class="deco-dots-trio"
+            style={`transform: scale(${s4Anim.decoPillarsScale});`}
+          >
+            <span></span><span></span><span></span>
+          </div>
         {:else}
           <div class="deco-mesh mesh-light"></div>
           <!-- Ornamentos editoriais finos em lâmina clara -->
@@ -802,7 +981,10 @@
           ? (s2Anim.elementsReady ? `transform: ${s2Anim.outFrameTrans}; opacity: ${s2Anim.outFrameOpacity};` : 'visibility: hidden; pointer-events: none; opacity: 0;')
           : (index === 1 && !mobile
             ? (s3Anim.elementsReady ? `transform: ${s3Anim.outFrameTrans}; opacity: ${s3Anim.outFrameOpacity};` : 'visibility: hidden; pointer-events: none; opacity: 0;')
-            : '')}
+            : (index === 2 && !mobile
+              ? (s4Anim.elementsReady ? `transform: ${s4Anim.outFrameTrans}; opacity: ${s4Anim.outFrameOpacity};` : 'visibility: hidden; pointer-events: none; opacity: 0;')
+              : '')
+            )}
       >
         <!-- Topline Editorial com Badge de Alta Precisão -->
         <div
@@ -811,7 +993,10 @@
             ? `opacity: ${s2Anim.topTextOpacity}; transform: ${s2Anim.topTextTrans}; border-bottom: none;`
             : (index === 1 && !mobile
               ? `opacity: ${s3Anim.topTextOpacity}; transform: ${s3Anim.topTextTrans}; border-bottom: none;`
-              : (mobile ? '' : `opacity: ${st.topline.opacity}; transform: ${st.topline.transform};`)
+              : (index === 2 && !mobile
+                ? `opacity: ${s4Anim.topTextOpacity}; transform: ${s4Anim.topTextTrans}; border-bottom: none;`
+                : (mobile ? '' : `opacity: ${st.topline.opacity}; transform: ${st.topline.transform};`)
+              )
             )}
         >
           <div class="topline-left">
@@ -822,7 +1007,10 @@
                 ? `transform: scale(${s2Anim.topBadgeScale}); display: inline-block;`
                 : (index === 1 && !mobile
                   ? `transform: scale(${s3Anim.topBadgeScale}); display: inline-block;`
-                  : ''
+                  : (index === 2 && !mobile
+                    ? `transform: scale(${s4Anim.topBadgeScale}); display: inline-block;`
+                    : ''
+                  )
                 )}
             >{slide.badge}</span>
           </div>
@@ -832,7 +1020,10 @@
               ? `transform: ${s2Anim.topIndexTrans};`
               : (index === 1 && !mobile
                 ? `transform: ${s3Anim.topIndexTrans};`
-                : ''
+                : (index === 2 && !mobile
+                  ? `transform: ${s4Anim.topIndexTrans};`
+                  : ''
+                )
               )}
           >{String(index + 2).padStart(2, '0')} / 10</span>
 
@@ -840,6 +1031,8 @@
             <div class="topline-rail-line" style={`transform: scaleX(${s2Anim.topBarScale});`}></div>
           {:else if index === 1 && !mobile}
             <div class="topline-rail-line" style={`transform: scaleX(${s3Anim.topBarScale}); transform-origin: center;`}></div>
+          {:else if index === 2 && !mobile}
+            <div class="topline-rail-line" style={`transform: scaleX(${s4Anim.topBarScale}); transform-origin: left;`}></div>
           {/if}
         </div>
 
@@ -874,6 +1067,19 @@
                       </span>
                     </span>
                   </h2>
+                {:else if index === 2 && !mobile}
+                  <h2 class="kinetic-title" style={`opacity: ${s4Anim.titleOpacity};`}>
+                    <span class="kinetic-line-mask">
+                      <span class="kinetic-line" style={`transform: ${s4Anim.titleLine1Trans};`}>
+                        Inovação também
+                      </span>
+                    </span>
+                    <span class="kinetic-line-mask">
+                      <span class="kinetic-line line-highlight legal-highlight" style={`transform: ${s4Anim.titleLine2Trans};`}>
+                        precisa de limite.
+                      </span>
+                    </span>
+                  </h2>
                 {:else}
                   <h2 style={mobile ? '' : `opacity: ${st.title.opacity}; transform: ${st.title.transform};`}>
                     {slide.title}
@@ -885,7 +1091,10 @@
                     ? `opacity: ${s2Anim.leadOpacity}; transform: ${s2Anim.leadTrans};`
                     : (index === 1 && !mobile
                       ? `opacity: ${s3Anim.leadOpacity}; transform: ${s3Anim.leadTrans};`
-                      : (mobile ? '' : `opacity: ${st.lead.opacity}; transform: ${st.lead.transform};`)
+                      : (index === 2 && !mobile
+                        ? `opacity: ${s4Anim.leadOpacity}; transform: ${s4Anim.leadTrans};`
+                        : (mobile ? '' : `opacity: ${st.lead.opacity}; transform: ${st.lead.transform};`)
+                      )
                     )}
                 >
                   {slide.lead}
@@ -982,27 +1191,44 @@
                 <div class="legal-framework">
                   <div class="laws-duo">
                     {#each slide.laws as law, lIdx}
+                      {@const lAnim = lIdx === 0 ? s4Anim.law1 : s4Anim.law2}
                       <article
                         class="law-plaque"
-                        style={mobile ? '' : `opacity: ${st.cards[lIdx].opacity}; transform: ${st.cards[lIdx].transform};`}
+                        style={index === 2 && !mobile
+                          ? `opacity: ${lAnim.opacity}; transform: ${lAnim.cardTrans};`
+                          : (mobile ? '' : `opacity: ${st.cards[lIdx].opacity}; transform: ${st.cards[lIdx].transform};`)}
                       >
-                        <span class="law-symbol">§</span>
+                        <span
+                          class="law-symbol"
+                          style={index === 2 && !mobile ? `transform: ${lAnim.symbolTrans}; display: inline-block;` : ''}
+                        >§</span>
                         <div>
                           <h3>{law.num}</h3>
                           <p>{law.desc}</p>
                         </div>
+                        {#if index === 2 && !mobile}
+                          <div class="law-plaque-line" style={`transform: ${lAnim.lineScale};`}></div>
+                        {/if}
                       </article>
                     {/each}
                   </div>
                   <aside
                     class="solemn-warning"
-                    style={mobile ? '' : `opacity: ${st.cards[2].opacity}; transform: ${st.cards[2].transform};`}
+                    style={index === 2 && !mobile
+                      ? `opacity: ${s4Anim.warning.opacity}; transform: ${s4Anim.warning.trans};`
+                      : (mobile ? '' : `opacity: ${st.cards[2].opacity}; transform: ${st.cards[2].transform};`)}
                   >
-                    <div class="warning-anchor">
-                      <span class="anchor-bullet"></span>
+                    <div class="warning-anchor" style={index === 2 && !mobile ? `transform: ${s4Anim.warning.anchorScale};` : ''}>
+                      <span
+                        class="anchor-bullet"
+                        style={index === 2 && !mobile ? `transform: ${s4Anim.warning.bulletScale}; display: inline-block;` : ''}
+                      ></span>
                       <strong>PRESENÇA FÍSICA DO RT</strong>
                     </div>
                     <p>{slide.warning}</p>
+                    {#if index === 2 && !mobile}
+                      <div class="warning-plumb-line" style={`transform: ${s4Anim.warning.plumbScale};`}></div>
+                    {/if}
                   </aside>
                 </div>
 
@@ -1144,7 +1370,10 @@
                   ? `opacity: ${s2Anim.artOpacity}; transform: none;`
                   : (index === 1
                     ? `opacity: ${s3Anim.artOpacity}; transform: none;`
-                    : `opacity: ${st.art.opacity}; transform: ${st.art.transform};`
+                    : (index === 2
+                      ? `opacity: ${s4Anim.artOpacity}; transform: none;`
+                      : `opacity: ${st.art.opacity}; transform: ${st.art.transform};`
+                    )
                   )
               )}
               aria-hidden="true"
@@ -1204,6 +1433,39 @@
                   <div class="sun-core"></div>
                   <div class="sun-orbit"></div>
                   <span>CIÊNCIA<br><strong>+ CUIDADO</strong></span>
+                </div>
+
+              {:else if index === 2 && !mobile}
+                <!-- Escultura Vetorial Judicial: Balança Farmacêutica de Precisão & Selo Normativo -->
+                <div class="art-number" style={`transform: ${s4Anim.artNumberTrans};`}>
+                  04
+                </div>
+                <div class="art-line line-one" style={`transform: ${s4Anim.artLineOne}; transform-origin: left;`}></div>
+                <div class="art-line line-two" style={`transform: ${s4Anim.artLineTwo}; transform-origin: right;`}></div>
+                <div class="art-dot" style={`transform: ${s4Anim.artDot};`}></div>
+                
+                <div class="art-balance" style={`transform: ${s4Anim.balanceTrans};`}>
+                  <svg width="86" height="86" viewBox="0 0 60 60" fill="none" stroke="currentColor" stroke-width="1.1" opacity="0.65">
+                    <!-- Base e Pilar Central -->
+                    <path d="M30 8v42M20 50h20" stroke-width="1.3" />
+                    <!-- Fulcro / Capitel -->
+                    <polygon points="26,14 34,14 30,8" fill="currentColor" opacity="0.35" />
+                    <!-- Braço de Travessão com Rotação de Nivelamento -->
+                    <g style={`transform: ${s4Anim.beamRotate}; transform-origin: 30px 12px;`}>
+                      <line x1="6" y1="12" x2="54" y2="12" stroke-width="1.6" />
+                      <!-- Cordas e Prato Esquerdo (Inovação) -->
+                      <line x1="10" y1="12" x2="6" y2="28" stroke-width="0.8" stroke-dasharray="2 2" />
+                      <line x1="10" y1="12" x2="14" y2="28" stroke-width="0.8" stroke-dasharray="2 2" />
+                      <path d="M4 28 Q10 35 16 28 Z" fill="currentColor" opacity="0.25" />
+                      <!-- Cordas e Prato Direito (Limite Normativo) -->
+                      <line x1="50" y1="12" x2="46" y2="28" stroke-width="0.8" stroke-dasharray="2 2" />
+                      <line x1="50" y1="12" x2="54" y2="28" stroke-width="0.8" stroke-dasharray="2 2" />
+                      <path d="M44 28 Q50 35 56 28 Z" fill="currentColor" opacity="0.25" />
+                    </g>
+                  </svg>
+                </div>
+                <div class="art-legal-stamp" style={`transform: ${s4Anim.sealScale};`}>
+                  <span>MARCO LEGAL // 14.510</span>
                 </div>
 
               {:else}
@@ -1275,7 +1537,11 @@
             ? `opacity: ${s2Anim.footerOpacity}; transform: ${s2Anim.footerTrans};`
             : (index === 1 && !mobile
               ? `opacity: ${s3Anim.footerOpacity}; transform: ${s3Anim.footerTrans};`
-              : (mobile ? '' : `opacity: ${st.footer.opacity}; transform: ${st.footer.transform};`))}
+              : (index === 2 && !mobile
+                ? `opacity: ${s4Anim.footerOpacity}; transform: ${s4Anim.footerTrans};`
+                : (mobile ? '' : `opacity: ${st.footer.opacity}; transform: ${st.footer.transform};`)
+              )
+            )}
         >
           <div class="footer-left">
             <span>Telefarmácia & Serviços Digitais Farmacêuticos</span>
@@ -1718,25 +1984,49 @@
   .legal-framework { margin-top: 1rem; display: flex; flex-direction: column; gap: 1rem; }
   .laws-duo { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
   .law-plaque {
+    position: relative;
+    overflow: hidden;
     display: flex;
     gap: 1rem;
     padding: 1.25rem 1.4rem;
-    border-top: 2px solid currentColor;
+    border-top: 2px solid transparent;
     background: rgba(255, 255, 255, 0.55);
     will-change: transform, opacity;
   }
-  .law-symbol { font-size: 1.8rem; font-weight: 800; line-height: 1; opacity: 0.35; }
+  .law-plaque-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: currentColor;
+    transform-origin: left;
+    will-change: transform;
+  }
+  .law-symbol { font-size: 1.8rem; font-weight: 800; line-height: 1; opacity: 0.35; will-change: transform; }
   .law-plaque h3 { margin: 0 0 0.35rem; font-size: 1.05rem; }
   .law-plaque p { margin: 0; font-size: 0.88rem; line-height: 1.45; opacity: 0.72; }
   .solemn-warning {
+    position: relative;
+    overflow: hidden;
     display: flex;
     gap: 1.2rem;
     align-items: baseline;
     padding: 1rem 1.3rem;
-    border-left: 4px solid #b94d39;
+    border-left: 4px solid transparent;
     background: rgba(185, 77, 57, 0.08);
     color: #713126;
     will-change: transform, opacity;
+  }
+  .warning-plumb-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 4px;
+    background: #b94d39;
+    transform-origin: top;
+    will-change: transform;
   }
   .warning-anchor {
     display: flex;
@@ -1746,9 +2036,32 @@
     font-size: 0.75rem;
     letter-spacing: 0.1em;
     color: #b94d39;
+    will-change: transform;
   }
-  .anchor-bullet { width: 6px; height: 6px; border-radius: 50%; background: #b94d39; }
+  .anchor-bullet { width: 6px; height: 6px; border-radius: 50%; background: #b94d39; will-change: transform; }
   .solemn-warning p { margin: 0; font-size: 0.92rem; line-height: 1.45; }
+  .legal-highlight { color: #b94d39; font-weight: 700; }
+  .art-balance {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    will-change: transform, opacity;
+  }
+  .art-legal-stamp {
+    position: absolute;
+    bottom: 12px;
+    right: 15px;
+    font-family: var(--font-sans, system-ui);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    padding: 0.25rem 0.6rem;
+    border: 1px solid currentColor;
+    opacity: 0.45;
+    border-radius: 2px;
+    will-change: transform;
+    text-transform: uppercase;
+  }
 
   /* =========================================================================
      SLIDE 5: Segurança e LGPD
