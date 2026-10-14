@@ -177,13 +177,13 @@
     const pOut = s2OutProg;
 
     // Fundo sólido sem esmaecer: expansão circular sólida a partir da arte/número 02 (82% 44%)
-    // Cobre 100% da tela rapidamente até p = 0.35
-    const pBg = subProg(p, 0.00, 0.35);
+    // Cobre 100% da tela rapidamente no início da rolagem (até p = 0.10)
+    const pBg = subProg(p, 0.00, 0.10);
     const bgClip = pBg >= 1 ? 'none' : `circle(${(pBg * 195).toFixed(1)}% at 82% 44%)`;
 
-    // Os elementos só entram após a tela estar 100% coberta pelo fundo (a partir de p = 0.35)
-    const pElem = subProg(p, 0.35, 1.00);
-    const elementsReady = p >= 0.35;
+    // Os elementos entram imediatamente em seguida, no fluxo contínuo do mesmo scroll
+    const pElem = subProg(p, 0.08, 1.00);
+    const elementsReady = p >= 0.08;
 
     // Saída única do Slide 2 quando pOut > 0:
     const outCard0 = `translate3d(${(-150 * pOut).toFixed(1)}px, ${(-30 * pOut).toFixed(1)}px, 0) scale(${(1 - 0.15 * pOut).toFixed(3)}) rotate(${(-3.5 * pOut).toFixed(2)}deg)`;
@@ -195,21 +195,21 @@
     const outTop = -45 * pOut;
 
     // Barra superior e cabeçalho editorial
-    const pTopBar = subProg(pElem, 0.00, 0.50);
-    const pTopText = subProg(pElem, 0.05, 0.55);
+    const pTopBar = subProg(pElem, 0.00, 0.40);
+    const pTopText = subProg(pElem, 0.04, 0.45);
     const topBarScale = Math.max(0, pTopBar - pOut * 1.5).toFixed(3);
     const topTextTrans = `translate3d(0, ${(((1 - pTopText) * -45) + outTop).toFixed(1)}px, 0)`;
     const topBadgeScale = (Math.max(0.2, (0.7 + 0.3 * pTopText) * (1 - 0.3 * pOut))).toFixed(3);
     const topIndexTrans = `translate3d(${(((1 - pTopText) * 60) + (100 * pOut)).toFixed(1)}px, 0, 0)`;
 
     // Título cinético (2 linhas cortadas por máscaras overflow: hidden)
-    const pTitle1 = subProg(pElem, 0.08, 0.60);
-    const pTitle2 = subProg(pElem, 0.16, 0.68);
+    const pTitle1 = subProg(pElem, 0.06, 0.50);
+    const pTitle2 = subProg(pElem, 0.12, 0.58);
     const titleLine1Trans = `translate3d(0, ${(((1 - pTitle1) * 115) + outTitle).toFixed(1)}%, 0)`;
     const titleLine2Trans = `translate3d(0, ${(((1 - pTitle2) * 115) + outTitle).toFixed(1)}%, 0)`;
 
     // Lead text
-    const pLead = subProg(pElem, 0.22, 0.72);
+    const pLead = subProg(pElem, 0.16, 0.62);
     const leadTrans = `translate3d(${(((1 - pLead) * -65) + outLead).toFixed(1)}px, 0, 0)`;
 
     // Card esquerdo: "Mero Comércio"
@@ -310,33 +310,33 @@
     const p = s3InProg;
     const pOut = s3OutProg;
 
-    // Fundo sólido medicinal claro (#f2f1e9): lâmina diagonal angular afiada varrendo da esquerda para a direita
-    // Cobre 100% da tela rapidamente até p = 0.35
-    const pBg = subProg(p, 0.00, 0.35);
+    // Fundo sólido medicinal claro (#f2f1e9): lâmina diagonal angular rápida
+    // Cobre 100% da tela rapidamente no início da rolagem (até p = 0.10)
+    const pBg = subProg(p, 0.00, 0.10);
     const topX = (-15 + pBg * 155).toFixed(1);
     const botX = (-45 + pBg * 180).toFixed(1);
     const bgClip = pBg >= 1 ? 'none' : `polygon(0 0, ${Math.max(0, topX)}% 0, ${Math.max(0, botX)}% 100%, 0 100%)`;
 
-    // Os elementos só entram após a tela estar 100% coberta pelo fundo claro (a partir de p = 0.35)
-    const pElem = subProg(p, 0.35, 1.00);
-    const elementsReady = p >= 0.35;
+    // Os elementos entram imediatamente em seguida, no fluxo contínuo do mesmo scroll
+    const pElem = subProg(p, 0.08, 1.00);
+    const elementsReady = p >= 0.08;
 
     // Topline: abertura central a partir do meio
-    const pTopBar = subProg(pElem, 0.00, 0.45);
-    const pTopText = subProg(pElem, 0.04, 0.50);
+    const pTopBar = subProg(pElem, 0.00, 0.40);
+    const pTopText = subProg(pElem, 0.04, 0.45);
     const topBarScale = Math.max(0, pTopBar - pOut * 1.5).toFixed(3);
     const topTextTrans = `translate3d(0, ${(((1 - pTopText) * -40) - (40 * pOut)).toFixed(1)}px, 0)`;
     const topBadgeScale = (Math.max(0.2, (0.7 + 0.3 * pTopText) * (1 - 0.3 * pOut))).toFixed(3);
     const topIndexTrans = `translate3d(${(((1 - pTopText) * 45) + (80 * pOut)).toFixed(1)}px, 0, 0)`;
 
     // Título cinético (CORTE HORIZONTAL CONTRAPOSTO: Linha 1 da ESQUERDA, Linha 2 da DIREITA)
-    const pTitle1 = subProg(pElem, 0.08, 0.58);
-    const pTitle2 = subProg(pElem, 0.16, 0.66);
+    const pTitle1 = subProg(pElem, 0.06, 0.50);
+    const pTitle2 = subProg(pElem, 0.12, 0.58);
     const titleLine1Trans = `translate3d(${(((1 - pTitle1) * -110) - (110 * pOut)).toFixed(1)}%, 0, 0)`;
     const titleLine2Trans = `translate3d(${(((1 - pTitle2) * 110) + (110 * pOut)).toFixed(1)}%, 0, 0)`;
 
     // Lead text: desce de cima para baixo através de máscara vertical
-    const pLead = subProg(pElem, 0.22, 0.70);
+    const pLead = subProg(pElem, 0.16, 0.62);
     const leadTrans = `translate3d(0, ${(((1 - pLead) * -100) - (60 * pOut)).toFixed(1)}%, 0)`;
 
     // As 4 Estações de Modalidades (Cascata de 4 Quadrantes com impulsos angulares)
