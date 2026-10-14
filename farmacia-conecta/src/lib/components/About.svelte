@@ -46,9 +46,72 @@
     window.scrollTo({ top: targetY, behavior: 'smooth' });
   }
 
+  let animTweenId = null;
+
+  function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+
+  function startPresentationTransition(fromRatio, toRatio, duration = 1100) {
+    if (animTweenId) {
+      cancelAnimationFrame(animTweenId);
+      animTweenId = null;
+    }
+    const startTime = performance.now();
+    const step = (now) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      const eased = easeInOutCubic(progress);
+      currentScrollRatio = fromRatio + (toRatio - fromRatio) * eased;
+      targetScrollRatio = currentScrollRatio;
+      if (progress < 1) {
+        animTweenId = requestAnimationFrame(step);
+      } else {
+        currentScrollRatio = toRatio;
+        targetScrollRatio = toRatio;
+        animTweenId = null;
+      }
+    };
+    animTweenId = requestAnimationFrame(step);
+  }
+
+  async function enterFullscreen() {
+    try {
+      const docEl = document.documentElement;
+      if (docEl.requestFullscreen) {
+        await docEl.requestFullscreen();
+      } else if (docEl.webkitRequestFullscreen) {
+        await docEl.webkitRequestFullscreen();
+      } else if (docEl.msRequestFullscreen) {
+        await docEl.msRequestFullscreen();
+      }
+    } catch {
+      // Ignora restrições do navegador
+    }
+  }
+
+  async function exitFullscreen() {
+    try {
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          await document.webkitExitFullscreen();
+        }
+      }
+    } catch {
+      // Ignora erro
+    }
+  }
+
   function setPresentationSlide(nextIndex) {
     presentationIndex = Math.max(0, Math.min(9, nextIndex));
-    targetScrollRatio = presentationRatios[presentationIndex];
+    const targetRatio = presentationRatios[presentationIndex];
+    if (presentationMode) {
+      startPresentationTransition(currentScrollRatio, targetRatio, 1100);
+    } else {
+      targetScrollRatio = targetRatio;
+    }
     if (typeof document !== 'undefined' && document.activeElement && typeof document.activeElement.blur === 'function') {
       document.activeElement.blur();
     }
@@ -67,11 +130,13 @@
       });
       presentationIndex = closestIdx;
       presentationMode = true;
-      targetScrollRatio = presentationRatios[presentationIndex];
       document.body.style.overflow = 'hidden';
+      enterFullscreen();
+      startPresentationTransition(currentScrollRatio, presentationRatios[presentationIndex], 850);
     } else {
       presentationMode = false;
       document.body.style.overflow = '';
+      exitFullscreen();
       scrollToPhase(presentationIndex);
     }
     if (typeof document !== 'undefined' && document.activeElement && typeof document.activeElement.blur === 'function') {
@@ -517,11 +582,13 @@
 
     let lastRenderedFrame = -1;
     const tick = () => {
-      const diff = targetScrollRatio - currentScrollRatio;
-      if (Math.abs(diff) > 0.00005) {
-        currentScrollRatio += diff * 0.18;
-      } else {
-        currentScrollRatio = targetScrollRatio;
+      if (!presentationMode) {
+        const diff = targetScrollRatio - currentScrollRatio;
+        if (Math.abs(diff) > 0.00003) {
+          currentScrollRatio += diff * 0.08;
+        } else {
+          currentScrollRatio = targetScrollRatio;
+        }
       }
 
       if (anim && !isLoading) {
@@ -535,9 +602,20 @@
       rafId = requestAnimationFrame(tick);
     };
 
+    const handleFullscreenChange = () => {
+      const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+      if (!isFs && presentationMode) {
+        presentationMode = false;
+        document.body.style.overflow = '';
+        scrollToPhase(presentationIndex);
+      }
+    };
+
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', handleResize, { passive: true });
     window.addEventListener('keydown', handlePresentationKey, { capture: true });
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
     handleScroll();
     rafId = requestAnimationFrame(tick);
 
@@ -547,9 +625,12 @@
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('keydown', handlePresentationKey, { capture: true });
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
       mobileQuery.removeEventListener?.('change', updateMobileMode);
       document.body.style.overflow = '';
       if (rafId) cancelAnimationFrame(rafId);
+      if (animTweenId) cancelAnimationFrame(animTweenId);
       if (anim) {
         anim.destroy();
         anim = null;
@@ -562,7 +643,7 @@
 <section id="sobre" class="scroll-showcase-section" bind:this={scrollTrackRef}>
   
   <!-- Viewport fixo preenchendo 100% da tela do monitor de ponta a ponta -->
-  <div class="sticky-viewport">
+  <div class={`sticky-viewport ${presentationMode ? 'is-presentation' : ''}`}>
 
     <!-- Palco Principal: Animação original do JSON em tela cheia verde -->
     <div class="stage-container">
@@ -778,6 +859,17 @@
     padding: 0;
     box-sizing: border-box;
     z-index: 1001; /* Fica acima da navbar durante a apresentação */
+  }
+
+  .sticky-viewport.is-presentation {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    z-index: 999999 !important;
+    background: #073726;
   }
 
   /* Palco Principal */
