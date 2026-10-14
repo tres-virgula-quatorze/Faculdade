@@ -31,9 +31,9 @@
   ];
 
   // ===== SAÍDA INDIVIDUAL DO SLIDE 1 =====
-  // Cada grupo sai para sua própria direção de forma coordenada, com crossfade para o Slide 2.
+  // Cada grupo sai para sua própria direção de forma coordenada, perfeitamente sincronizada com a entrada do Slide 2.
   const EXIT_START = 0.045;
-  const EXIT_END = 0.088;
+  const EXIT_END = 0.082;
   const clamp01 = (x) => Math.max(0, Math.min(1, x));
   let exitG = $derived(Math.max(0, Math.min(1, (currentScrollRatio - EXIT_START) / (EXIT_END - EXIT_START))));
   
@@ -149,16 +149,16 @@
   // Mapeamento linear do scroll para a timeline do Lottie (Slide 1):
   // 0.00 a 0.04: Entrada suave completa de todos os elementos (frame 0 a 270) copiada do Lottie
   // 0.04 a 0.045: Pausa / leitura com slide 1 totalmente montado e estático (frame 270)
-  // 0.045 a 0.088: Saída individual, sincronizada e elegante de cada grupo (frame 270 a 360) enquanto fundo cobre a tela
-  // >= 0.088: Slide 1 100% invisível
+  // 0.045 a EXIT_END (0.082): Saída individual, sincronizada e elegante de cada grupo (frame 270 a 360) enquanto fundo do Slide 2 cobre a tela
+  // >= EXIT_END: Slide 1 100% invisível
   function mapScrollToFrame(s) {
     if (s < 0.04) {
       const t = s / 0.04;
       return t * 270;
     } else if (s <= 0.045) {
       return 270;
-    } else if (s <= 0.088) {
-      const t = (s - 0.045) / (0.088 - 0.045);
+    } else if (s <= EXIT_END) {
+      const t = (s - EXIT_START) / (EXIT_END - EXIT_START);
       return 270 + (t * (360 - 270));
     } else {
       return 400;

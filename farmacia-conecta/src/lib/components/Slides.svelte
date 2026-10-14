@@ -165,128 +165,144 @@
 
   // Progresso de entrada e saída do Slide 2:
   // Entrada ativa ao longo de toda a transição de Slide 1 (0.040) para Slide 2 (0.140)
-  const s2InProg = $derived(clamp01((currentRatio - 0.044) / (0.138 - 0.044)));
+  const s2InProg = $derived(clamp01((currentRatio - 0.045) / (0.138 - 0.045)));
   // Saída ativa ao transitar de Slide 2 (0.140) para Slide 3 (0.240)
-  const s2OutProg = $derived(clamp01((currentRatio - 0.144) / (0.238 - 0.144)));
-  const s2IsVisible = $derived(currentRatio >= 0.042 && currentRatio <= 0.210);
+  const s2OutProg = $derived(clamp01((currentRatio - 0.145) / (0.238 - 0.145)));
+  const s2IsVisible = $derived(currentRatio >= 0.042 && currentRatio <= 0.240);
   const s2IsActive = $derived(currentRatio >= 0.120 && currentRatio <= 0.165);
 
   const s2Anim = $derived.by(() => {
     const p = s2InProg;
     const pOut = s2OutProg;
 
-    // FASE 1 (0.00 a 0.45): O FUNDO VERDE COBRE 100% DA TELA
-    // Cobre completamente todos os cantos até p = 0.42 com ampla margem
-    const pBg = subProg(p, 0.00, 0.42);
-    const bgClip = pBg >= 1 ? 'none' : `circle(${(pBg * 195).toFixed(1)}% at 82% 44%)`;
+    // FASE 1: O FUNDO VERDE COBRE 100% DA TELA (0.00 a 0.40)
+    // Sincronizado perfeitamente com a saída do Slide 1 (EXIT_END = 0.082)
+    const pBg = subProg(p, 0.00, 0.40);
+    const bgClip = pBg >= 1 ? 'none' : `circle(${(pBg * 215).toFixed(1)}% at 82% 44%)`;
 
-    // FASE 2: PAUSA COM FUNDO COMPLETO (0.42 a 0.65)
-    // ZERO ELEMENTOS visíveis antes do fundo cobrir 100% e respirar
-    // Os elementos só começam a aparecer e animar a partir de p = 0.65!
-    const elementsReady = p >= 0.65;
-    const pElem = subProg(p, 0.65, 1.00);
+    // FASE 2: ENTRADA SINCRONIZADA E PROGRESSIVA DOS ELEMENTOS (0.40 a 1.00)
+    const elementsReady = p >= 0.40;
+    const pElem = subProg(p, 0.40, 1.00);
 
-    // Saída única do Slide 2 quando pOut > 0:
-    const outCard0 = `translate3d(${(-150 * pOut).toFixed(1)}px, ${(-30 * pOut).toFixed(1)}px, 0) scale(${(1 - 0.15 * pOut).toFixed(3)}) rotate(${(-3.5 * pOut).toFixed(2)}deg)`;
-    const outCard1 = `translate3d(${(120 * pOut).toFixed(1)}px, ${(70 * pOut).toFixed(1)}px, 0) scale(${(1 - 0.14 * pOut).toFixed(3)})`;
-    const outTitle = -115 * pOut;
-    const outLead = -90 * pOut;
-    const outArtNumber = `translate3d(${(220 * pOut).toFixed(1)}px, 0, 0) scale(${(1 + 0.35 * pOut).toFixed(3)})`;
-    const outArtCompass = `rotate(${(-90 * pOut).toFixed(1)}deg) scale(${(1 - 0.25 * pOut).toFixed(3)})`;
-    const outTop = -45 * pOut;
+    // SAÍDA ATIVA E ARTICULADA DO SLIDE 2 (0.00 a 0.55 de pOut)
+    // À medida que a lâmina do Slide 3 avança, os elementos do Slide 2 se recolhem com elegância
+    const pExit = subProg(pOut, 0.00, 0.55);
+    const exitOpacity = (1 - pExit);
+
+    // Container frame parallax sutil
+    const outFrameTrans = `translate3d(${(-40 * pOut).toFixed(1)}px, 0, 0)`;
+    const outFrameOpacity = (1 - pOut * 0.9).toFixed(3);
 
     // Barra superior e cabeçalho editorial
-    const pTopBar = subProg(pElem, 0.00, 0.42);
-    const pTopText = subProg(pElem, 0.05, 0.48);
-    const topBarScale = Math.max(0, pTopBar - pOut * 1.5).toFixed(3);
-    const topTextTrans = `translate3d(0, ${(((1 - pTopText) * -45) + outTop).toFixed(1)}px, 0)`;
-    const topBadgeScale = (Math.max(0.2, (0.7 + 0.3 * pTopText) * (1 - 0.3 * pOut))).toFixed(3);
-    const topIndexTrans = `translate3d(${(((1 - pTopText) * 60) + (100 * pOut)).toFixed(1)}px, 0, 0)`;
+    const pTopBar = subProg(pElem, 0.00, 0.35);
+    const pTopText = subProg(pElem, 0.04, 0.40);
+    const topBarScale = (pTopBar * exitOpacity).toFixed(3);
+    const topTextTrans = `translate3d(0, ${(((1 - pTopText) * -25) - (pExit * 25)).toFixed(1)}px, 0)`;
+    const topTextOpacity = (pTopText * exitOpacity).toFixed(3);
+    const topBadgeScale = ((0.75 + 0.25 * pTopText) * (1 - 0.15 * pExit)).toFixed(3);
+    const topIndexTrans = `translate3d(${(((1 - pTopText) * 35) + (pExit * 30)).toFixed(1)}px, 0, 0)`;
 
-    // Título cinético (2 linhas cortadas por máscaras overflow: hidden) com ritmo fluido e solene
-    const pTitle1 = subProg(pElem, 0.08, 0.54);
-    const pTitle2 = subProg(pElem, 0.16, 0.62);
-    const titleLine1Trans = `translate3d(0, ${(((1 - pTitle1) * 115) + outTitle).toFixed(1)}%, 0)`;
-    const titleLine2Trans = `translate3d(0, ${(((1 - pTitle2) * 115) + outTitle).toFixed(1)}%, 0)`;
+    // Título cinético (2 linhas cortadas por máscaras overflow: hidden)
+    const pTitle1 = subProg(pElem, 0.08, 0.48);
+    const pTitle2 = subProg(pElem, 0.16, 0.56);
+    const titleLine1Trans = `translate3d(${(-60 * pExit).toFixed(1)}px, ${((1 - pTitle1) * 115).toFixed(1)}%, 0)`;
+    const titleLine2Trans = `translate3d(${(-60 * pExit).toFixed(1)}px, ${((1 - pTitle2) * 115).toFixed(1)}%, 0)`;
+    const titleOpacity = (Math.max(pTitle1, pTitle2) * exitOpacity).toFixed(3);
 
     // Lead text
-    const pLead = subProg(pElem, 0.22, 0.70);
-    const leadTrans = `translate3d(${(((1 - pLead) * -65) + outLead).toFixed(1)}px, 0, 0)`;
+    const pLead = subProg(pElem, 0.22, 0.62);
+    const leadTrans = `translate3d(${(((1 - pLead) * -35) - (pExit * 40)).toFixed(1)}px, 0, 0)`;
+    const leadOpacity = (pLead * exitOpacity).toFixed(3);
 
     // Card esquerdo: "Mero Comércio"
-    const pCard0 = subProg(pElem, 0.20, 0.68);
-    const card0Trans = pOut > 0 ? outCard0 : `translate3d(${((1 - pCard0) * -120).toFixed(1)}px, 0, 0) scale(${(0.88 + 0.12 * pCard0).toFixed(3)})`;
+    const pCard0 = subProg(pElem, 0.26, 0.68);
+    const card0Trans = `translate3d(${(((1 - pCard0) * -50) - (pExit * 60)).toFixed(1)}px, 0, 0) scale(${((0.93 + 0.07 * pCard0) * (1 - 0.06 * pExit)).toFixed(3)})`;
+    const card0Opacity = (pCard0 * exitOpacity).toFixed(3);
 
     // Barra de risco vermelha: corta a palavra fisicamente em tempo real
-    const pStrike = subProg(pElem, 0.48, 0.85);
-    const strikeScale = `scaleX(${(pStrike * Math.max(0, 1 - pOut * 1.5)).toFixed(3)}) rotate(-3deg)`;
+    const pStrike = subProg(pElem, 0.50, 0.82);
+    const strikeScale = `scaleX(${(pStrike * (1 - pExit * 0.5)).toFixed(3)}) rotate(-3deg)`;
 
     // Card direito: "Cuidado Clínico Estruturado"
-    const pCard1 = subProg(pElem, 0.26, 0.74);
-    const card1Trans = pOut > 0 ? outCard1 : `translate3d(${((1 - pCard1) * 85).toFixed(1)}px, ${((1 - pCard1) * 30).toFixed(1)}px, 0) scale(${(0.90 + 0.10 * pCard1).toFixed(3)})`;
+    const pCard1 = subProg(pElem, 0.34, 0.74);
+    const card1Trans = `translate3d(${(((1 - pCard1) * 50) - (pExit * 70)).toFixed(1)}px, 0, 0) scale(${((0.93 + 0.07 * pCard1) * (1 - 0.06 * pExit)).toFixed(3)})`;
+    const card1Opacity = (pCard1 * exitOpacity).toFixed(3);
 
     // Beacon de pulso dourado
-    const pBeacon = subProg(pElem, 0.32, 0.72);
-    const beaconScale = `scale(${pBeacon < 1 ? (pBeacon * 1.35).toFixed(3) : (1 - 0.2 * pOut).toFixed(3)})`;
+    const pBeacon = subProg(pElem, 0.40, 0.76);
+    const beaconScale = `scale(${pBeacon < 1 ? (pBeacon * 1.35).toFixed(3) : '1.0'})`;
 
     // 3 Pilares com número saltando, linha esticando e texto deslizando
-    const pP1 = subProg(pElem, 0.35, 0.72);
+    const pP1 = subProg(pElem, 0.42, 0.76);
     const pillar1 = {
-      idxScale: `scale(${pP1 < 1 ? (pP1 * 1.4).toFixed(3) : '1.0'})`,
-      lineScale: `scaleX(${(pP1 * Math.max(0, 1 - pOut)).toFixed(3)})`,
-      textTrans: `translate3d(${((1 - pP1) * 40).toFixed(1)}px, 0, 0)`
+      idxScale: `scale(${pP1 < 1 ? (pP1 * 1.35).toFixed(3) : '1.0'})`,
+      lineScale: `scaleX(${(pP1 * exitOpacity).toFixed(3)})`,
+      textTrans: `translate3d(${(((1 - pP1) * 25) - (pExit * 20)).toFixed(1)}px, 0, 0)`,
+      opacity: (pP1 * exitOpacity).toFixed(3)
     };
 
-    const pP2 = subProg(pElem, 0.46, 0.82);
+    const pP2 = subProg(pElem, 0.52, 0.84);
     const pillar2 = {
-      idxScale: `scale(${pP2 < 1 ? (pP2 * 1.4).toFixed(3) : '1.0'})`,
-      lineScale: `scaleX(${(pP2 * Math.max(0, 1 - pOut)).toFixed(3)})`,
-      textTrans: `translate3d(${((1 - pP2) * 40).toFixed(1)}px, 0, 0)`
+      idxScale: `scale(${pP2 < 1 ? (pP2 * 1.35).toFixed(3) : '1.0'})`,
+      lineScale: `scaleX(${(pP2 * exitOpacity).toFixed(3)})`,
+      textTrans: `translate3d(${(((1 - pP2) * 25) - (pExit * 20)).toFixed(1)}px, 0, 0)`,
+      opacity: (pP2 * exitOpacity).toFixed(3)
     };
 
-    const pP3 = subProg(pElem, 0.58, 0.94);
+    const pP3 = subProg(pElem, 0.62, 0.94);
     const pillar3 = {
-      idxScale: `scale(${pP3 < 1 ? (pP3 * 1.4).toFixed(3) : '1.0'})`,
-      lineScale: `scaleX(${(pP3 * Math.max(0, 1 - pOut)).toFixed(3)})`,
-      textTrans: `translate3d(${((1 - pP3) * 40).toFixed(1)}px, 0, 0)`
+      idxScale: `scale(${pP3 < 1 ? (pP3 * 1.35).toFixed(3) : '1.0'})`,
+      lineScale: `scaleX(${(pP3 * exitOpacity).toFixed(3)})`,
+      textTrans: `translate3d(${(((1 - pP3) * 25) - (pExit * 20)).toFixed(1)}px, 0, 0)`,
+      opacity: (pP3 * exitOpacity).toFixed(3)
     };
 
     // Arte Lateral: Número 02, Bússola e Linhas
-    const pArt = subProg(pElem, 0.05, 0.68);
-    const artNumberTrans = pOut > 0 ? outArtNumber : `translate3d(${((1 - pArt) * 160).toFixed(1)}px, 0, 0) scale(${(1 + (1 - pArt) * 1.15).toFixed(3)})`;
-    const artCompassTrans = pOut > 0 ? outArtCompass : `rotate(${((1 - pArt) * -180).toFixed(1)}deg) scale(${pArt.toFixed(3)})`;
-    const artLineOne = `scaleX(${(subProg(pElem, 0.15, 0.72) * Math.max(0, 1 - pOut)).toFixed(3)})`;
-    const artLineTwo = `scaleX(${(subProg(pElem, 0.25, 0.78) * Math.max(0, 1 - pOut)).toFixed(3)})`;
-    const pDot = subProg(pElem, 0.30, 0.74);
+    const pArt = subProg(pElem, 0.12, 0.65);
+    const artOpacity = (pArt * exitOpacity).toFixed(3);
+    const artNumberTrans = `translate3d(${(((1 - pArt) * 70) + (pExit * 45)).toFixed(1)}px, 0, 0) scale(${((1 + (1 - pArt) * 0.4) * (1 - 0.12 * pExit)).toFixed(3)})`;
+    const artCompassTrans = `rotate(${(((1 - pArt) * -120) + (pExit * 60)).toFixed(1)}deg) scale(${(pArt * (1 - 0.15 * pExit)).toFixed(3)})`;
+    const artLineOne = `scaleX(${(subProg(pElem, 0.18, 0.65) * exitOpacity).toFixed(3)})`;
+    const artLineTwo = `scaleX(${(subProg(pElem, 0.28, 0.72) * exitOpacity).toFixed(3)})`;
+    const pDot = subProg(pElem, 0.32, 0.70);
     const artDot = `scale(${pDot < 1 ? (pDot * 1.35).toFixed(3) : '1.0'})`;
 
     // Micro-ornamentos (anel e cruz médica)
-    const pRing = subProg(pElem, 0.05, 0.62);
-    const decoRing = `rotate(${(pRing * 180 + pOut * 90).toFixed(1)}deg) scale(${(pRing * (1 - 0.4 * pOut)).toFixed(3)})`;
-    const pCross = subProg(pElem, 0.15, 0.72);
-    const decoCross = `rotate(${(((1 - pCross) * 90) - (pOut * 90)).toFixed(1)}deg) scale(${(pCross * (1 - 0.4 * pOut)).toFixed(3)})`;
+    const pRing = subProg(pElem, 0.08, 0.58);
+    const decoRing = `rotate(${((pRing * 180) + (pExit * 90)).toFixed(1)}deg) scale(${(pRing * (1 - 0.2 * pExit)).toFixed(3)})`;
+    const pCross = subProg(pElem, 0.18, 0.68);
+    const decoCross = `rotate(${(((1 - pCross) * 90) - (pExit * 90)).toFixed(1)}deg) scale(${(pCross * (1 - 0.2 * pExit)).toFixed(3)})`;
 
     // Rodapé
-    const pFooter = subProg(pElem, 0.28, 0.80);
-    const footerTrans = `translate3d(0, ${(((1 - pFooter) * 25) + (35 * pOut)).toFixed(1)}px, 0)`;
+    const pFooter = subProg(pElem, 0.35, 0.78);
+    const footerTrans = `translate3d(0, ${(((1 - pFooter) * 20) + (pExit * 20)).toFixed(1)}px, 0)`;
+    const footerOpacity = (pFooter * exitOpacity).toFixed(3);
 
     return {
       bgClip,
       elementsReady,
+      outFrameTrans,
+      outFrameOpacity,
       topBarScale,
       topTextTrans,
+      topTextOpacity,
       topBadgeScale,
       topIndexTrans,
       titleLine1Trans,
       titleLine2Trans,
+      titleOpacity,
       leadTrans,
+      leadOpacity,
       card0Trans,
+      card0Opacity,
       strikeScale,
       card1Trans,
+      card1Opacity,
       beaconScale,
       pillar1,
       pillar2,
       pillar3,
+      artOpacity,
       artNumberTrans,
       artCompassTrans,
       artLineOne,
@@ -294,131 +310,162 @@
       artDot,
       decoRing,
       decoCross,
-      footerTrans
+      footerTrans,
+      footerOpacity
     };
   });
 
   // Progresso de entrada e saída do Slide 3:
   // Entrada ativa ao transitar de Slide 2 (0.140) para Slide 3 (0.240)
-  const s3InProg = $derived(clamp01((currentRatio - 0.144) / (0.238 - 0.144)));
+  const s3InProg = $derived(clamp01((currentRatio - 0.145) / (0.238 - 0.145)));
   // Saída ativa ao transitar de Slide 3 (0.240) para Slide 4 (0.340)
-  const s3OutProg = $derived(clamp01((currentRatio - 0.244) / (0.338 - 0.244)));
-  const s3IsVisible = $derived(currentRatio >= 0.142 && currentRatio <= 0.310);
+  const s3OutProg = $derived(clamp01((currentRatio - 0.245) / (0.338 - 0.245)));
+  const s3IsVisible = $derived(currentRatio >= 0.142 && currentRatio <= 0.340);
   const s3IsActive = $derived(currentRatio >= 0.220 && currentRatio <= 0.265);
 
   const s3Anim = $derived.by(() => {
     const p = s3InProg;
     const pOut = s3OutProg;
 
-    // FASE 1 (0.00 a 0.45): A LÂMINA DIAGONAL COBRE 100% DA TELA
-    const pBg = subProg(p, 0.00, 0.42);
-    const topX = (-20 + pBg * 165).toFixed(1);
-    const botX = (-50 + pBg * 195).toFixed(1);
-    const bgClip = pBg >= 1 ? 'none' : `polygon(0 0, ${Math.max(0, topX)}% 0, ${Math.max(0, botX)}% 100%, 0 100%)`;
+    // FASE 1: A LÂMINA DIAGONAL COBRE 100% DA TELA (0.00 a 0.40)
+    const pBgIn = subProg(p, 0.00, 0.40);
+    const topX = (-15 + pBgIn * 155).toFixed(1);
+    const botX = (-45 + pBgIn * 185).toFixed(1);
 
-    // FASE 2: PAUSA COM O FUNDO COMPLETO (0.42 a 0.65)
-    // ZERO ELEMENTOS visíveis antes da lâmina cobrir 100% e respirar
-    // Os elementos só começam a aparecer e animar a partir de p = 0.65!
-    const elementsReady = p >= 0.65;
-    const pElem = subProg(p, 0.65, 1.00);
+    // SAÍDA DO FUNDO DO SLIDE 3 (0.35 a 0.90 de pOut)
+    const pBgOut = subProg(pOut, 0.35, 0.90);
+    let bgClip = 'none';
+    if (pBgIn < 1) {
+      bgClip = `polygon(0 0, ${Math.max(0, topX)}% 0, ${Math.max(0, botX)}% 100%, 0 100%)`;
+    } else if (pBgOut > 0) {
+      const outX = (pBgOut * 130).toFixed(1);
+      bgClip = `polygon(${outX}% 0, 100% 0, 100% 100%, ${Math.max(0, outX - 25)}% 100%)`;
+    }
+
+    // FASE 2: ENTRADA SINCRONIZADA E PROGRESSIVA DOS ELEMENTOS (0.40 a 1.00)
+    const elementsReady = p >= 0.40;
+    const pElem = subProg(p, 0.40, 1.00);
+
+    // SAÍDA ATIVA DOS ELEMENTOS DO SLIDE 3 (0.00 a 0.55 de pOut)
+    const pExit = subProg(pOut, 0.00, 0.55);
+    const exitOpacity = (1 - pExit);
+
+    // Container frame parallax sutil
+    const outFrameTrans = `translate3d(${(-40 * pOut).toFixed(1)}px, 0, 0)`;
+    const outFrameOpacity = (1 - pOut * 0.9).toFixed(3);
 
     // Topline: abertura central a partir do meio
-    const pTopBar = subProg(pElem, 0.00, 0.42);
-    const pTopText = subProg(pElem, 0.05, 0.48);
-    const topBarScale = Math.max(0, pTopBar - pOut * 1.5).toFixed(3);
-    const topTextTrans = `translate3d(0, ${(((1 - pTopText) * -40) - (40 * pOut)).toFixed(1)}px, 0)`;
-    const topBadgeScale = (Math.max(0.2, (0.7 + 0.3 * pTopText) * (1 - 0.3 * pOut))).toFixed(3);
-    const topIndexTrans = `translate3d(${(((1 - pTopText) * 45) + (80 * pOut)).toFixed(1)}px, 0, 0)`;
+    const pTopBar = subProg(pElem, 0.00, 0.35);
+    const pTopText = subProg(pElem, 0.04, 0.40);
+    const topBarScale = (pTopBar * exitOpacity).toFixed(3);
+    const topTextTrans = `translate3d(0, ${(((1 - pTopText) * -25) - (pExit * 25)).toFixed(1)}px, 0)`;
+    const topTextOpacity = (pTopText * exitOpacity).toFixed(3);
+    const topBadgeScale = ((0.75 + 0.25 * pTopText) * (1 - 0.15 * pExit)).toFixed(3);
+    const topIndexTrans = `translate3d(${(((1 - pTopText) * 35) + (pExit * 30)).toFixed(1)}px, 0, 0)`;
 
     // Título cinético (CORTE HORIZONTAL CONTRAPOSTO: Linha 1 da ESQUERDA, Linha 2 da DIREITA)
-    const pTitle1 = subProg(pElem, 0.08, 0.54);
-    const pTitle2 = subProg(pElem, 0.16, 0.62);
-    const titleLine1Trans = `translate3d(${(((1 - pTitle1) * -110) - (110 * pOut)).toFixed(1)}%, 0, 0)`;
-    const titleLine2Trans = `translate3d(${(((1 - pTitle2) * 110) + (110 * pOut)).toFixed(1)}%, 0, 0)`;
+    const pTitle1 = subProg(pElem, 0.08, 0.48);
+    const pTitle2 = subProg(pElem, 0.16, 0.56);
+    const titleLine1Trans = `translate3d(${(((1 - pTitle1) * -100) - (pExit * 60)).toFixed(1)}%, 0, 0)`;
+    const titleLine2Trans = `translate3d(${(((1 - pTitle2) * 100) + (pExit * 60)).toFixed(1)}%, 0, 0)`;
+    const titleOpacity = (Math.max(pTitle1, pTitle2) * exitOpacity).toFixed(3);
 
-    // Lead text: desce de cima para baixo através de máscara vertical
-    const pLead = subProg(pElem, 0.22, 0.70);
-    const leadTrans = `translate3d(0, ${(((1 - pLead) * -100) - (60 * pOut)).toFixed(1)}%, 0)`;
+    // Lead text: desce através de máscara vertical
+    const pLead = subProg(pElem, 0.20, 0.60);
+    const leadTrans = `translate3d(0, ${(((1 - pLead) * -35) - (pExit * 25)).toFixed(1)}px, 0)`;
+    const leadOpacity = (pLead * exitOpacity).toFixed(3);
 
-    // As 4 Estações de Modalidades (Cascata de 4 Quadrantes com ritmo equilibrado)
-    // 01 Teleconsulta (Sup. Esq.)
-    const pM1 = subProg(pElem, 0.18, 0.65);
+    // As 4 Estações de Modalidades (Cascata de 4 Quadrantes)
+    // Estação 1: Superior Esquerda
+    const pM1 = subProg(pElem, 0.22, 0.64);
     const station1 = {
-      cardTrans: `translate3d(${(((1 - pM1) * -60) - (80 * pOut)).toFixed(1)}px, ${(((1 - pM1) * -25) - (20 * pOut)).toFixed(1)}px, 0) scale(${((0.88 + 0.12 * pM1) * (1 - 0.12 * pOut)).toFixed(3)})`,
+      cardTrans: `translate3d(${(((1 - pM1) * -40) - (pExit * 50)).toFixed(1)}px, ${((1 - pM1) * -15).toFixed(1)}px, 0) scale(${((0.93 + 0.07 * pM1) * (1 - 0.06 * pExit)).toFixed(3)})`,
+      opacity: (pM1 * exitOpacity).toFixed(3),
       codeScale: `scale(${pM1 < 1 ? (pM1 * 1.35).toFixed(3) : '1.0'})`,
-      lineScale: `scaleX(${(pM1 * Math.max(0, 1 - pOut)).toFixed(3)})`,
+      lineScale: `scaleX(${(pM1 * exitOpacity).toFixed(3)})`,
       lineOrigin: 'left',
-      textTrans: `translate3d(${((1 - pM1) * -30).toFixed(1)}px, 0, 0)`
+      textTrans: `translate3d(${((1 - pM1) * -15).toFixed(1)}px, 0, 0)`
     };
 
-    // 02 Teleinterconsulta (Sup. Dir.)
-    const pM2 = subProg(pElem, 0.28, 0.74);
+    // Estação 2: Superior Direita
+    const pM2 = subProg(pElem, 0.32, 0.72);
     const station2 = {
-      cardTrans: `translate3d(${(((1 - pM2) * 60) + (80 * pOut)).toFixed(1)}px, ${(((1 - pM2) * -25) - (20 * pOut)).toFixed(1)}px, 0) scale(${((0.88 + 0.12 * pM2) * (1 - 0.12 * pOut)).toFixed(3)})`,
+      cardTrans: `translate3d(${(((1 - pM2) * 40) + (pExit * 50)).toFixed(1)}px, ${((1 - pM2) * -15).toFixed(1)}px, 0) scale(${((0.93 + 0.07 * pM2) * (1 - 0.06 * pExit)).toFixed(3)})`,
+      opacity: (pM2 * exitOpacity).toFixed(3),
       codeScale: `scale(${pM2 < 1 ? (pM2 * 1.35).toFixed(3) : '1.0'})`,
-      lineScale: `scaleX(${(pM2 * Math.max(0, 1 - pOut)).toFixed(3)})`,
+      lineScale: `scaleX(${(pM2 * exitOpacity).toFixed(3)})`,
       lineOrigin: 'right',
-      textTrans: `translate3d(${((1 - pM2) * 30).toFixed(1)}px, 0, 0)`
+      textTrans: `translate3d(${((1 - pM2) * 15).toFixed(1)}px, 0, 0)`
     };
 
-    // 03 Telemonitoramento (Inf. Esq. - Telemetria)
-    const pM3 = subProg(pElem, 0.38, 0.82);
+    // Estação 3: Inferior Esquerda
+    const pM3 = subProg(pElem, 0.42, 0.82);
     const station3 = {
-      cardTrans: `translate3d(${(((1 - pM3) * -50) - (80 * pOut)).toFixed(1)}px, ${(((1 - pM3) * 35) + (30 * pOut)).toFixed(1)}px, 0) scale(${((0.90 + 0.10 * pM3) * (1 - 0.12 * pOut)).toFixed(3)})`,
-      codeScale: `scale(${pM3 < 1 ? (pM3 * 1.45).toFixed(3) : '1.0'})`,
-      lineScale: `scaleX(${(pM3 * Math.max(0, 1 - pOut)).toFixed(3)})`,
+      cardTrans: `translate3d(${(((1 - pM3) * -40) - (pExit * 50)).toFixed(1)}px, ${((1 - pM3) * 20).toFixed(1)}px, 0) scale(${((0.93 + 0.07 * pM3) * (1 - 0.06 * pExit)).toFixed(3)})`,
+      opacity: (pM3 * exitOpacity).toFixed(3),
+      codeScale: `scale(${pM3 < 1 ? (pM3 * 1.4).toFixed(3) : '1.0'})`,
+      lineScale: `scaleX(${(pM3 * exitOpacity).toFixed(3)})`,
       lineOrigin: 'center',
-      textTrans: `translate3d(0, ${((1 - pM3) * 25).toFixed(1)}px, 0)`
+      textTrans: `translate3d(0, ${((1 - pM3) * 15).toFixed(1)}px, 0)`
     };
 
-    // 04 Teleorientação (Inf. Dir. - Triagem)
-    const pM4 = subProg(pElem, 0.48, 0.92);
+    // Estação 4: Inferior Direita
+    const pM4 = subProg(pElem, 0.52, 0.90);
     const station4 = {
-      cardTrans: `translate3d(${(((1 - pM4) * 50) + (80 * pOut)).toFixed(1)}px, ${(((1 - pM4) * 35) + (30 * pOut)).toFixed(1)}px, 0) scale(${((0.90 + 0.10 * pM4) * (1 - 0.12 * pOut)).toFixed(3)})`,
+      cardTrans: `translate3d(${(((1 - pM4) * 40) + (pExit * 50)).toFixed(1)}px, ${((1 - pM4) * 20).toFixed(1)}px, 0) scale(${((0.93 + 0.07 * pM4) * (1 - 0.06 * pExit)).toFixed(3)})`,
+      opacity: (pM4 * exitOpacity).toFixed(3),
       codeScale: `scale(${pM4 < 1 ? (pM4 * 1.35).toFixed(3) : '1.0'})`,
-      lineScale: `scaleX(${(pM4 * Math.max(0, 1 - pOut)).toFixed(3)})`,
+      lineScale: `scaleX(${(pM4 * exitOpacity).toFixed(3)})`,
       lineOrigin: 'left',
-      textTrans: `translate3d(0, ${((1 - pM4) * 25).toFixed(1)}px, 0)`
+      textTrans: `translate3d(0, ${((1 - pM4) * 15).toFixed(1)}px, 0)`
     };
 
     // Arte Lateral: Número 03 caindo do topo, Mira óptica ortogonal e Linhas
-    const pArt = subProg(pElem, 0.05, 0.65);
-    const artNumberTrans = `translate3d(0, ${(((1 - pArt) * -160) - (140 * pOut)).toFixed(1)}px, 0) scale(${((1 + (1 - pArt) * 0.45) * (1 - 0.15 * pOut)).toFixed(3)})`;
-    const artCompassTrans = `scale(${pArt.toFixed(3)})`;
-    const artCrossVertical = `scaleY(${pArt.toFixed(3)})`;
-    const artCrossHorizontal = `scaleX(${pArt.toFixed(3)})`;
+    const pArt = subProg(pElem, 0.10, 0.62);
+    const artOpacity = (pArt * exitOpacity).toFixed(3);
+    const artNumberTrans = `translate3d(0, ${(((1 - pArt) * -70) + (pExit * 40)).toFixed(1)}px, 0) scale(${((1 + (1 - pArt) * 0.35) * (1 - 0.12 * pExit)).toFixed(3)})`;
+    const artCompassTrans = `scale(${(pArt * (1 - 0.15 * pExit)).toFixed(3)})`;
+    const artCrossVertical = `scaleY(${(pArt * exitOpacity).toFixed(3)})`;
+    const artCrossHorizontal = `scaleX(${(pArt * exitOpacity).toFixed(3)})`;
     const artCircle = `scale(${pArt < 1 ? (pArt * 1.3).toFixed(3) : '1.0'})`;
-    const artLineOne = `scaleX(${(subProg(pElem, 0.12, 0.70) * Math.max(0, 1 - pOut)).toFixed(3)})`;
-    const artLineTwo = `scaleX(${(subProg(pElem, 0.22, 0.76) * Math.max(0, 1 - pOut)).toFixed(3)})`;
-    const pDot = subProg(pElem, 0.28, 0.72);
+    const artLineOne = `scaleX(${(subProg(pElem, 0.16, 0.66) * exitOpacity).toFixed(3)})`;
+    const artLineTwo = `scaleX(${(subProg(pElem, 0.24, 0.72) * exitOpacity).toFixed(3)})`;
+    const pDot = subProg(pElem, 0.30, 0.70);
     const artDot = `scale(${pDot < 1 ? (pDot * 1.35).toFixed(3) : '1.0'})`;
 
     // Micro-ornamentos: Arco, Carimbo e Trio de pontos
-    const pArc = subProg(pElem, 0.08, 0.62);
-    const decoArcScale = ((0.4 + 0.6 * pArc) * (1 - 0.3 * pOut)).toFixed(3);
-    const pStamp = subProg(pElem, 0.28, 0.74);
-    const decoStampTrans = `scale(${pStamp < 1 ? ((0.6 + 0.4 * pStamp) * 1.25).toFixed(3) : (1 - 0.2 * pOut).toFixed(3)}) rotate(${((1 - pStamp) * -6).toFixed(1)}deg)`;
-    const pDots = subProg(pElem, 0.32, 0.78);
-    const decoDotsScale = (pDots < 1 ? pDots * 1.3 : (1 - 0.3 * pOut)).toFixed(3);
+    const pArc = subProg(pElem, 0.08, 0.58);
+    const decoArcScale = ((0.4 + 0.6 * pArc) * (1 - 0.2 * pExit)).toFixed(3);
+    const pStamp = subProg(pElem, 0.25, 0.70);
+    const decoStampTrans = `scale(${pStamp < 1 ? (0.6 + 0.4 * pStamp * 1.25).toFixed(3) : '1.0'}) rotate(${(((1 - pStamp) * -6) + (pExit * 8)).toFixed(1)}deg)`;
+    const pDots = subProg(pElem, 0.30, 0.75);
+    const decoDotsScale = (pDots < 1 ? pDots * 1.3 : (1 - 0.3 * pExit)).toFixed(3);
 
     // Rodapé
-    const pFooter = subProg(pElem, 0.26, 0.78);
-    const footerTrans = `translate3d(0, ${(((1 - pFooter) * 28) + (30 * pOut)).toFixed(1)}px, 0)`;
+    const pFooter = subProg(pElem, 0.30, 0.75);
+    const footerTrans = `translate3d(0, ${(((1 - pFooter) * 20) + (pExit * 20)).toFixed(1)}px, 0)`;
+    const footerOpacity = (pFooter * exitOpacity).toFixed(3);
 
     return {
       bgClip,
       elementsReady,
+      outFrameTrans,
+      outFrameOpacity,
       topBarScale,
       topTextTrans,
+      topTextOpacity,
       topBadgeScale,
       topIndexTrans,
       titleLine1Trans,
       titleLine2Trans,
+      titleOpacity,
       leadTrans,
+      leadOpacity,
       station1,
       station2,
       station3,
       station4,
+      artOpacity,
       artNumberTrans,
       artCompassTrans,
       artCrossVertical,
@@ -430,7 +477,8 @@
       decoArcScale,
       decoStampTrans,
       decoDotsScale,
-      footerTrans
+      footerTrans,
+      footerOpacity
     };
   });
 
@@ -674,9 +722,9 @@
       <div
         class="slide-deco"
         style={index === 0 && !mobile
-          ? (s2Anim.elementsReady ? 'opacity: 1; transform: none;' : 'visibility: hidden; pointer-events: none; opacity: 0;')
+          ? (s2Anim.elementsReady ? `opacity: ${s2Anim.artOpacity}; transform: none;` : 'visibility: hidden; pointer-events: none; opacity: 0;')
           : (index === 1 && !mobile
-            ? (s3Anim.elementsReady ? 'opacity: 1; transform: none;' : 'visibility: hidden; pointer-events: none; opacity: 0;')
+            ? (s3Anim.elementsReady ? `opacity: ${s3Anim.artOpacity}; transform: none;` : 'visibility: hidden; pointer-events: none; opacity: 0;')
             : (mobile ? '' : `opacity: ${st.deco.opacity}; transform: ${st.deco.transform};`)
           )}
         aria-hidden="true"
@@ -751,18 +799,18 @@
       <div
         class="slide-frame"
         style={index === 0 && !mobile
-          ? (s2Anim.elementsReady ? '' : 'visibility: hidden; pointer-events: none; opacity: 0;')
+          ? (s2Anim.elementsReady ? `transform: ${s2Anim.outFrameTrans}; opacity: ${s2Anim.outFrameOpacity};` : 'visibility: hidden; pointer-events: none; opacity: 0;')
           : (index === 1 && !mobile
-            ? (s3Anim.elementsReady ? '' : 'visibility: hidden; pointer-events: none; opacity: 0;')
+            ? (s3Anim.elementsReady ? `transform: ${s3Anim.outFrameTrans}; opacity: ${s3Anim.outFrameOpacity};` : 'visibility: hidden; pointer-events: none; opacity: 0;')
             : '')}
       >
         <!-- Topline Editorial com Badge de Alta Precisão -->
         <div
           class="slide-topline"
           style={index === 0 && !mobile
-            ? `opacity: 1; transform: ${s2Anim.topTextTrans}; border-bottom: none;`
+            ? `opacity: ${s2Anim.topTextOpacity}; transform: ${s2Anim.topTextTrans}; border-bottom: none;`
             : (index === 1 && !mobile
-              ? `opacity: 1; transform: ${s3Anim.topTextTrans}; border-bottom: none;`
+              ? `opacity: ${s3Anim.topTextOpacity}; transform: ${s3Anim.topTextTrans}; border-bottom: none;`
               : (mobile ? '' : `opacity: ${st.topline.opacity}; transform: ${st.topline.transform};`)
             )}
         >
@@ -801,7 +849,7 @@
               <!-- Cabeçalho Tipográfico com Respiração Cinética e Corte Sólido -->
               <header class="slide-copy">
                 {#if index === 0 && !mobile}
-                  <h2 class="kinetic-title">
+                  <h2 class="kinetic-title" style={`opacity: ${s2Anim.titleOpacity};`}>
                     <span class="kinetic-line-mask">
                       <span class="kinetic-line" style={`transform: ${s2Anim.titleLine1Trans};`}>
                         Telefarmácia não é
@@ -814,7 +862,7 @@
                     </span>
                   </h2>
                 {:else if index === 1 && !mobile}
-                  <h2 class="kinetic-title">
+                  <h2 class="kinetic-title" style={`opacity: ${s3Anim.titleOpacity};`}>
                     <span class="kinetic-line-mask">
                       <span class="kinetic-line" style={`transform: ${s3Anim.titleLine1Trans};`}>
                         Quatro formas de levar
@@ -834,9 +882,9 @@
                 <p
                   class="slide-lead"
                   style={index === 0 && !mobile
-                    ? `opacity: 1; transform: ${s2Anim.leadTrans};`
+                    ? `opacity: ${s2Anim.leadOpacity}; transform: ${s2Anim.leadTrans};`
                     : (index === 1 && !mobile
-                      ? `opacity: 1; transform: ${s3Anim.leadTrans};`
+                      ? `opacity: ${s3Anim.leadOpacity}; transform: ${s3Anim.leadTrans};`
                       : (mobile ? '' : `opacity: ${st.lead.opacity}; transform: ${st.lead.transform};`)
                     )}
                 >
@@ -852,7 +900,7 @@
                   <!-- Lado Não-Clínico Riscado -->
                   <div
                     class="duo-side duo-negated"
-                    style={index === 0 && !mobile ? `opacity: 1; transform: ${s2Anim.card0Trans};` : (mobile ? '' : `opacity: ${st.cards[0].opacity}; transform: ${st.cards[0].transform};`)}
+                    style={index === 0 && !mobile ? `opacity: ${s2Anim.card0Opacity}; transform: ${s2Anim.card0Trans};` : (mobile ? '' : `opacity: ${st.cards[0].opacity}; transform: ${st.cards[0].transform};`)}
                   >
                     <div class="duo-tag">
                       <span
@@ -867,7 +915,7 @@
                   <!-- Lado Clínico em Destaque com 3 Nós Conectados -->
                   <div
                     class="duo-side duo-clinical"
-                    style={index === 0 && !mobile ? `opacity: 1; transform: ${s2Anim.card1Trans};` : (mobile ? '' : `opacity: ${st.cards[1].opacity}; transform: ${st.cards[1].transform};`)}
+                    style={index === 0 && !mobile ? `opacity: ${s2Anim.card1Opacity}; transform: ${s2Anim.card1Trans};` : (mobile ? '' : `opacity: ${st.cards[1].opacity}; transform: ${st.cards[1].transform};`)}
                   >
                     <div class="clinical-head">
                       <span
@@ -879,7 +927,7 @@
                     <div class="clinical-pillars">
                       {#each slide.pillars as pillar, pIdx}
                         {@const pAnim = pIdx === 0 ? s2Anim.pillar1 : pIdx === 1 ? s2Anim.pillar2 : s2Anim.pillar3}
-                        <div class="pillar-row">
+                        <div class="pillar-row" style={index === 0 && !mobile ? `opacity: ${pAnim.opacity};` : ''}>
                           <span
                             class="pillar-idx"
                             style={index === 0 && !mobile ? `transform: ${pAnim.idxScale}; display: inline-block;` : ''}
@@ -908,7 +956,7 @@
                     <article
                       class="mod-station"
                       style={index === 1 && !mobile
-                        ? `opacity: 1; transform: ${stAnim.cardTrans};`
+                        ? `opacity: ${stAnim.opacity}; transform: ${stAnim.cardTrans};`
                         : (mobile ? '' : `opacity: ${st.cards[mIdx].opacity}; transform: ${st.cards[mIdx].transform};`)}
                     >
                       <div class="station-meta">
@@ -1092,9 +1140,12 @@
             <aside
               class={`slide-art art-${slide.visual || (index % 3)}`}
               style={mobile ? '' : (
-                index === 0 || index === 1
-                  ? 'opacity: 1; transform: none;'
-                  : `opacity: ${st.art.opacity}; transform: ${st.art.transform};`
+                index === 0
+                  ? `opacity: ${s2Anim.artOpacity}; transform: none;`
+                  : (index === 1
+                    ? `opacity: ${s3Anim.artOpacity}; transform: none;`
+                    : `opacity: ${st.art.opacity}; transform: ${st.art.transform};`
+                  )
               )}
               aria-hidden="true"
             >
@@ -1221,9 +1272,9 @@
         <div
           class="slide-footer"
           style={index === 0 && !mobile
-            ? `opacity: 1; transform: ${s2Anim.footerTrans};`
+            ? `opacity: ${s2Anim.footerOpacity}; transform: ${s2Anim.footerTrans};`
             : (index === 1 && !mobile
-              ? `opacity: 1; transform: ${s3Anim.footerTrans};`
+              ? `opacity: ${s3Anim.footerOpacity}; transform: ${s3Anim.footerTrans};`
               : (mobile ? '' : `opacity: ${st.footer.opacity}; transform: ${st.footer.transform};`))}
         >
           <div class="footer-left">
