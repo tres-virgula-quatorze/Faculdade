@@ -32,8 +32,8 @@
 
   // ===== SAÍDA INDIVIDUAL DO SLIDE 1 =====
   // Cada grupo sai para sua própria direção de forma coordenada, com crossfade para o Slide 2.
-  const EXIT_START = 0.05;
-  const EXIT_END = 0.125;
+  const EXIT_START = 0.045;
+  const EXIT_END = 0.088;
   const clamp01 = (x) => Math.max(0, Math.min(1, x));
   let exitG = $derived(Math.max(0, Math.min(1, (currentScrollRatio - EXIT_START) / (EXIT_END - EXIT_START))));
   
@@ -48,11 +48,11 @@
 
   let animTweenId = null;
 
-  function easeInOutCubic(t) {
-    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  function easeInOutSine(t) {
+    return -(Math.cos(Math.PI * t) - 1) / 2;
   }
 
-  function startPresentationTransition(fromRatio, toRatio, duration = 1100) {
+  function startPresentationTransition(fromRatio, toRatio, duration = 2400) {
     if (animTweenId) {
       cancelAnimationFrame(animTweenId);
       animTweenId = null;
@@ -61,7 +61,7 @@
     const step = (now) => {
       const elapsed = now - startTime;
       const progress = Math.min(1, elapsed / duration);
-      const eased = easeInOutCubic(progress);
+      const eased = easeInOutSine(progress);
       currentScrollRatio = fromRatio + (toRatio - fromRatio) * eased;
       targetScrollRatio = currentScrollRatio;
       if (progress < 1) {
@@ -108,7 +108,7 @@
     presentationIndex = Math.max(0, Math.min(9, nextIndex));
     const targetRatio = presentationRatios[presentationIndex];
     if (presentationMode) {
-      startPresentationTransition(currentScrollRatio, targetRatio, 1100);
+      startPresentationTransition(currentScrollRatio, targetRatio, 2400);
     } else {
       targetScrollRatio = targetRatio;
     }
@@ -131,11 +131,13 @@
       presentationIndex = closestIdx;
       presentationMode = true;
       document.body.style.overflow = 'hidden';
+      document.body.classList.add('presentation-active');
       enterFullscreen();
-      startPresentationTransition(currentScrollRatio, presentationRatios[presentationIndex], 850);
+      startPresentationTransition(currentScrollRatio, presentationRatios[presentationIndex], 1500);
     } else {
       presentationMode = false;
       document.body.style.overflow = '';
+      document.body.classList.remove('presentation-active');
       exitFullscreen();
       scrollToPhase(presentationIndex);
     }
@@ -146,17 +148,17 @@
 
   // Mapeamento linear do scroll para a timeline do Lottie (Slide 1):
   // 0.00 a 0.04: Entrada suave completa de todos os elementos (frame 0 a 270) copiada do Lottie
-  // 0.04 a 0.05: Pausa / leitura com slide 1 totalmente montado e estático (frame 270)
-  // 0.05 a 0.125: Saída individual, sincronizada e elegante de cada grupo (frame 270 a 360)
-  // >= 0.125: Slide 1 100% invisível
+  // 0.04 a 0.045: Pausa / leitura com slide 1 totalmente montado e estático (frame 270)
+  // 0.045 a 0.088: Saída individual, sincronizada e elegante de cada grupo (frame 270 a 360) enquanto fundo cobre a tela
+  // >= 0.088: Slide 1 100% invisível
   function mapScrollToFrame(s) {
     if (s < 0.04) {
       const t = s / 0.04;
       return t * 270;
-    } else if (s <= 0.05) {
+    } else if (s <= 0.045) {
       return 270;
-    } else if (s <= 0.125) {
-      const t = (s - 0.05) / (0.125 - 0.05);
+    } else if (s <= 0.088) {
+      const t = (s - 0.045) / (0.088 - 0.045);
       return 270 + (t * (360 - 270));
     } else {
       return 400;
@@ -584,8 +586,8 @@
     const tick = () => {
       if (!presentationMode) {
         const diff = targetScrollRatio - currentScrollRatio;
-        if (Math.abs(diff) > 0.00003) {
-          currentScrollRatio += diff * 0.08;
+        if (Math.abs(diff) > 0.00002) {
+          currentScrollRatio += diff * 0.032;
         } else {
           currentScrollRatio = targetScrollRatio;
         }
@@ -607,6 +609,7 @@
       if (!isFs && presentationMode) {
         presentationMode = false;
         document.body.style.overflow = '';
+        document.body.classList.remove('presentation-active');
         scrollToPhase(presentationIndex);
       }
     };
@@ -629,6 +632,7 @@
       document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
       mobileQuery.removeEventListener?.('change', updateMobileMode);
       document.body.style.overflow = '';
+      document.body.classList.remove('presentation-active');
       if (rafId) cancelAnimationFrame(rafId);
       if (animTweenId) cancelAnimationFrame(animTweenId);
       if (anim) {
@@ -832,10 +836,14 @@
     height: 0 !important;
   }
 
-  /* Trilha de rolagem: uma viewport por slide, sem espaço ocioso excessivo */
+  :global(body.presentation-active) {
+    overflow: hidden !important;
+  }
+
+  /* Trilha de rolagem: pista ampla para rolagem aveludada e controle fino */
   .scroll-showcase-section {
     position: relative;
-    height: 1000vh;
+    height: 3200vh;
     background: #0d8d4b;
     margin: 0;
     padding: 0;
@@ -863,12 +871,15 @@
 
   .sticky-viewport.is-presentation {
     position: fixed !important;
+    inset: 0 !important;
     top: 0 !important;
     left: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
     height: 100dvh !important;
-    z-index: 999999 !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    z-index: 2147483647 !important;
     background: #073726;
   }
 

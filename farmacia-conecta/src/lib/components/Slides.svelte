@@ -155,35 +155,36 @@
     return { pIn, pOut, opacity };
   }
 
-  // Helper para sub-intervalos cinéticos com curva cúbica
+  // Helper para sub-intervalos cinéticos com curva suave (smoothstep: acelera suave e desacelera suave)
   function subProg(p, start, end) {
     if (p <= start) return 0;
     if (p >= end) return 1;
     const t = (p - start) / (end - start);
-    return 1 - Math.pow(1 - t, 3);
+    return t * t * (3 - 2 * t);
   }
 
   // Progresso de entrada e saída do Slide 2:
-  // Janela de Entrada: 0.050 (quando o Slide 1 inicia a saída) até 0.130 (quando o Slide 2 estabiliza)
-  // Ativo/Estável: 0.130 a 0.160
-  // Janela de Saída: 0.160 até 0.235 (quando a lâmina do Slide 3 assume o controle)
-  const s2InProg = $derived(clamp01((currentRatio - 0.050) / (0.130 - 0.050)));
-  const s2OutProg = $derived(clamp01((currentRatio - 0.160) / (0.235 - 0.160)));
-  const s2IsVisible = $derived(currentRatio >= 0.048 && currentRatio <= 0.240);
-  const s2IsActive = $derived(currentRatio >= 0.125 && currentRatio <= 0.170);
+  // Entrada ativa ao longo de toda a transição de Slide 1 (0.040) para Slide 2 (0.140)
+  const s2InProg = $derived(clamp01((currentRatio - 0.044) / (0.138 - 0.044)));
+  // Saída ativa ao transitar de Slide 2 (0.140) para Slide 3 (0.240)
+  const s2OutProg = $derived(clamp01((currentRatio - 0.144) / (0.238 - 0.144)));
+  const s2IsVisible = $derived(currentRatio >= 0.042 && currentRatio <= 0.210);
+  const s2IsActive = $derived(currentRatio >= 0.120 && currentRatio <= 0.165);
 
   const s2Anim = $derived.by(() => {
     const p = s2InProg;
     const pOut = s2OutProg;
 
-    // Fundo sólido sem esmaecer: expansão circular sólida a partir da arte/número 02 (82% 44%)
-    // Cobre 100% da tela de forma rápida mas com tempo visual perceptível (até p = 0.20)
-    const pBg = subProg(p, 0.00, 0.20);
+    // FASE 1 (0.00 a 0.45): O FUNDO VERDE COBRE 100% DA TELA
+    // Cobre completamente todos os cantos até p = 0.42 com ampla margem
+    const pBg = subProg(p, 0.00, 0.42);
     const bgClip = pBg >= 1 ? 'none' : `circle(${(pBg * 195).toFixed(1)}% at 82% 44%)`;
 
-    // Os elementos entram fluidamente após o fundo cobrir a tela (a partir de p = 0.16)
-    const pElem = subProg(p, 0.16, 1.00);
-    const elementsReady = p >= 0.16;
+    // FASE 2: PAUSA COM FUNDO COMPLETO (0.42 a 0.65)
+    // ZERO ELEMENTOS visíveis antes do fundo cobrir 100% e respirar
+    // Os elementos só começam a aparecer e animar a partir de p = 0.65!
+    const elementsReady = p >= 0.65;
+    const pElem = subProg(p, 0.65, 1.00);
 
     // Saída única do Slide 2 quando pOut > 0:
     const outCard0 = `translate3d(${(-150 * pOut).toFixed(1)}px, ${(-30 * pOut).toFixed(1)}px, 0) scale(${(1 - 0.15 * pOut).toFixed(3)}) rotate(${(-3.5 * pOut).toFixed(2)}deg)`;
@@ -195,55 +196,55 @@
     const outTop = -45 * pOut;
 
     // Barra superior e cabeçalho editorial
-    const pTopBar = subProg(pElem, 0.00, 0.50);
-    const pTopText = subProg(pElem, 0.05, 0.55);
+    const pTopBar = subProg(pElem, 0.00, 0.42);
+    const pTopText = subProg(pElem, 0.05, 0.48);
     const topBarScale = Math.max(0, pTopBar - pOut * 1.5).toFixed(3);
     const topTextTrans = `translate3d(0, ${(((1 - pTopText) * -45) + outTop).toFixed(1)}px, 0)`;
     const topBadgeScale = (Math.max(0.2, (0.7 + 0.3 * pTopText) * (1 - 0.3 * pOut))).toFixed(3);
     const topIndexTrans = `translate3d(${(((1 - pTopText) * 60) + (100 * pOut)).toFixed(1)}px, 0, 0)`;
 
     // Título cinético (2 linhas cortadas por máscaras overflow: hidden) com ritmo fluido e solene
-    const pTitle1 = subProg(pElem, 0.10, 0.65);
-    const pTitle2 = subProg(pElem, 0.18, 0.72);
+    const pTitle1 = subProg(pElem, 0.08, 0.54);
+    const pTitle2 = subProg(pElem, 0.16, 0.62);
     const titleLine1Trans = `translate3d(0, ${(((1 - pTitle1) * 115) + outTitle).toFixed(1)}%, 0)`;
     const titleLine2Trans = `translate3d(0, ${(((1 - pTitle2) * 115) + outTitle).toFixed(1)}%, 0)`;
 
     // Lead text
-    const pLead = subProg(pElem, 0.25, 0.78);
+    const pLead = subProg(pElem, 0.22, 0.70);
     const leadTrans = `translate3d(${(((1 - pLead) * -65) + outLead).toFixed(1)}px, 0, 0)`;
 
     // Card esquerdo: "Mero Comércio"
-    const pCard0 = subProg(pElem, 0.22, 0.75);
+    const pCard0 = subProg(pElem, 0.20, 0.68);
     const card0Trans = pOut > 0 ? outCard0 : `translate3d(${((1 - pCard0) * -120).toFixed(1)}px, 0, 0) scale(${(0.88 + 0.12 * pCard0).toFixed(3)})`;
 
     // Barra de risco vermelha: corta a palavra fisicamente em tempo real
-    const pStrike = subProg(pElem, 0.52, 0.88);
+    const pStrike = subProg(pElem, 0.48, 0.85);
     const strikeScale = `scaleX(${(pStrike * Math.max(0, 1 - pOut * 1.5)).toFixed(3)}) rotate(-3deg)`;
 
     // Card direito: "Cuidado Clínico Estruturado"
-    const pCard1 = subProg(pElem, 0.28, 0.82);
+    const pCard1 = subProg(pElem, 0.26, 0.74);
     const card1Trans = pOut > 0 ? outCard1 : `translate3d(${((1 - pCard1) * 85).toFixed(1)}px, ${((1 - pCard1) * 30).toFixed(1)}px, 0) scale(${(0.90 + 0.10 * pCard1).toFixed(3)})`;
 
     // Beacon de pulso dourado
-    const pBeacon = subProg(pElem, 0.35, 0.75);
+    const pBeacon = subProg(pElem, 0.32, 0.72);
     const beaconScale = `scale(${pBeacon < 1 ? (pBeacon * 1.35).toFixed(3) : (1 - 0.2 * pOut).toFixed(3)})`;
 
     // 3 Pilares com número saltando, linha esticando e texto deslizando
-    const pP1 = subProg(pElem, 0.35, 0.75);
+    const pP1 = subProg(pElem, 0.35, 0.72);
     const pillar1 = {
       idxScale: `scale(${pP1 < 1 ? (pP1 * 1.4).toFixed(3) : '1.0'})`,
       lineScale: `scaleX(${(pP1 * Math.max(0, 1 - pOut)).toFixed(3)})`,
       textTrans: `translate3d(${((1 - pP1) * 40).toFixed(1)}px, 0, 0)`
     };
 
-    const pP2 = subProg(pElem, 0.48, 0.86);
+    const pP2 = subProg(pElem, 0.46, 0.82);
     const pillar2 = {
       idxScale: `scale(${pP2 < 1 ? (pP2 * 1.4).toFixed(3) : '1.0'})`,
       lineScale: `scaleX(${(pP2 * Math.max(0, 1 - pOut)).toFixed(3)})`,
       textTrans: `translate3d(${((1 - pP2) * 40).toFixed(1)}px, 0, 0)`
     };
 
-    const pP3 = subProg(pElem, 0.60, 0.96);
+    const pP3 = subProg(pElem, 0.58, 0.94);
     const pillar3 = {
       idxScale: `scale(${pP3 < 1 ? (pP3 * 1.4).toFixed(3) : '1.0'})`,
       lineScale: `scaleX(${(pP3 * Math.max(0, 1 - pOut)).toFixed(3)})`,
@@ -251,22 +252,22 @@
     };
 
     // Arte Lateral: Número 02, Bússola e Linhas
-    const pArt = subProg(pElem, 0.05, 0.70);
+    const pArt = subProg(pElem, 0.05, 0.68);
     const artNumberTrans = pOut > 0 ? outArtNumber : `translate3d(${((1 - pArt) * 160).toFixed(1)}px, 0, 0) scale(${(1 + (1 - pArt) * 1.15).toFixed(3)})`;
     const artCompassTrans = pOut > 0 ? outArtCompass : `rotate(${((1 - pArt) * -180).toFixed(1)}deg) scale(${pArt.toFixed(3)})`;
-    const artLineOne = `scaleX(${(subProg(pElem, 0.15, 0.75) * Math.max(0, 1 - pOut)).toFixed(3)})`;
-    const artLineTwo = `scaleX(${(subProg(pElem, 0.25, 0.80) * Math.max(0, 1 - pOut)).toFixed(3)})`;
-    const pDot = subProg(pElem, 0.32, 0.76);
+    const artLineOne = `scaleX(${(subProg(pElem, 0.15, 0.72) * Math.max(0, 1 - pOut)).toFixed(3)})`;
+    const artLineTwo = `scaleX(${(subProg(pElem, 0.25, 0.78) * Math.max(0, 1 - pOut)).toFixed(3)})`;
+    const pDot = subProg(pElem, 0.30, 0.74);
     const artDot = `scale(${pDot < 1 ? (pDot * 1.35).toFixed(3) : '1.0'})`;
 
     // Micro-ornamentos (anel e cruz médica)
-    const pRing = subProg(pElem, 0.05, 0.65);
+    const pRing = subProg(pElem, 0.05, 0.62);
     const decoRing = `rotate(${(pRing * 180 + pOut * 90).toFixed(1)}deg) scale(${(pRing * (1 - 0.4 * pOut)).toFixed(3)})`;
-    const pCross = subProg(pElem, 0.15, 0.75);
+    const pCross = subProg(pElem, 0.15, 0.72);
     const decoCross = `rotate(${(((1 - pCross) * 90) - (pOut * 90)).toFixed(1)}deg) scale(${(pCross * (1 - 0.4 * pOut)).toFixed(3)})`;
 
     // Rodapé
-    const pFooter = subProg(pElem, 0.30, 0.85);
+    const pFooter = subProg(pElem, 0.28, 0.80);
     const footerTrans = `translate3d(0, ${(((1 - pFooter) * 25) + (35 * pOut)).toFixed(1)}px, 0)`;
 
     return {
@@ -298,50 +299,50 @@
   });
 
   // Progresso de entrada e saída do Slide 3:
-  // Janela de Entrada: 0.160 (quando a lâmina começa a cortar o Slide 2) até 0.235 (estabiliza no centro 0.24)
-  // Ativo/Estável: 0.230 a 0.270
-  // Janela de Saída: 0.265 até 0.335
-  const s3InProg = $derived(clamp01((currentRatio - 0.160) / (0.235 - 0.160)));
-  const s3OutProg = $derived(clamp01((currentRatio - 0.265) / (0.335 - 0.265)));
-  const s3IsVisible = $derived(currentRatio >= 0.158 && currentRatio <= 0.340);
-  const s3IsActive = $derived(currentRatio >= 0.230 && currentRatio <= 0.270);
+  // Entrada ativa ao transitar de Slide 2 (0.140) para Slide 3 (0.240)
+  const s3InProg = $derived(clamp01((currentRatio - 0.144) / (0.238 - 0.144)));
+  // Saída ativa ao transitar de Slide 3 (0.240) para Slide 4 (0.340)
+  const s3OutProg = $derived(clamp01((currentRatio - 0.244) / (0.338 - 0.244)));
+  const s3IsVisible = $derived(currentRatio >= 0.142 && currentRatio <= 0.310);
+  const s3IsActive = $derived(currentRatio >= 0.220 && currentRatio <= 0.265);
 
   const s3Anim = $derived.by(() => {
     const p = s3InProg;
     const pOut = s3OutProg;
 
-    // Fundo sólido medicinal claro (#f2f1e9): lâmina diagonal angular com presença sólida
-    // Cobre 100% da tela de forma rápida mas com tempo visual perceptível (até p = 0.20)
-    const pBg = subProg(p, 0.00, 0.20);
-    const topX = (-15 + pBg * 155).toFixed(1);
-    const botX = (-45 + pBg * 180).toFixed(1);
+    // FASE 1 (0.00 a 0.45): A LÂMINA DIAGONAL COBRE 100% DA TELA
+    const pBg = subProg(p, 0.00, 0.42);
+    const topX = (-20 + pBg * 165).toFixed(1);
+    const botX = (-50 + pBg * 195).toFixed(1);
     const bgClip = pBg >= 1 ? 'none' : `polygon(0 0, ${Math.max(0, topX)}% 0, ${Math.max(0, botX)}% 100%, 0 100%)`;
 
-    // Os elementos entram fluidamente a partir de p = 0.16
-    const pElem = subProg(p, 0.16, 1.00);
-    const elementsReady = p >= 0.16;
+    // FASE 2: PAUSA COM O FUNDO COMPLETO (0.42 a 0.65)
+    // ZERO ELEMENTOS visíveis antes da lâmina cobrir 100% e respirar
+    // Os elementos só começam a aparecer e animar a partir de p = 0.65!
+    const elementsReady = p >= 0.65;
+    const pElem = subProg(p, 0.65, 1.00);
 
     // Topline: abertura central a partir do meio
-    const pTopBar = subProg(pElem, 0.00, 0.48);
-    const pTopText = subProg(pElem, 0.05, 0.52);
+    const pTopBar = subProg(pElem, 0.00, 0.42);
+    const pTopText = subProg(pElem, 0.05, 0.48);
     const topBarScale = Math.max(0, pTopBar - pOut * 1.5).toFixed(3);
     const topTextTrans = `translate3d(0, ${(((1 - pTopText) * -40) - (40 * pOut)).toFixed(1)}px, 0)`;
     const topBadgeScale = (Math.max(0.2, (0.7 + 0.3 * pTopText) * (1 - 0.3 * pOut))).toFixed(3);
     const topIndexTrans = `translate3d(${(((1 - pTopText) * 45) + (80 * pOut)).toFixed(1)}px, 0, 0)`;
 
     // Título cinético (CORTE HORIZONTAL CONTRAPOSTO: Linha 1 da ESQUERDA, Linha 2 da DIREITA)
-    const pTitle1 = subProg(pElem, 0.10, 0.65);
-    const pTitle2 = subProg(pElem, 0.18, 0.72);
+    const pTitle1 = subProg(pElem, 0.08, 0.54);
+    const pTitle2 = subProg(pElem, 0.16, 0.62);
     const titleLine1Trans = `translate3d(${(((1 - pTitle1) * -110) - (110 * pOut)).toFixed(1)}%, 0, 0)`;
     const titleLine2Trans = `translate3d(${(((1 - pTitle2) * 110) + (110 * pOut)).toFixed(1)}%, 0, 0)`;
 
     // Lead text: desce de cima para baixo através de máscara vertical
-    const pLead = subProg(pElem, 0.25, 0.78);
+    const pLead = subProg(pElem, 0.22, 0.70);
     const leadTrans = `translate3d(0, ${(((1 - pLead) * -100) - (60 * pOut)).toFixed(1)}%, 0)`;
 
     // As 4 Estações de Modalidades (Cascata de 4 Quadrantes com ritmo equilibrado)
     // 01 Teleconsulta (Sup. Esq.)
-    const pM1 = subProg(pElem, 0.22, 0.70);
+    const pM1 = subProg(pElem, 0.18, 0.65);
     const station1 = {
       cardTrans: `translate3d(${(((1 - pM1) * -60) - (80 * pOut)).toFixed(1)}px, ${(((1 - pM1) * -25) - (20 * pOut)).toFixed(1)}px, 0) scale(${((0.88 + 0.12 * pM1) * (1 - 0.12 * pOut)).toFixed(3)})`,
       codeScale: `scale(${pM1 < 1 ? (pM1 * 1.35).toFixed(3) : '1.0'})`,
@@ -351,7 +352,7 @@
     };
 
     // 02 Teleinterconsulta (Sup. Dir.)
-    const pM2 = subProg(pElem, 0.34, 0.80);
+    const pM2 = subProg(pElem, 0.28, 0.74);
     const station2 = {
       cardTrans: `translate3d(${(((1 - pM2) * 60) + (80 * pOut)).toFixed(1)}px, ${(((1 - pM2) * -25) - (20 * pOut)).toFixed(1)}px, 0) scale(${((0.88 + 0.12 * pM2) * (1 - 0.12 * pOut)).toFixed(3)})`,
       codeScale: `scale(${pM2 < 1 ? (pM2 * 1.35).toFixed(3) : '1.0'})`,
@@ -361,7 +362,7 @@
     };
 
     // 03 Telemonitoramento (Inf. Esq. - Telemetria)
-    const pM3 = subProg(pElem, 0.46, 0.88);
+    const pM3 = subProg(pElem, 0.38, 0.82);
     const station3 = {
       cardTrans: `translate3d(${(((1 - pM3) * -50) - (80 * pOut)).toFixed(1)}px, ${(((1 - pM3) * 35) + (30 * pOut)).toFixed(1)}px, 0) scale(${((0.90 + 0.10 * pM3) * (1 - 0.12 * pOut)).toFixed(3)})`,
       codeScale: `scale(${pM3 < 1 ? (pM3 * 1.45).toFixed(3) : '1.0'})`,
@@ -371,7 +372,7 @@
     };
 
     // 04 Teleorientação (Inf. Dir. - Triagem)
-    const pM4 = subProg(pElem, 0.58, 0.96);
+    const pM4 = subProg(pElem, 0.48, 0.92);
     const station4 = {
       cardTrans: `translate3d(${(((1 - pM4) * 50) + (80 * pOut)).toFixed(1)}px, ${(((1 - pM4) * 35) + (30 * pOut)).toFixed(1)}px, 0) scale(${((0.90 + 0.10 * pM4) * (1 - 0.12 * pOut)).toFixed(3)})`,
       codeScale: `scale(${pM4 < 1 ? (pM4 * 1.35).toFixed(3) : '1.0'})`,
@@ -381,27 +382,27 @@
     };
 
     // Arte Lateral: Número 03 caindo do topo, Mira óptica ortogonal e Linhas
-    const pArt = subProg(pElem, 0.00, 0.65);
+    const pArt = subProg(pElem, 0.05, 0.65);
     const artNumberTrans = `translate3d(0, ${(((1 - pArt) * -160) - (140 * pOut)).toFixed(1)}px, 0) scale(${((1 + (1 - pArt) * 0.45) * (1 - 0.15 * pOut)).toFixed(3)})`;
     const artCompassTrans = `scale(${pArt.toFixed(3)})`;
     const artCrossVertical = `scaleY(${pArt.toFixed(3)})`;
     const artCrossHorizontal = `scaleX(${pArt.toFixed(3)})`;
     const artCircle = `scale(${pArt < 1 ? (pArt * 1.3).toFixed(3) : '1.0'})`;
-    const artLineOne = `scaleX(${(subProg(pElem, 0.10, 0.70) * Math.max(0, 1 - pOut)).toFixed(3)})`;
-    const artLineTwo = `scaleX(${(subProg(pElem, 0.20, 0.75) * Math.max(0, 1 - pOut)).toFixed(3)})`;
+    const artLineOne = `scaleX(${(subProg(pElem, 0.12, 0.70) * Math.max(0, 1 - pOut)).toFixed(3)})`;
+    const artLineTwo = `scaleX(${(subProg(pElem, 0.22, 0.76) * Math.max(0, 1 - pOut)).toFixed(3)})`;
     const pDot = subProg(pElem, 0.28, 0.72);
     const artDot = `scale(${pDot < 1 ? (pDot * 1.35).toFixed(3) : '1.0'})`;
 
     // Micro-ornamentos: Arco, Carimbo e Trio de pontos
-    const pArc = subProg(pElem, 0.10, 0.65);
+    const pArc = subProg(pElem, 0.08, 0.62);
     const decoArcScale = ((0.4 + 0.6 * pArc) * (1 - 0.3 * pOut)).toFixed(3);
-    const pStamp = subProg(pElem, 0.30, 0.75);
+    const pStamp = subProg(pElem, 0.28, 0.74);
     const decoStampTrans = `scale(${pStamp < 1 ? ((0.6 + 0.4 * pStamp) * 1.25).toFixed(3) : (1 - 0.2 * pOut).toFixed(3)}) rotate(${((1 - pStamp) * -6).toFixed(1)}deg)`;
-    const pDots = subProg(pElem, 0.35, 0.80);
+    const pDots = subProg(pElem, 0.32, 0.78);
     const decoDotsScale = (pDots < 1 ? pDots * 1.3 : (1 - 0.3 * pOut)).toFixed(3);
 
     // Rodapé
-    const pFooter = subProg(pElem, 0.30, 0.80);
+    const pFooter = subProg(pElem, 0.26, 0.78);
     const footerTrans = `translate3d(0, ${(((1 - pFooter) * 28) + (30 * pOut)).toFixed(1)}px, 0)`;
 
     return {
@@ -673,9 +674,9 @@
       <div
         class="slide-deco"
         style={index === 0 && !mobile
-          ? (s2Anim.elementsReady ? 'opacity: 1; transform: none;' : 'visibility: hidden; pointer-events: none;')
+          ? (s2Anim.elementsReady ? 'opacity: 1; transform: none;' : 'visibility: hidden; pointer-events: none; opacity: 0;')
           : (index === 1 && !mobile
-            ? (s3Anim.elementsReady ? 'opacity: 1; transform: none;' : 'visibility: hidden; pointer-events: none;')
+            ? (s3Anim.elementsReady ? 'opacity: 1; transform: none;' : 'visibility: hidden; pointer-events: none; opacity: 0;')
             : (mobile ? '' : `opacity: ${st.deco.opacity}; transform: ${st.deco.transform};`)
           )}
         aria-hidden="true"
@@ -750,9 +751,9 @@
       <div
         class="slide-frame"
         style={index === 0 && !mobile
-          ? (s2Anim.elementsReady ? '' : 'visibility: hidden; pointer-events: none;')
+          ? (s2Anim.elementsReady ? '' : 'visibility: hidden; pointer-events: none; opacity: 0;')
           : (index === 1 && !mobile
-            ? (s3Anim.elementsReady ? '' : 'visibility: hidden; pointer-events: none;')
+            ? (s3Anim.elementsReady ? '' : 'visibility: hidden; pointer-events: none; opacity: 0;')
             : '')}
       >
         <!-- Topline Editorial com Badge de Alta Precisão -->
@@ -1090,7 +1091,11 @@
             <!-- Camada de Ilustração Lateral Vetorial e Dinâmica -->
             <aside
               class={`slide-art art-${slide.visual || (index % 3)}`}
-              style={mobile ? '' : `opacity: ${st.art.opacity}; transform: ${st.art.transform};`}
+              style={mobile ? '' : (
+                index === 0 || index === 1
+                  ? 'opacity: 1; transform: none;'
+                  : `opacity: ${st.art.opacity}; transform: ${st.art.transform};`
+              )}
               aria-hidden="true"
             >
               {#if slide.visual === 'shield'}
