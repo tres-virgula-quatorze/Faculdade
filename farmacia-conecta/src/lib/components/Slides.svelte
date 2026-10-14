@@ -168,35 +168,41 @@
   const s2InProg = $derived(clamp01((currentRatio - 0.050) / (0.130 - 0.050)));
   const s2IsVisible = $derived(currentRatio >= 0.048 && currentRatio <= 0.230);
   const s2IsActive = $derived(currentRatio >= 0.125 && currentRatio <= 0.165);
+  const s2OutProg = $derived(clamp01((currentRatio - 0.150) / (0.225 - 0.150)));
 
   const s2Anim = $derived.by(() => {
     const p = s2InProg;
+    const pOut = s2OutProg;
+    const outDx0 = -160 * pOut;
+    const outDx1 = 160 * pOut;
+    const outDyTitle = -70 * pOut;
+    const outDxArt = 180 * pOut;
 
-    // Fundo sólido sem esmaecer: expansão circular sólida a partir da arte/número 02
-    const pBg = subProg(p, 0.00, 0.70);
-    const bgClip = p >= 1 ? 'none' : `circle(${(pBg * 165).toFixed(1)}% at 82% 44%)`;
+    // Fundo sólido sem esmaecer: expansão circular simétrica do centro da tela (50% 50%)
+    const pBg = subProg(p, 0.00, 0.55);
+    const bgClip = p >= 1 ? 'none' : `circle(${(pBg * 165).toFixed(1)}% at 50% 50%)`;
 
     // Barra superior e cabeçalho editorial
     const pTopBar = subProg(p, 0.10, 0.60);
     const pTopText = subProg(p, 0.15, 0.65);
     const topBarScale = pTopBar.toFixed(3);
-    const topTextTrans = `translate3d(0, ${((1 - pTopText) * -45).toFixed(1)}px, 0)`;
+    const topTextTrans = `translate3d(0, ${(((1 - pTopText) * -45) + (outDyTitle * 0.7)).toFixed(1)}px, 0)`;
     const topBadgeScale = (0.7 + 0.3 * pTopText).toFixed(3);
-    const topIndexTrans = `translate3d(${((1 - pTopText) * 60).toFixed(1)}px, 0, 0)`;
+    const topIndexTrans = `translate3d(${(((1 - pTopText) * 60) + (outDxArt * 0.5)).toFixed(1)}px, 0, 0)`;
 
     // Título cinético (2 linhas cortadas por máscaras overflow: hidden)
     const pTitle1 = subProg(p, 0.18, 0.68);
     const pTitle2 = subProg(p, 0.26, 0.76);
-    const titleLine1Trans = `translate3d(0, ${((1 - pTitle1) * 115).toFixed(1)}%, 0)`;
-    const titleLine2Trans = `translate3d(0, ${((1 - pTitle2) * 115).toFixed(1)}%, 0)`;
+    const titleLine1Trans = `translate3d(0, ${(((1 - pTitle1) * 115) + outDyTitle).toFixed(1)}%, 0)`;
+    const titleLine2Trans = `translate3d(0, ${(((1 - pTitle2) * 115) + outDyTitle).toFixed(1)}%, 0)`;
 
     // Lead text
     const pLead = subProg(p, 0.32, 0.80);
-    const leadTrans = `translate3d(${((1 - pLead) * -65).toFixed(1)}px, 0, 0)`;
+    const leadTrans = `translate3d(${(((1 - pLead) * -65) + outDx0).toFixed(1)}px, 0, 0)`;
 
     // Card esquerdo: "Mero Comércio"
     const pCard0 = subProg(p, 0.30, 0.78);
-    const card0Trans = `translate3d(${((1 - pCard0) * -120).toFixed(1)}px, 0, 0) scale(${(0.88 + 0.12 * pCard0).toFixed(3)})`;
+    const card0Trans = `translate3d(${(((1 - pCard0) * -120) + outDx0).toFixed(1)}px, 0, 0) scale(${(0.88 + 0.12 * pCard0).toFixed(3)})`;
 
     // Barra de risco vermelha: corta a palavra fisicamente em tempo real
     const pStrike = subProg(p, 0.55, 0.90);
@@ -204,7 +210,7 @@
 
     // Card direito: "Cuidado Clínico Estruturado"
     const pCard1 = subProg(p, 0.38, 0.85);
-    const card1Trans = `translate3d(${((1 - pCard1) * 85).toFixed(1)}px, ${((1 - pCard1) * 30).toFixed(1)}px, 0) scale(${(0.90 + 0.10 * pCard1).toFixed(3)})`;
+    const card1Trans = `translate3d(${(((1 - pCard1) * 85) + outDx1).toFixed(1)}px, ${((1 - pCard1) * 30).toFixed(1)}px, 0) scale(${(0.90 + 0.10 * pCard1).toFixed(3)})`;
 
     // Beacon de pulso verde
     const pBeacon = subProg(p, 0.45, 0.80);
@@ -234,7 +240,7 @@
 
     // Arte Lateral: Número 02, Bússola e Linhas
     const pArt = subProg(p, 0.05, 0.75);
-    const artNumberTrans = `translate3d(${((1 - pArt) * 160).toFixed(1)}px, 0, 0) scale(${(1 + (1 - pArt) * 1.15).toFixed(3)})`;
+    const artNumberTrans = `translate3d(${(((1 - pArt) * 160) + outDxArt).toFixed(1)}px, 0, 0) scale(${(1 + (1 - pArt) * 1.15).toFixed(3)})`;
     const artCompassTrans = `rotate(${((1 - pArt) * -180).toFixed(1)}deg) scale(${pArt.toFixed(3)})`;
     const artLineOne = `scaleX(${subProg(p, 0.15, 0.80).toFixed(3)})`;
     const artLineTwo = `scaleX(${subProg(p, 0.25, 0.85).toFixed(3)})`;
@@ -274,6 +280,116 @@
       artDot,
       decoRing,
       decoCross,
+      footerTrans
+    };
+  });
+
+  // Progresso de entrada do Slide 3:
+  // Janela: 0.150 (quando o Slide 2 inicia separação física) até 0.230 (quando o Slide 3 estabiliza no centro 0.24)
+  const s3InProg = $derived(clamp01((currentRatio - 0.150) / (0.230 - 0.150)));
+  const s3IsVisible = $derived(currentRatio >= 0.148 && currentRatio <= 0.330);
+  const s3IsActive = $derived(currentRatio >= 0.225 && currentRatio <= 0.265);
+
+  const s3Anim = $derived.by(() => {
+    const p = s3InProg;
+
+    // Fundo sólido medicinal claro (#f2f1e9): expansão circular sólida do centro (50% 50%)
+    const pBg = subProg(p, 0.00, 0.55);
+    const bgClip = p >= 1 ? 'none' : `circle(${(pBg * 165).toFixed(1)}% at 50% 50%)`;
+
+    // Barra superior e cabeçalho editorial
+    const pTopBar = subProg(p, 0.10, 0.60);
+    const pTopText = subProg(p, 0.15, 0.65);
+    const topBarScale = pTopBar.toFixed(3);
+    const topTextTrans = `translate3d(0, ${((1 - pTopText) * -45).toFixed(1)}px, 0)`;
+    const topBadgeScale = (0.7 + 0.3 * pTopText).toFixed(3);
+    const topIndexTrans = `translate3d(${((1 - pTopText) * 60).toFixed(1)}px, 0, 0)`;
+
+    // Título cinético (2 linhas cortadas por máscaras overflow: hidden)
+    const pTitle1 = subProg(p, 0.18, 0.68);
+    const pTitle2 = subProg(p, 0.26, 0.76);
+    const titleLine1Trans = `translate3d(0, ${((1 - pTitle1) * 115).toFixed(1)}%, 0)`;
+    const titleLine2Trans = `translate3d(0, ${((1 - pTitle2) * 115).toFixed(1)}%, 0)`;
+
+    // Lead text
+    const pLead = subProg(p, 0.30, 0.78);
+    const leadTrans = `translate3d(${((1 - pLead) * -65).toFixed(1)}px, 0, 0)`;
+
+    // As 4 Estações de Modalidades (em cascata rítmica com subida física e expansão elástica)
+    const pM1 = subProg(p, 0.35, 0.75);
+    const station1 = {
+      cardTrans: `translate3d(0, ${((1 - pM1) * 65).toFixed(1)}px, 0) scale(${(0.86 + 0.14 * pM1).toFixed(3)})`,
+      codeScale: `scale(${pM1 < 1 ? (pM1 * 1.35).toFixed(3) : '1.0'})`,
+      lineScale: `scaleX(${pM1.toFixed(3)})`,
+      textTrans: `translate3d(0, ${((1 - pM1) * 20).toFixed(1)}px, 0)`
+    };
+
+    const pM2 = subProg(p, 0.45, 0.82);
+    const station2 = {
+      cardTrans: `translate3d(0, ${((1 - pM2) * 65).toFixed(1)}px, 0) scale(${(0.86 + 0.14 * pM2).toFixed(3)})`,
+      codeScale: `scale(${pM2 < 1 ? (pM2 * 1.35).toFixed(3) : '1.0'})`,
+      lineScale: `scaleX(${pM2.toFixed(3)})`,
+      textTrans: `translate3d(0, ${((1 - pM2) * 20).toFixed(1)}px, 0)`
+    };
+
+    const pM3 = subProg(p, 0.55, 0.89);
+    const station3 = {
+      cardTrans: `translate3d(0, ${((1 - pM3) * 65).toFixed(1)}px, 0) scale(${(0.86 + 0.14 * pM3).toFixed(3)})`,
+      codeScale: `scale(${pM3 < 1 ? (pM3 * 1.35).toFixed(3) : '1.0'})`,
+      lineScale: `scaleX(${pM3.toFixed(3)})`,
+      textTrans: `translate3d(0, ${((1 - pM3) * 20).toFixed(1)}px, 0)`
+    };
+
+    const pM4 = subProg(p, 0.65, 0.96);
+    const station4 = {
+      cardTrans: `translate3d(0, ${((1 - pM4) * 65).toFixed(1)}px, 0) scale(${(0.86 + 0.14 * pM4).toFixed(3)})`,
+      codeScale: `scale(${pM4 < 1 ? (pM4 * 1.35).toFixed(3) : '1.0'})`,
+      lineScale: `scaleX(${pM4.toFixed(3)})`,
+      textTrans: `translate3d(0, ${((1 - pM4) * 20).toFixed(1)}px, 0)`
+    };
+
+    // Arte Lateral: Número 03, Bússola e Coordenadas
+    const pArt = subProg(p, 0.05, 0.75);
+    const artNumberTrans = `translate3d(${((1 - pArt) * 160).toFixed(1)}px, 0, 0) scale(${(1 + (1 - pArt) * 1.15).toFixed(3)})`;
+    const artCompassTrans = `rotate(${((1 - pArt) * -180).toFixed(1)}deg) scale(${pArt.toFixed(3)})`;
+    const artLineOne = `scaleX(${subProg(p, 0.15, 0.80).toFixed(3)})`;
+    const artLineTwo = `scaleX(${subProg(p, 0.25, 0.85).toFixed(3)})`;
+    const pDot = subProg(p, 0.35, 0.80);
+    const artDot = `scale(${pDot < 1 ? (pDot * 1.35).toFixed(3) : '1.0'})`;
+
+    // Micro-ornamentos (arco, carimbo e trio de pontos)
+    const pArc = subProg(p, 0.12, 0.75);
+    const decoArcScale = (0.7 + 0.3 * pArc).toFixed(3);
+    const pStamp = subProg(p, 0.40, 0.85);
+    const decoStampTrans = `scale(${pStamp < 1 ? (pStamp * 1.25).toFixed(3) : '1.0'})`;
+    const pDots = subProg(p, 0.45, 0.90);
+    const decoDotsScale = (pDots < 1 ? pDots * 1.3 : 1.0).toFixed(3);
+
+    // Rodapé
+    const pFooter = subProg(p, 0.40, 0.85);
+    const footerTrans = `translate3d(0, ${((1 - pFooter) * 25).toFixed(1)}px, 0)`;
+
+    return {
+      bgClip,
+      topBarScale,
+      topTextTrans,
+      topBadgeScale,
+      topIndexTrans,
+      titleLine1Trans,
+      titleLine2Trans,
+      leadTrans,
+      station1,
+      station2,
+      station3,
+      station4,
+      artNumberTrans,
+      artCompassTrans,
+      artLineOne,
+      artLineTwo,
+      artDot,
+      decoArcScale,
+      decoStampTrans,
+      decoDotsScale,
       footerTrans
     };
   });
@@ -505,20 +621,24 @@
       id={`slide-${index + 2}`}
       class={`slide redesign-slide theme-${slide.accent} family-${slide.family} ${mobile ? 'mobile-slide' : ''}`}
       aria-hidden={!st.isCentered}
-      style={mobile ? '' : (index === 0
-        ? `visibility: ${s2IsVisible ? 'visible' : 'hidden'}; pointer-events: ${s2IsActive ? 'auto' : 'none'}; z-index: ${s2IsVisible ? 4 : 2}; opacity: 1;`
-        : `visibility: ${st.visibility}; pointer-events: ${st.pointerEvents}; z-index: ${st.isCentered ? 3 : 2};`
+      style={mobile ? '' : (
+        index === 0
+          ? `visibility: ${s2IsVisible ? 'visible' : 'hidden'}; pointer-events: ${s2IsActive ? 'auto' : 'none'}; z-index: ${s2IsVisible ? 4 : 2}; opacity: 1; clip-path: ${s2Anim.bgClip}; background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.14), transparent 45%), #0d5b3e;`
+          : (index === 1
+            ? `visibility: ${s3IsVisible ? 'visible' : 'hidden'}; pointer-events: ${s3IsActive ? 'auto' : 'none'}; z-index: ${s3IsVisible ? 5 : 2}; opacity: 1; clip-path: ${s3Anim.bgClip}; background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.7), transparent 45%), linear-gradient(135deg, rgba(255, 255, 255, 0.42), transparent 55%), #f2f1e9;`
+            : `visibility: ${st.visibility}; pointer-events: ${st.pointerEvents}; z-index: ${st.isCentered ? 3 : 2};`
+          )
       )}
     >
-      {#if index === 0 && !mobile}
-        <!-- Canvas sólido do Slide 2: expande de forma sólida sem esmaecer em nada -->
-        <div class="slide-solid-canvas" style={`clip-path: ${s2Anim.bgClip};`} aria-hidden="true"></div>
-      {/if}
-
       <!-- Camada Decorativa de Ambientação com Micro-Elementos Científicos (Igual ao Slide 1) -->
       <div
         class="slide-deco"
-        style={index === 0 && !mobile ? 'opacity: 1; transform: none;' : (mobile ? '' : `opacity: ${st.deco.opacity}; transform: ${st.deco.transform};`)}
+        style={index === 0 && !mobile
+          ? 'opacity: 1; transform: none;'
+          : (index === 1 && !mobile
+            ? 'opacity: 1; transform: none;'
+            : (mobile ? '' : `opacity: ${st.deco.opacity}; transform: ${st.deco.transform};`)
+          )}
         aria-hidden="true"
       >
         {#if slide.accent === 'green'}
@@ -561,13 +681,27 @@
         {:else}
           <div class="deco-mesh mesh-light"></div>
           <!-- Ornamentos editoriais finos em lâmina clara -->
-          <svg class="deco-arc" width="160" height="90" viewBox="0 0 160 90" fill="none" stroke="currentColor">
+          <svg
+            class="deco-arc"
+            width="160"
+            height="90"
+            viewBox="0 0 160 90"
+            fill="none"
+            stroke="currentColor"
+            style={index === 1 && !mobile ? `transform: scale(${s3Anim.decoArcScale}); transform-origin: bottom left;` : ''}
+          >
             <path d="M10 80 A70 70 0 0 1 150 80" stroke-width="1" stroke-dasharray="3 5" opacity="0.25" />
           </svg>
-          <div class="deco-stamp">
+          <div
+            class="deco-stamp"
+            style={index === 1 && !mobile ? `transform: ${s3Anim.decoStampTrans};` : ''}
+          >
             <span>SEC. 0{index + 2} // CLINICAL METHOD</span>
           </div>
-          <div class="deco-dots-trio">
+          <div
+            class="deco-dots-trio"
+            style={index === 1 && !mobile ? `transform: scale(${s3Anim.decoDotsScale});` : ''}
+          >
             <span></span><span></span><span></span>
           </div>
         {/if}
@@ -580,22 +714,37 @@
           class="slide-topline"
           style={index === 0 && !mobile
             ? `opacity: 1; transform: ${s2Anim.topTextTrans}; border-bottom: none;`
-            : (mobile ? '' : `opacity: ${st.topline.opacity}; transform: ${st.topline.transform};`)}
+            : (index === 1 && !mobile
+              ? `opacity: 1; transform: ${s3Anim.topTextTrans}; border-bottom: none;`
+              : (mobile ? '' : `opacity: ${st.topline.opacity}; transform: ${st.topline.transform};`)
+            )}
         >
           <div class="topline-left">
             <span class="slide-eyebrow">{slide.eyebrow}</span>
             <span
               class="topline-tag"
-              style={index === 0 && !mobile ? `transform: scale(${s2Anim.topBadgeScale}); display: inline-block;` : ''}
+              style={index === 0 && !mobile
+                ? `transform: scale(${s2Anim.topBadgeScale}); display: inline-block;`
+                : (index === 1 && !mobile
+                  ? `transform: scale(${s3Anim.topBadgeScale}); display: inline-block;`
+                  : ''
+                )}
             >{slide.badge}</span>
           </div>
           <span
             class="slide-index"
-            style={index === 0 && !mobile ? `transform: ${s2Anim.topIndexTrans};` : ''}
+            style={index === 0 && !mobile
+              ? `transform: ${s2Anim.topIndexTrans};`
+              : (index === 1 && !mobile
+                ? `transform: ${s3Anim.topIndexTrans};`
+                : ''
+              )}
           >{String(index + 2).padStart(2, '0')} / 10</span>
 
           {#if index === 0 && !mobile}
             <div class="topline-rail-line" style={`transform: scaleX(${s2Anim.topBarScale});`}></div>
+          {:else if index === 1 && !mobile}
+            <div class="topline-rail-line" style={`transform: scaleX(${s3Anim.topBarScale});`}></div>
           {/if}
         </div>
 
@@ -617,6 +766,19 @@
                       </span>
                     </span>
                   </h2>
+                {:else if index === 1 && !mobile}
+                  <h2 class="kinetic-title">
+                    <span class="kinetic-line-mask">
+                      <span class="kinetic-line" style={`transform: ${s3Anim.titleLine1Trans};`}>
+                        Quatro formas de levar
+                      </span>
+                    </span>
+                    <span class="kinetic-line-mask">
+                      <span class="kinetic-line line-highlight" style={`transform: ${s3Anim.titleLine2Trans};`}>
+                        o cuidado mais longe.
+                      </span>
+                    </span>
+                  </h2>
                 {:else}
                   <h2 style={mobile ? '' : `opacity: ${st.title.opacity}; transform: ${st.title.transform};`}>
                     {slide.title}
@@ -624,7 +786,12 @@
                 {/if}
                 <p
                   class="slide-lead"
-                  style={index === 0 && !mobile ? `opacity: 1; transform: ${s2Anim.leadTrans};` : (mobile ? '' : `opacity: ${st.lead.opacity}; transform: ${st.lead.transform};`)}
+                  style={index === 0 && !mobile
+                    ? `opacity: 1; transform: ${s2Anim.leadTrans};`
+                    : (index === 1 && !mobile
+                      ? `opacity: 1; transform: ${s3Anim.leadTrans};`
+                      : (mobile ? '' : `opacity: ${st.lead.opacity}; transform: ${st.lead.transform};`)
+                    )}
                 >
                   {slide.lead}
                 </p>
@@ -690,16 +857,27 @@
               {:else if slide.modalities}
                 <div class="modalities-net">
                   {#each slide.modalities as mod, mIdx}
+                    {@const stAnim = mIdx === 0 ? s3Anim.station1 : mIdx === 1 ? s3Anim.station2 : mIdx === 2 ? s3Anim.station3 : s3Anim.station4}
                     <article
                       class="mod-station"
-                      style={mobile ? '' : `opacity: ${st.cards[mIdx].opacity}; transform: ${st.cards[mIdx].transform};`}
+                      style={index === 1 && !mobile
+                        ? `opacity: 1; transform: ${stAnim.cardTrans};`
+                        : (mobile ? '' : `opacity: ${st.cards[mIdx].opacity}; transform: ${st.cards[mIdx].transform};`)}
                     >
                       <div class="station-meta">
-                        <span class="station-code">{mod.code}</span>
-                        <span class="station-line"></span>
+                        <span
+                          class="station-code"
+                          style={index === 1 && !mobile ? `transform: ${stAnim.codeScale}; display: inline-block;` : ''}
+                        >{mod.code}</span>
+                        <span
+                          class="station-line"
+                          style={index === 1 && !mobile ? `transform: ${stAnim.lineScale}; transform-origin: left;` : ''}
+                        ></span>
                       </div>
-                      <h3>{mod.name}</h3>
-                      <p>{mod.desc}</p>
+                      <div class="station-body" style={index === 1 && !mobile ? `transform: ${stAnim.textTrans};` : ''}>
+                        <h3>{mod.name}</h3>
+                        <p>{mod.desc}</p>
+                      </div>
                     </article>
                   {/each}
                 </div>
@@ -928,13 +1106,48 @@
 
               {:else}
                 <!-- Escultura Vetorial Editorial com Coordenadas -->
-                <div class="art-number" style={index === 0 && !mobile ? `transform: ${s2Anim.artNumberTrans};` : ''}>
+                <div
+                  class="art-number"
+                  style={index === 0 && !mobile
+                    ? `transform: ${s2Anim.artNumberTrans};`
+                    : (index === 1 && !mobile
+                      ? `transform: ${s3Anim.artNumberTrans};`
+                      : '')}
+                >
                   {String(index + 2).padStart(2, '0')}
                 </div>
-                <div class="art-line line-one" style={index === 0 && !mobile ? `transform: ${s2Anim.artLineOne}; transform-origin: left;` : ''}></div>
-                <div class="art-line line-two" style={index === 0 && !mobile ? `transform: ${s2Anim.artLineTwo}; transform-origin: left;` : ''}></div>
-                <div class="art-dot" style={index === 0 && !mobile ? `transform: ${s2Anim.artDot};` : ''}></div>
-                <div class="art-compass" style={index === 0 && !mobile ? `transform: ${s2Anim.artCompassTrans};` : ''}>
+                <div
+                  class="art-line line-one"
+                  style={index === 0 && !mobile
+                    ? `transform: ${s2Anim.artLineOne}; transform-origin: left;`
+                    : (index === 1 && !mobile
+                      ? `transform: ${s3Anim.artLineOne}; transform-origin: left;`
+                      : '')}
+                ></div>
+                <div
+                  class="art-line line-two"
+                  style={index === 0 && !mobile
+                    ? `transform: ${s2Anim.artLineTwo}; transform-origin: left;`
+                    : (index === 1 && !mobile
+                      ? `transform: ${s3Anim.artLineTwo}; transform-origin: left;`
+                      : '')}
+                ></div>
+                <div
+                  class="art-dot"
+                  style={index === 0 && !mobile
+                    ? `transform: ${s2Anim.artDot};`
+                    : (index === 1 && !mobile
+                      ? `transform: ${s3Anim.artDot};`
+                      : '')}
+                ></div>
+                <div
+                  class="art-compass"
+                  style={index === 0 && !mobile
+                    ? `transform: ${s2Anim.artCompassTrans};`
+                    : (index === 1 && !mobile
+                      ? `transform: ${s3Anim.artCompassTrans};`
+                      : '')}
+                >
                   <svg width="60" height="60" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="0.8" opacity="0.35">
                     <circle cx="20" cy="20" r="16" stroke-dasharray="2 3"/>
                     <path d="M20 4v32M4 20h32"/>
@@ -950,7 +1163,9 @@
           class="slide-footer"
           style={index === 0 && !mobile
             ? `opacity: 1; transform: ${s2Anim.footerTrans};`
-            : (mobile ? '' : `opacity: ${st.footer.opacity}; transform: ${st.footer.transform};`)}
+            : (index === 1 && !mobile
+              ? `opacity: 1; transform: ${s3Anim.footerTrans};`
+              : (mobile ? '' : `opacity: ${st.footer.opacity}; transform: ${st.footer.transform};`))}
         >
           <div class="footer-left">
             <span>Telefarmácia & Serviços Digitais Farmacêuticos</span>
@@ -1362,8 +1577,25 @@
     gap: 0.5rem;
     margin-bottom: 0.5rem;
   }
-  .station-code { font-size: 0.75rem; font-weight: 800; opacity: 0.55; font-family: monospace; }
-  .station-line { flex: 1; height: 1px; background: currentColor; opacity: 0.2; }
+  .station-code {
+    font-size: 0.75rem;
+    font-weight: 800;
+    opacity: 0.55;
+    font-family: monospace;
+    will-change: transform;
+    transform-origin: center;
+  }
+  .station-line {
+    flex: 1;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.2;
+    transform-origin: left;
+    will-change: transform;
+  }
+  .station-body {
+    will-change: transform;
+  }
   .mod-station h3 { margin: 0 0 0.4rem; font-size: 1.05rem; line-height: 1.15; }
   .mod-station p { margin: 0; font-size: 0.86rem; line-height: 1.45; opacity: 0.72; }
 
